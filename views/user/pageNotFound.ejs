@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>404 - Page Not Found</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 500px;
+            padding: 30px;
+        }
+
+        h1 {
+            font-size: 100px;
+            margin-bottom: 10px;
+            letter-spacing: 5px;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 25px;
+            color: #ddd;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #ff7b00;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #e66a00;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>404</h1>
+        <h2>Oops! Page Not Found</h2>
+        <p>The page you are looking for might have been removed, 
+           had its name changed, or is temporarily unavailable.</p>
+        <a href="/" class="btn">Go Back Home</a>
+    </div>
+
+</body>
+</html>
