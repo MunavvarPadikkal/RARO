@@ -1,80 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>404 - Page Not Found</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%-include("../../views/partials/user/header.ejs")%>
+  <main class="main">
+            <nav aria-label="breadcrumb" class="breadcrumb-nav border-0 mb-0">
+                <div class="container">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">404</li>
+                    </ol>
+                </div><!-- End .container -->
+            </nav><!-- End .breadcrumb-nav -->
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+        	<div class="error-content text-center" style="background-image: url(assets/images/backgrounds/error-bg.jpg)">
+            	<div class="container">
+            		<h1 class="error-title">Error 404</h1><!-- End .error-title -->
+            		<p>We are sorry, the page you've requested is not available.</p>
+            		<a href="/" class="btn btn-outline-primary-2 btn-minwidth-lg">
+            			<span>BACK TO HOMEPAGE</span>
+            			<i class="icon-long-arrow-right"></i>
+            		</a>
+            	</div><!-- End .container -->
+        	</div><!-- End .error-content text-center -->
+        </main><!-- End .main -->
 
-        body {
-            height: 100vh;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-        }
 
-        .container {
-            max-width: 500px;
-            padding: 30px;
-        }
+<%-include("../../views/partials/user/footer.ejs")%>
 
-        h1 {
-            font-size: 100px;
-            margin-bottom: 10px;
-            letter-spacing: 5px;
-        }
+    <button id="scroll-top" title="Back to Top"><i class="icon-arrow-up"></i></button>
 
-        h2 {
-            font-size: 28px;
-            margin-bottom: 15px;
-        }
-
-        p {
-            font-size: 16px;
-            margin-bottom: 25px;
-            color: #ddd;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 25px;
-            background: #ff7b00;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: 0.3s;
-        }
-
-        .btn:hover {
-            background: #e66a00;
-        }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 70px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1>404</h1>
-        <h2>Oops! Page Not Found</h2>
-        <p>The page you are looking for might have been removed, 
-           had its name changed, or is temporarily unavailable.</p>
-        <a href="/" class="btn">Go Back Home</a>
-    </div>
-
-</body>
-</html>
+<%-include("../../views/partials/user/mobileView.ejs")%>

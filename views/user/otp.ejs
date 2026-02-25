@@ -1,0 +1,136 @@
+<%-include("../../views/partials/user/header.ejs")%>
+
+<style>
+    /* Overlay to center box */
+.otp-overlay {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* OTP Card */
+.otp-box {
+  background: #f7f7f7;
+  width: 380px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.otp-box h3 {
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.line {
+  width: 60%;
+  height: 2px;
+  background: #c8a165;
+  margin: 10px auto 30px;
+}
+
+/* OTP Inputs */
+.otp-inputs {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.otp-input {
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  font-size: 22px;
+  border: none;
+  background: #e0e0e0;
+  outline: none;
+}
+
+/* Button */
+.otp-btn {
+  padding: 10px 30px;
+  border: 1px solid #c8a165;
+  background: transparent;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+/* Timer */
+.timer-text {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+
+#timer {
+  font-weight: bold;
+  color: #c8a165;
+}
+
+/* Resend */
+.resend-text a {
+  color: red;
+  text-decoration: none;
+  font-size: 13px;
+}
+</style>
+
+<main class="main">
+  <nav aria-label="breadcrumb" class="breadcrumb-nav border-0 mb-0">
+    <div class="container">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/signin">Login</a></li>
+        <li class="breadcrumb-item active" aria-current="page">OTP</li>
+      </ol>
+    </div>
+    <!-- End .container -->
+  </nav>
+  <!-- End .breadcrumb-nav -->
+
+  <div
+    class="error-content text-center"
+    style="background-image: url(&quot;assets/images/RARO login bg.jpg&quot;)"
+  >
+    <div class="container">
+      <div class="otp-overlay">
+        <div class="otp-box">
+          <h4>OTP Verification</h4>
+          <div class="line"></div>
+
+          <form id="otpForm">
+            <div class="otp-inputs">
+              <input type="text" maxlength="1" class="otp-input" />
+              <input type="text" maxlength="1" class="otp-input" />
+              <input type="text" maxlength="1" class="otp-input" />
+              <input type="text" maxlength="1" class="otp-input" />
+            </div>
+
+            <button type="submit" class="otp-btn">Login →</button>
+
+            <p class="timer-text">
+              Time remaining: <span id="timer">01:00</span>
+            </p>
+
+            <p class="resend-text">
+              Don't get it? <a href="#" id="resendBtn">Resend</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- End .container -->
+  </div>
+</main>
+<!-- End .main -->
+
+<%-include("../../views/partials/user/footer.ejs")%>
+
+<button id="scroll-top" title="Back to Top">
+  <i class="icon-arrow-up"></i>
+</button>
+
+<%-include("../../views/partials/user/mobileView.ejs")%>

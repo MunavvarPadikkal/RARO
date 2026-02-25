@@ -10,7 +10,17 @@
     }
 </style>
 
-            <div class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17" style="background-image: url('assets/images/login bg-1.jpg')">
+ <main class="main">
+            <nav aria-label="breadcrumb" class="breadcrumb-nav border-0 mb-0">
+                <div class="container">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                       	<li class="breadcrumb-item active" aria-current="page">Login</li>
+                    </ol>
+                </div><!-- End .container -->
+            </nav><!-- End .breadcrumb-nav -->
+
+            <div class="login-page bg-image pt-8 pb-8 pt-md-12 pb-md-12 pt-lg-17 pb-lg-17" style="background-image: url('assets/images/RARO login bg.jpg')">
             	<div class="container">
             		<div class="form-box">
             			<div class="form-tab">
@@ -75,21 +85,22 @@
                                             <div id="error1" class="error-message"></div>
 							    		</div><!-- End .form-group -->
 
+							    		<div class="form-group">
 							    			<label for="register-email">Email address *</label>
 							    			<input type="email" class="form-control" id="register-email" name="email" required>
-                                             <div id="error2" class="error-message"></div>
+											<div id="error2" class="error-message"></div>
 							    		</div><!-- End .form-group -->
 
-							    		<div class="form-group">
+                                        <div class="form-group">
 							    			<label for="register-password">Password *</label>
-							    			<input type="password" class="form-control" id="register-password" name="password" minlength="8" required>
-                                             <div id="error3" class="error-message"></div>
+							    			<input type="password" class="form-control" id="register-password" name="password" required>
+											<div id="error3" class="error-message"></div>
 							    		</div><!-- End .form-group -->
 
-                                         <div class="form-group">
+                                        <div class="form-group">
 							    			<label for="confirm-password">Confirm Password *</label>
-							    			<input type="password" class="form-control" id="confirm-password" name="register-confirmpassword" minlength="8" required>
-                                             <div id="error4" class="error-message"></div>
+							    			<input type="password" class="form-control" id="confirm-password" name="confirmpassword" required>
+											<div id="error4" class="error-message"></div>
 							    		</div><!-- End .form-group -->
 
 							    		<div class="form-footer">
@@ -128,6 +139,7 @@
             	</div><!-- End .container -->
             </div><!-- End .login-page section-bg -->
         </main><!-- End .main -->
+
 
 <%-include("../../views/partials/user/footer.ejs")%>
 
@@ -190,11 +202,11 @@ function  emailValidateChecking(){
 function  passValidateChecking(){
     const passval = passid.value;
     const cpassval = cpassid.value;
-    const passPattern = /^[A-Za-z0-9]+$/;
+    const passPattern = /^[A-Za-z0-9@]+$/;
 
-  if(!passval.length<8){
+  if(passval.length<6){
         error3.style.display = "block";
-        error3.innerHTML = "Should contain atleast 8 characters";
+        error3.innerHTML = "Should contain atleast 6 characters";
     }else if(!passPattern.test(passval)){
         error3.style.display = "block";
         error3.innerHTML = "Should contain numbers and alphabets";

@@ -1,4 +1,8 @@
 const User = require("../../models/userSchema");
+const nodemailer = require("nodemailer");
+const env = require("dotenv");
+env.config();
+
 
 const pageNotFound = async(req, res)=>{
     try {
@@ -29,21 +33,82 @@ const loadSignin = async (req,res)=>{
     }
 }
 
-const register = async (req,res) => {
-    const {name,email,password} = req.body;
+const loadOtp = async(req, res)=>{
     try {
-        const newUser = new User({name,email,password});
-        console.log(newUser);
-        
-
-        await newUser.save();
-        return res.redirect("/signin")
+        res.render("otp")
     } catch (error) {
-        console.log("Error for save user",error);
-        res.status(500).send("Internal Server Error");
+        res.redirect("/pageNotFound")
+    }
+}
+
+function generateOtp(){
+    return Math.floor(1000 + Math.random()*9000).toString();
+}
+
+async function sendVerificationEmail(email,otp){
+    try{
+        const transporter = nodemailer.createTransport({
+            service:'gmail',
+            port:587,
+            secure:false,
+            requireTLS:true,
+            auth:{
+                user:process.env.NODEMAILER_EMAIL,
+                pass:process.env.NODEMAILER_PASSWORD
+            }
+        })
+
+        const info = await WebTransportError.sendmail({
+            from: process.env.NODEMAILER_EMAIL,
+            to: email,
+            subject:"verify your account",
+            text:`Your RARO OTP: ${otp}`,
+            html:`<b>Your OTP: ${otp}</b>`
+        })
+
+        return info.accepted.length>0
+
+    }catch(error){
+        console.log("Error sending email")
+        return false;
+    }
+}
+
+
+const register = async (req,res) => {
+    
+    try {
+      const {name,email,password,confirmpassword} = req.body;
+      if(password!==confirmpassword){
+        return res.render("signin",{message:"Password do not match"});
+      }
+
+      const findUser = await User.findOne({email});
+      if(finduser){
+        return res.render("signin",{message:"User with this email already exists"});
+      }
+
+      const otp = generateOtp();
+      const emailSent = await sendVerificationEmail(email,otp);
+      if(!emailSent){
+        return res.json("email-error");
+      }
+
+      req.session.userOtp = otp;
+      req.session.userData = {name,email,password};
+    //   res.render("verify-otp");
+      console.log("OTP Sent ",otp);
+
+    } catch (error) {
+        console.log("User Register Error");
+        res.redirect("/pageNotFound")
     }
 }
 
 module.exports = {
-    loadHomepage, pageNotFound, loadSignin, register
+    loadHomepage,
+    pageNotFound,
+    loadSignin,
+    register,
+    loadOtp 
 }
