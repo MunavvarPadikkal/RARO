@@ -2,6 +2,8 @@ const User = require("../../models/userSchema");
 const nodemailer = require("nodemailer");
 const env = require("dotenv");
 env.config();
+const bcrypt = require("bcrypt");
+const { json } = require("express");
 
 
 const pageNotFound = async(req, res)=>{
@@ -58,7 +60,7 @@ async function sendVerificationEmail(email,otp){
             }
         })
 
-        const info = await WebTransportError.sendmail({
+        const info = await transporter.sendMail({
             from: process.env.NODEMAILER_EMAIL,
             to: email,
             subject:"verify your account",
@@ -84,7 +86,7 @@ const register = async (req,res) => {
       }
 
       const findUser = await User.findOne({email});
-      if(finduser){
+      if(findUser){
         return res.render("signin",{message:"User with this email already exists"});
       }
 
@@ -96,7 +98,7 @@ const register = async (req,res) => {
 
       req.session.userOtp = otp;
       req.session.userData = {name,email,password};
-    //   res.render("verify-otp");
+      res.render("otp");
       console.log("OTP Sent ",otp);
 
     } catch (error) {
@@ -105,10 +107,121 @@ const register = async (req,res) => {
     }
 }
 
+const securePassword = async (password)=>{
+    try {
+        const passwordHash = await bcrypt.hash(password,10);
+        return passwordHash;
+
+
+    } catch (error) {
+        
+    }
+}
+
+const verifyOtp = async (req,res)=>{
+    try {
+        console.log(req.body);
+        const{otp} = req.body;
+        console.log(otp);
+
+        if(otp===req.session.userOtp){
+            const user= req.session.userData;
+            const passwordHash = await securePassword(user.password);
+
+            const saveUserData = new User({
+                name:user.name,
+                email:user.email,
+                password:passwordHash,
+            })
+            await saveUserData.save();
+            req.session.user = saveUserData._id;
+            res.json({success:true, redirectUrl:"/"})
+        }else{
+            res.status(400).json({success:false, message:"Invalid OTP, Please try again"})
+        }
+        
+    } catch (error) {
+        console.error("Error verifying OTP", error);
+        res.status(500).json({success:false, message:"An error occured"})
+    }
+}
+
+const resendOtp = async (req,res)=>{
+    try {
+        const {email} = req.session.userData;
+        if(!email){
+            return res.status(400).json({success:false,message:"Email not found in session"});
+        }
+
+        const otp = generateOtp();
+        req.session.userOtp = otp;
+
+        const emailSent = await sendVerificationEmail(email,otp);
+        if(emailSent){
+            console.log("resend OTP =",otp);
+            res.status(200).json({success:true, message:"OTP Resend successfully"})
+        }else{
+            res.status(500).json({success:false, message:"Failed to resend OTP, Please try again"});
+        }
+
+    } catch (error) {
+        console.error("Error resending OTP");
+        res.status(500).json({status:false,message:"Internal server error, Please try again"});
+        
+    }
+}
+
+
+const signin = async (req, res) => {
+  try {
+    const { signinEmail, signinPassword } = req.body;
+    console.log(req.body);
+
+    const findUser = await User.findOne({
+      isAdmin: 0,
+      email: signinEmail,
+    });
+
+    if (!findUser) {
+      return res.render("signin", { message: "User not found" });
+    }
+
+    if (findUser.isBlocked) {
+      return res.render("signin", {
+        message: "User is blocked by admin",
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(
+      signinPassword,
+      findUser.password
+    );
+
+    if (!passwordMatch) {
+      return res.render("signin", {
+        message: "Incorrect Password",
+      });
+    }
+
+    req.session.user = findUser._id;
+console.log("Login success, redirecting...");
+    res.redirect("/");
+  } catch (error) {
+    console.error("login error", error);
+    res.render("signin", {
+      message: "Login failed, Please try again later!",
+    });
+  }
+};
+
+
 module.exports = {
     loadHomepage,
     pageNotFound,
     loadSignin,
     register,
-    loadOtp 
+    loadOtp,
+    verifyOtp,
+    resendOtp,
+    signin
 }

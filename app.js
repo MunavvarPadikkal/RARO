@@ -5,6 +5,8 @@ const env = require("dotenv");
 const session = require("express-session");
 const db = require("./config/db");
 const userRouter = require("./routes/userRouter");
+const passport = require("passport");
+require("./config/passport");
 
 db();
 
@@ -16,13 +18,16 @@ app.use(express.urlencoded({extended:true}));
 app.use(session({
     secret:process.env.SESSION_SECRET,
     resave:false,
-    saveUninitialized:true,
+    saveUninitialized:false,
     cookie:{
         secure:false,
-        httpOnly:true,
+        httpOnly:true, 
         maxAge:72*60*60*1000
     }
 }))
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use((req,res,next)=>{
     res.set('cache-control','no-store');
     next();
