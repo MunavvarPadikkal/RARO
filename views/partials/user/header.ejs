@@ -3,6 +3,7 @@
 
 
 <!-- molla/index-2.html  22 Nov 2019 09:55:32 GMT -->
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -45,7 +46,7 @@
                                     <li><a href="#">Usd</a></li>
                                 </ul>
                             </div>` End .header-menu -->
-                        <!-- </div>End .header-dropdown --> 
+                        <!-- </div>End .header-dropdown -->
 
                         <!-- <div class="header-dropdown">
                             <a href="#">Eng</a>
@@ -56,7 +57,7 @@
                                     <li><a href="#">Spanish</a></li>
                                 </ul>
                             </div> End .header-menu -->
-                        <!-- </div>End .header-dropdown --> 
+                        <!-- </div>End .header-dropdown -->
                     </div><!-- End .header-left -->
 
                     <div class="header-right">
@@ -65,14 +66,29 @@
                                 <a href="#">Links</a>
                                 <ul>
                                     <!-- <li><a href="tel:#"><i class="icon-phone"></i>Call: +0123 456 789</a></li> -->
-                                    <li><a href="wishlist.html"><i class="icon-heart-o"></i>My Wishlist <span>(3)</span></a></li>
+                                    <li><a href="wishlist.html"><i class="icon-heart-o"></i>My Wishlist
+                                            <span>(3)</span></a></li>
                                     <li><a href="about.html">About Us</a></li>
                                     <li><a href="contact.html">Contact Us</a></li>
-                                    <li><a href="/signin"><i class="icon-user"></i>Login</a></li>
+                                <% if (user) { %>
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            <i class="icon-user"></i> <%= user.name %>
+        </a>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" href="/profile">Profile</a>
+            <a class="dropdown-item" href="/logout">Logout</a>
+        </div>
+    </li>
+<% } else { %>
+    <li>
+        <a href="/signin"><i class="icon-user"></i> Login</a>
+    </li>
+<% } %>
                                 </ul>
                             </li>
                         </ul><!-- End .top-menu -->
-                    </div><!-- End .header-right --> 
+                    </div><!-- End .header-right -->
                 </div><!-- End .container -->
             </div><!-- End .header-top -->
 
@@ -91,49 +107,52 @@
                         <nav class="main-nav">
                             <ul class="menu sf-arrows">
                                 <li class="megamenu-container active">
-                                    <a href="/" >Home</a>
+                                    <a href="/">Home</a>
 
-                                    
+
                                 </li>
                                 <li>
                                     <a href="/">Shop</a>
 
-                        
+
                                 </li>
                                 <li>
                                     <a href="/">Wishlist</a>
 
                                 </li>
-                                 <li>
+                                <li>
                                     <a href="/">Orders</a>
 
                                 </li>
-                                 <li>
+                                <li>
                                     <a href="/">Cart</a>
 
                                 </li>
-                                   
+
                         </nav><!-- End .main-nav -->
                     </div><!-- End .header-left -->
 
                     <div class="header-right">
                         <div class="header-search">
-                            <a href="#" class="search-toggle" role="button" title="Search"><i class="icon-search"></i></a>
+                            <a href="#" class="search-toggle" role="button" title="Search"><i
+                                    class="icon-search"></i></a>
                             <form action="#" method="get">
                                 <div class="header-search-wrapper">
                                     <label for="q" class="sr-only">Search</label>
-                                    <input type="search" class="form-control" name="q" id="q" placeholder="Search in..." required>
+                                    <input type="search" class="form-control" name="q" id="q" placeholder="Search in..."
+                                        required>
                                 </div><!-- End .header-search-wrapper -->
                             </form>
                         </div><!-- End .header-search -->
 
                         <div class="dropdown cart-dropdown">
-                            <a href="#" class="dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-display="static">
+                            <a href="#" class="dropdown-toggle" role="button" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false" data-display="static">
                                 <i class="icon-shopping-cart"></i>
                                 <!-- <span class="cart-count">2</span> -->
                             </a>
 
-                    </div><!-- End .header-right -->
-                </div><!-- End .container -->
-            </div><!-- End .header-middle -->
+                        </div><!-- End .header-right -->
+                    </div><!-- End .container -->
+                </div><!-- End .header-middle -->
         </header><!-- End .header -->

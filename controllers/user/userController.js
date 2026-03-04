@@ -17,8 +17,14 @@ const pageNotFound = async(req, res)=>{
 
 const loadHomepage = async (req,res)=>{
     try{
-         
-        res.render("home");
+         const user = req.session.user;
+         if(user){
+            const userData = await User.findOne({_id:user._id});
+            res.render("home",{user:userData});
+         }else{
+            res.render("home");
+         }
+        
 
     }catch (error){
         console.log("Home page not found");
@@ -28,7 +34,11 @@ const loadHomepage = async (req,res)=>{
 
 const loadSignin = async (req,res)=>{
     try {
-        return res.render("signin")
+        return res.render("signin", {
+    signinMessage: "",
+    registerMessage: "",
+    activeTab: "login"
+});
     } catch (error) {
         console.log("Home page not found");
         res.status(500).send("server error");
@@ -82,12 +92,12 @@ const register = async (req,res) => {
     try {
       const {name,email,password,confirmpassword} = req.body;
       if(password!==confirmpassword){
-        return res.render("signin",{message:"Password do not match"});
+        return res.render("signin",{registerMessage:"Password do not match",signinMessage:"",activeTab: "register"});
       }
 
       const findUser = await User.findOne({email});
       if(findUser){
-        return res.render("signin",{message:"User with this email already exists"});
+        return res.render("signin",{registerMessage:"User with this email already exists",signinMessage:"",activeTab: "register"});
       }
 
       const otp = generateOtp();
@@ -135,7 +145,7 @@ const verifyOtp = async (req,res)=>{
             })
             await saveUserData.save();
             req.session.user = saveUserData._id;
-            res.json({success:true, redirectUrl:"/"})
+            res.json({success:true, redirectUrl:"/signin"})
         }else{
             res.status(400).json({success:false, message:"Invalid OTP, Please try again"})
         }
@@ -183,12 +193,12 @@ const signin = async (req, res) => {
     });
 
     if (!findUser) {
-      return res.render("signin", { message: "User not found" });
+      return res.render("signin", { signinMessage: "User not found", registerMessage: "",activeTab: "login"});
     }
 
     if (findUser.isBlocked) {
       return res.render("signin", {
-        message: "User is blocked by admin",
+        signinMessage: "User is blocked by admin", registerMessage: "",activeTab: "login"
       });
     }
 
@@ -199,21 +209,31 @@ const signin = async (req, res) => {
 
     if (!passwordMatch) {
       return res.render("signin", {
-        message: "Incorrect Password",
+        signinMessage: "Incorrect Password", registerMessage: "",activeTab: "login"
       });
     }
 
-    req.session.user = findUser._id;
+    req.session.user = {
+  _id: findUser._id,
+  name: findUser.name,
+  email: findUser.email
+};
 console.log("Login success, redirecting...");
     res.redirect("/");
   } catch (error) {
     console.error("login error", error);
     res.render("signin", {
-      message: "Login failed, Please try again later!",
+      signinMessage: "Login failed, Please try again later!",
+    registerMessage: "",activeTab: "login"
     });
   }
 };
 
+const logout = (req, res) => {
+  req.session.destroy(() => {
+    res.redirect("/");
+  });
+};
 
 module.exports = {
     loadHomepage,
@@ -223,5 +243,6 @@ module.exports = {
     loadOtp,
     verifyOtp,
     resendOtp,
-    signin
+    signin,
+    logout
 }

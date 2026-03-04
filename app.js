@@ -6,12 +6,15 @@ const session = require("express-session");
 const db = require("./config/db");
 const userRouter = require("./routes/userRouter");
 const passport = require("passport");
+const nocache = require('nocache')
 require("./config/passport");
 
 db();
 
+app.use(nocache())
 env.config();
 const PORT = process.env.PORT || 3000
+
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -25,6 +28,12 @@ app.use(session({
         maxAge:72*60*60*1000
     }
 }))
+
+app.use((req, res, next) => {
+  res.locals.user = req.session.user || null;
+  next();
+});
+
 app.use(passport.initialize());
 app.use(passport.session());
 

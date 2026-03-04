@@ -1,7 +1,6 @@
 <%- include("../partials/user/header") %>
 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
 	<style>
 		.error-message {
 			color: red;
@@ -80,6 +79,11 @@
 											</span>
 										</div>
 									</div>
+										<% if (locals.signinMessage && signinMessage.length > 0) { %>
+											<div class="alert alert-danger text-center">
+												<%=signinMessage%>
+											</div>
+										<% } %>									
 									<!-- End .form-group -->
 
 									<div class="form-footer">
@@ -172,6 +176,12 @@
 										<div id="error4" class="error-message"></div>
 									</div>
 									<!-- End .form-group -->
+									 <% if (locals.registerMessage && registerMessage.length > 0) { %>
+											<div class="alert alert-danger text-center">
+												<%=registerMessage%>
+											</div>
+										<% } %>	
+
 
 									<div class="form-footer">
 										<button type="submit" class="btn btn-outline-primary-2">
@@ -233,7 +243,9 @@
 
 		<%-include("../../views/partials/user/mobileView.ejs")%>
 
-			<!-- Plugins JS File -->
+		<!-- Bootstrap JS Bundle -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>	 -->
+		<!-- Plugins JS File -->
 			<script src="assets/js/jquery.min.js"></script>
 			<script src="assets/js/bootstrap.bundle.min.js"></script>
 			<script src="assets/js/jquery.hoverIntent.min.js"></script>

@@ -12,6 +12,7 @@ router.get("/otp",userController.loadOtp);
 router.post('/verify-otp',userController.verifyOtp);
 router.post('/resend-otp',userController.resendOtp);
 router.post('/signin',userController.signin);
+router.get("/logout", userController.logout);
 
 // Google Login
 router.get(
