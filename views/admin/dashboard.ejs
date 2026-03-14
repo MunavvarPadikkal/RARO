@@ -1,0 +1,50 @@
+<%- include("./partials/adminHeader") %>
+<%- include("./partials/adminSidebar") %>
+
+<div class="admin-main">
+  <%- include("./partials/adminTopbar") %>
+
+  <main class="admin-content">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="rar-card">
+          <div class="text-muted">Total Orders</div>
+          <div class="h4 mb-0">—</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="rar-card">
+          <div class="text-muted">Revenue</div>
+          <div class="h4 mb-0">—</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="rar-card">
+          <div class="text-muted">Customers</div>
+          <div class="h4 mb-0">—</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="rar-card">
+          <div class="text-muted">Returns</div>
+          <div class="h4 mb-0">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3 rar-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="h6 mb-0">Quick links</div>
+      </div>
+      <div class="mt-3 d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-rar" href="/admin/products">Manage products</a>
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/orders">View orders</a>
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/customers">Customers</a>
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/sales-report">Sales report</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include("./partials/adminFooter") %>
+

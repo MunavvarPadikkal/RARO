@@ -45,6 +45,18 @@ const loadSignin = async (req,res)=>{
     }
 }
 
+const loadRegister = async (req,res)=>{
+    try {
+        return res.render("register", {
+    signinMessage: "",
+    registerMessage: ""
+});
+    } catch (error) {
+        console.log("Home page not found");
+        res.status(500).send("server error");
+    }
+}
+
 const loadOtp = async(req, res)=>{
     try {
         res.render("otp")
@@ -75,7 +87,7 @@ async function sendVerificationEmail(email,otp){
             to: email,
             subject:"verify your account",
             text:`Your RARO OTP: ${otp}`,
-            html:`<b>Your OTP: ${otp}</b>`
+            html:`<b>Your RARO OTP: ${otp}</b>`
         })
 
         return info.accepted.length>0
@@ -92,12 +104,12 @@ const register = async (req,res) => {
     try {
       const {name,email,password,confirmpassword} = req.body;
       if(password!==confirmpassword){
-        return res.render("signin",{registerMessage:"Password do not match",signinMessage:"",activeTab: "register"});
+        return res.render("register",{registerMessage:"Password do not match",signinMessage:""});
       }
 
       const findUser = await User.findOne({email});
       if(findUser){
-        return res.render("signin",{registerMessage:"User with this email already exists",signinMessage:"",activeTab: "register"});
+        return res.render("register",{registerMessage:"User with this email already exists",signinMessage:""});
       }
 
       const otp = generateOtp();
@@ -107,6 +119,7 @@ const register = async (req,res) => {
       }
 
       req.session.userOtp = otp;
+      req.session.userOtpExpire = Date.now() + 60 * 1000;
       req.session.userData = {name,email,password};
       res.render("otp");
       console.log("OTP Sent ",otp);
@@ -134,6 +147,13 @@ const verifyOtp = async (req,res)=>{
         const{otp} = req.body;
         console.log(otp);
 
+        if (!req.session.userOtp || !req.session.userOtpExpire || Date.now() > req.session.userOtpExpire) {
+          return res.status(400).json({
+              success: false,
+              message: "OTP expired. Please request a new one."
+          });
+        }
+
         if(otp===req.session.userOtp){
             const user= req.session.userData;
             const passwordHash = await securePassword(user.password);
@@ -144,8 +164,19 @@ const verifyOtp = async (req,res)=>{
                 password:passwordHash,
             })
             await saveUserData.save();
-            req.session.user = saveUserData._id;
-            res.json({success:true, redirectUrl:"/signin"})
+
+            // Set session user same as normal signin
+            req.session.user = {
+              _id: saveUserData._id,
+              name: saveUserData.name,
+              email: saveUserData.email
+            };
+
+            // Clear OTP data after successful verification
+            req.session.userOtp = null;
+            req.session.userOtpExpire = null;
+            req.session.userData = null;
+            res.json({success:true, redirectUrl:"/"});
         }else{
             res.status(400).json({success:false, message:"Invalid OTP, Please try again"})
         }
@@ -165,6 +196,7 @@ const resendOtp = async (req,res)=>{
 
         const otp = generateOtp();
         req.session.userOtp = otp;
+        req.session.userOtpExpire = Date.now() + 60 * 1000;
 
         const emailSent = await sendVerificationEmail(email,otp);
         if(emailSent){
@@ -229,20 +261,35 @@ console.log("Login success, redirecting...");
   }
 };
 
+const loadProfile = async (req,res)=>{
+    try {
+        return res.render("profile", {
+});
+    } catch (error) {
+        console.log("profile page not found");
+        res.status(500).send("server error");
+    }
+}
+
 const logout = (req, res) => {
   req.session.destroy(() => {
     res.redirect("/");
   });
 };
 
+
+
+
 module.exports = {
     loadHomepage,
     pageNotFound,
     loadSignin,
+    loadRegister,
     register,
     loadOtp,
     verifyOtp,
     resendOtp,
     signin,
-    logout
+    logout,
+    loadProfile
 }

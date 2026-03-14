@@ -1,0 +1,23 @@
+<%- include("./partials/adminHeader") %>
+<%- include("./partials/adminSidebar") %>
+
+<div class="admin-main">
+  <%- include("./partials/adminTopbar") %>
+  <main class="admin-content d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 80vh;">
+    <div class="rar-card p-5" style="max-width: 500px; width: 100%;">
+      <div class="mb-4">
+        <i class="fa-solid fa-triangle-exclamation text-warning" style="font-size: 4rem;"></i>
+      </div>
+      <h2 class="h3 fw-bold mb-3">Something Went Wrong</h2>
+      <p class="text-muted mb-4">
+        We encountered an unexpected error while processing your request. Please try again or return to the dashboard.
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <button onclick="window.history.back()" class="btn btn-outline-secondary rounded-pill px-4">Go Back</button>
+        <a href="/admin/dashboard" class="btn btn-rar rounded-pill px-4">Dashboard</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include("./partials/adminFooter") %>
