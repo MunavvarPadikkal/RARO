@@ -1,46 +1,83 @@
-<aside class="admin-sidebar">
-  <div class="admin-brand">
-    <a href="/admin/dashboard">RARO</a>
-    <span class="admin-pill">ADMIN</span>
+<!-- Sidebar Menu -->
+<aside class="w-[260px] bg-brand-sidebar text-gray-400 flex flex-col min-h-screen sticky top-0 shrink-0">
+  <!-- Brand Area -->
+  <div class="px-6 py-8">
+    <a href="/admin/dashboard" class="text-white text-2xl font-semibold tracking-widest uppercase">
+      RARO
+    </a>
   </div>
 
-  <nav class="admin-nav">
-    <a href="/admin/dashboard">
-      <i class="fa-solid fa-chart-column"></i>
-      <span>Dashboard</span>
+  <!-- User Profile block (matching screenshot) -->
+  <div class="px-6 mb-8 flex items-center justify-between group cursor-pointer">
+    <div class="flex items-center gap-3">
+      <div
+        class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-medium overflow-hidden">
+        <img src="\assets\Photo_closeup.jpg" alt="Admin"
+          class="w-full h-full object-cover" />
+      </div>
+      <div>
+        <div class="text-white font-medium text-sm">Admin</div>
+      </div>
+    </div>
+    <i class="fa-solid fa-chevron-down text-xs"></i>
+  </div>
+
+  <!-- Navigation Links -->
+  <nav class="flex-1 px-4 space-y-1">
+    <!-- Active link example -->
+    <a href="/admin/dashboard"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-sidebarActive text-white transition-all">
+      <i class="fa-solid fa-chart-column w-5 text-center"></i>
+      <span class="font-medium">Dashboard</span>
     </a>
-    <a href="/admin/customers">
-      <i class="fa-solid fa-users"></i>
-      <span>Customers</span>
+    <a href="/admin/orders"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-box w-5 text-center"></i>
+      <span class="font-medium">Orders</span>
     </a>
-    <a href="/admin/products">
-      <i class="fa-solid fa-cart-shopping"></i>
-      <span>Products</span>
+    <a href="/admin/customers"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-users w-5 text-center"></i>
+      <span class="font-medium">Clients</span>
     </a>
-    <a href="/admin/orders">
-      <i class="fa-solid fa-box"></i>
-      <span>Orders</span>
+    <a href="/admin/products"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-cart-shopping w-5 text-center"></i>
+      <span class="font-medium">Products</span>
     </a>
-    <a href="/admin/categories">
-      <i class="fa-solid fa-layer-group"></i>
-      <span>Categories</span>
+    <a href="/admin/categories"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-layer-group w-5 text-center"></i>
+      <span class="font-medium">Categories</span>
     </a>
-    <a href="/admin/return-requests">
-      <i class="fa-solid fa-rotate-left"></i>
-      <span>Return Requests</span>
+    <a href="/admin/return-requests"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-rotate-left w-5 text-center"></i>
+      <span class="font-medium">Returns</span>
     </a>
-    <a href="/admin/sales-report">
-      <i class="fa-solid fa-arrow-trend-up"></i>
-      <span>Sales Report</span>
+    <a href="/admin/coupons"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-ticket w-5 text-center"></i>
+      <span class="font-medium">Coupons</span>
     </a>
-    <a href="/admin/coupons">
-      <i class="fa-solid fa-ticket"></i>
-      <span>Coupons</span>
+    <a href="/admin/banners"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-regular fa-image w-5 text-center"></i>
+      <span class="font-medium">Banners</span>
     </a>
-    <a href="/admin/banners">
-      <i class="fa-regular fa-image"></i>
-      <span>Banners</span>
+    <a href="/admin/sales-report"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-arrow-trend-up w-5 text-center"></i>
+      <span class="font-medium">Report</span>
     </a>
   </nav>
-</aside>
 
+  <!-- Bottom Settings/Logout -->
+  <div class="px-4 py-6 space-y-1">
+    <a href="/admin/logout"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      <i class="fa-solid fa-arrow-right-from-bracket w-5 text-center"></i>
+      <span class="font-medium">Log out</span>
+    </a>
+  </div>
+</aside>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -7,86 +8,43 @@
   <title>Admin | RARO</title>
   <link rel="stylesheet" href="/lib/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              peach: '#faede6',
+              orange: '#d38c64',
+              gold: '#cc9966',      // Original brand color
+              sidebar: '#1c1c1c',   // Deep charcoal
+              sidebarActive: '#2f2f2f',
+              mainbg: '#fdfcfb'     // Off-white/beige
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    :root{
-      --rar-primary:#cc9966; /* matches user theme (#c96) */
-      --rar-bg:#f6f7fb;
-      --rar-text:#222;
-      --rar-muted:#6c757d;
-      --rar-card:#ffffff;
-      --rar-border:rgba(0,0,0,.08);
+    a {
+      text-decoration: none !important;
     }
-    body{background:var(--rar-bg); color:var(--rar-text);}
-    .admin-shell{min-height:100vh; display:flex;}
-    .admin-sidebar{
-      width: 260px;
-      background:#111;
-      color:#fff;
-      position:sticky;
-      top:0;
-      height:100vh;
-      border-right:1px solid rgba(255,255,255,.06);
-    }
-    .admin-brand{
-      padding:18px 18px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .admin-brand a{color:#fff; text-decoration:none; font-weight:700; letter-spacing:.6px;}
-    .admin-pill{font-size:.75rem; padding:.25rem .55rem; border:1px solid rgba(255,255,255,.2); border-radius:999px; color:rgba(255,255,255,.85);}
-    .admin-nav{padding:12px;}
-    .admin-nav a{
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      color:rgba(255,255,255,.82);
-      text-decoration:none;
-      margin-bottom:6px;
-    }
-    .admin-nav i{
-      width: 20px;
-      text-align:center;
-      font-size: 16px;
-      color: rgba(255,255,255,.82);
-    }
-    .admin-nav a.active i{ color:#fff; }
-    .admin-nav a:hover{background:rgba(255,255,255,.07); color:#fff;}
-    .admin-nav a.active{
-      background:rgba(204,153,102,.16);
-      border:1px solid rgba(204,153,102,.25);
-      color:#fff;
-    }
-    .admin-main{flex:1; display:flex; flex-direction:column;}
-    .admin-topbar{
-      background:var(--rar-card);
-      border-bottom:1px solid var(--rar-border);
-      padding:14px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .admin-topbar-title{font-weight:600;}
-    .admin-topbar small{color:var(--rar-muted);}
-    .btn-rar{
-      background:var(--rar-primary);
-      border-color:var(--rar-primary);
-      color:#fff;
-    }
-    .btn-rar:hover{filter:brightness(.95); color:#fff;}
-    .admin-content{padding:18px;}
-    .rar-card{
-      background:var(--rar-card);
-      border:1px solid var(--rar-border);
-      border-radius:16px;
-      padding:16px;
+    a:hover {
+      text-decoration: none !important;
     }
   </style>
 </head>
-<body>
-  <div class="admin-shell">
+
+<body class="bg-brand-mainbg text-gray-800 font-sans antialiased min-h-screen">
+  <div class="flex min-h-screen w-full">

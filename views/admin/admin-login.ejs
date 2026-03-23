@@ -1,186 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Login | RARO</title>
 
-    <!-- Main shop theme + bootstrap (same assets as user side) -->
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/assets/css/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login | RARO</title>
 
-    <style>
-      :root {
-        --rar-primary: #cc9966; /* gold accent, same as site */
-        --rar-bg: #f6f7fb;
-        --rar-text: #222;
-      }
+  <!-- Main shop theme + bootstrap (same assets as user side) -->
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-      body {
-        min-height: 100vh;
-        margin: 0;
-        font-family: "Poppins", sans-serif;
-        background: var(--rar-bg);
-        color: var(--rar-text);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+  <style>
+    :root {
+      --rar-primary: #cc9966;
+      /* gold accent, same as site */
+      --rar-bg: #f6f7fb;
+      --rar-text: #222;
+    }
 
-      .admin-login-shell {
-        width: 100%;
-        max-width: 420px;
-        padding: 16px;
-      }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: var(--rar-bg);
+      color: var(--rar-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-      .admin-login-card {
-        background: #ffffff;
-        border-radius: 18px;
-        padding: 20px 22px 18px;
-        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.09);
-        border: 1px solid rgba(0, 0, 0, 0.04);
-      }
+    .admin-login-shell {
+      width: 100%;
+      max-width: 420px;
+      padding: 16px;
+    }
 
-      .admin-login-logo {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 18px;
-      }
+    .admin-login-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 20px 22px 18px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.09);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
 
-      .admin-login-logo img {
-        height: 88px; /* big RARO logo */
-        object-fit: contain;
-      }
+    .admin-login-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
 
-      .admin-login-title {
-        font-size: 1.8rem;
-        font-weight: 600;
-        margin-bottom: 4px;
-        text-align: center;
-      }
+    .admin-login-logo img {
+      height: 88px;
+      /* big RARO logo */
+      object-fit: contain;
+    }
 
-      .admin-login-sub {
-        font-size: 1rem;
-        color: #6c757d;
-        margin-bottom: 12px;
-        text-align: center;
-      }
+    .admin-login-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-align: center;
+    }
 
-      .form-label {
-        font-size: 1rem;
-        font-weight: 500;
-        margin-bottom: 0; /* no extra gap under label */
-      }
+    .admin-login-sub {
+      font-size: 1rem;
+      color: #6c757d;
+      margin-bottom: 12px;
+      text-align: center;
+    }
 
-      .form-control {
-        border-radius: 999px;
-        padding: 0.8rem 1.1rem; /* bigger, neat inputs */
-        font-size: 1rem;
-        background-color: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.16);
-        color: var(--rar-text);
-      }
+    .form-label {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 0;
+      /* no extra gap under label */
+    }
 
-      .form-control::placeholder {
-        color: #b0b5bd;
-      }
+    .form-control {
+      border-radius: 999px;
+      padding: 0.8rem 1.1rem;
+      /* bigger, neat inputs */
+      font-size: 1rem;
+      background-color: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      color: var(--rar-text);
+    }
 
-      /* remove vertical gap between the two fields */
-      .admin-login-card .mb-3 {
-        margin-bottom: 0;
-      }
+    .form-control::placeholder {
+      color: #b0b5bd;
+    }
 
-      .btn-rar {
-        background-color: #000; /* black button like user login */
-        border-color: #000;
-        color: #fff;
-        border-radius: 999px;
-        font-weight: 500;
-        width: 100%;
-        padding: 0.7rem 1rem;
-        font-size: 0.98rem;
-        margin-top: 6px;
-      }
+    /* remove vertical gap between the two fields */
+    .admin-login-card .mb-3 {
+      margin-bottom: 0;
+    }
 
-      .btn-rar:hover {
-        background-color: #111;
-        border-color: #111;
-        color: #fff;
-      }
+    .btn-rar {
+      background-color: #000;
+      /* black button like user login */
+      border-color: #000;
+      color: #fff;
+      border-radius: 999px;
+      font-weight: 500;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      font-size: 0.98rem;
+      margin-top: 6px;
+    }
 
-      .admin-login-footer {
-        margin-top: 12px;
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.8rem;
-        color: #6c757d;
-      }
+    .btn-rar:hover {
+      background-color: #111;
+      border-color: #111;
+      color: #fff;
+    }
 
-      .admin-login-footer a {
-        color: var(--rar-primary);
-        text-decoration: none;
-      }
-    </style>
-  </head>
+    .admin-login-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
 
-  <body>
-    <div class="admin-login-shell">
-      <div class="admin-login-card">
-        <div class="admin-login-logo">
-          <!-- Big RARO logo from user side assets -->
-          <img src="/assets/images/RARO Logo.png" alt="RARO Logo" />
+    .admin-login-footer a {
+      color: var(--rar-primary);
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="admin-login-shell">
+    <div class="admin-login-card">
+      <div class="admin-login-logo">
+        <!-- Big RARO logo from user side assets -->
+        <img src="/assets/images/RARO Logo.png" alt="RARO Logo" />
+      </div>
+
+      <h1 class="admin-login-title">Admin login</h1>
+      <p class="admin-login-sub">
+        Use your admin credentials to access the dashboard.
+      </p>
+
+      <% if (locals.message) { %>
+        <div class="alert alert-danger text-center" style="font-size: 0.85rem; padding: 10px; border-radius: 8px;">
+          <%= message %>
+        </div>
+      <% } %>
+
+      <!-- You will wire this action + method yourself -->
+      <form method="post" action="/admin/login" id="adminLoginForm">
+        <div class="mb-3">
+          <label class="form-label" for="admin-email">Email</label>
+          <input type="text" class="form-control" id="admin-email" name="email" placeholder="admin@raro.com" />
+          <div id="email-error" style="display: none; color: #dc3545; font-size: 0.8rem; margin-top: 5px;"></div>
         </div>
 
-        <h1 class="admin-login-title">Admin login</h1>
-        <p class="admin-login-sub">
-          Use your admin credentials to access the dashboard.
-        </p>
-
-        <!-- You will wire this action + method yourself -->
-        <form method="post" action="/admin/login">
-          <div class="mb-3">
-            <label class="form-label" for="admin-email">Email</label>
-            <input
-              type="email"
-              class="form-control"
-              id="admin-email"
-              name="email"
-              placeholder="admin@raro.com"
-              required
-            />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label" for="admin-password">Password</label>
-            <input
-              type="password"
-              class="form-control"
-              id="admin-password"
-              name="password"
-              placeholder="Enter password"
-              required
-            />
-          </div>
-
-          <button type="submit" class="btn btn-rar">
-            <span>Login to dashboard</span>
-          </button>
-        </form>
-
-        <div class="admin-login-footer">
-          <span>Back to store? <a href="/">Go to RARO</a></span>
+        <div class="mb-3" style="margin-top: 15px;">
+          <label class="form-label" for="admin-password">Password</label>
+          <input type="password" class="form-control" id="admin-password" name="password" placeholder="Enter password" />
+          <div id="password-error" style="display: none; color: #dc3545; font-size: 0.8rem; margin-top: 5px;"></div>
         </div>
+
+        <button type="submit" class="btn btn-rar" style="margin-top: 15px;">
+          <span>Login to dashboard</span>
+        </button>
+      </form>
+
+      <div class="admin-login-footer">
+        <span>Back to store? <a href="/">Go to RARO</a></span>
       </div>
     </div>
+  </div>
 
-    <script src="/assets/js/jquery.min.js"></script>
-    <script src="/assets/js/bootstrap.bundle.min.js"></script>
-  </body>
+  <script src="/assets/js/jquery.min.js"></script>
+  <script src="/assets/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value.trim();
+      
+      const emailError = document.getElementById('email-error');
+      const passwordError = document.getElementById('password-error');
+      
+      let isValid = true;
+      
+      // Reset errors
+      emailError.style.display = 'none';
+      passwordError.style.display = 'none';
+      
+      // Basic Email Regex
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      
+      if (!email) {
+        emailError.textContent = 'Email is required';
+        emailError.style.display = 'block';
+        isValid = false;
+      } else if (!emailPattern.test(email)) {
+        emailError.textContent = 'Please enter a valid email address';
+        emailError.style.display = 'block';
+        isValid = false;
+      }
+      
+      if (!password) {
+        passwordError.textContent = 'Password is required';
+        passwordError.style.display = 'block';
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+
 </html>
-
