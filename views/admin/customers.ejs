@@ -11,10 +11,18 @@
       <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <h2 class="text-xl font-semibold text-gray-900">Clients <span class="text-sm font-normal text-gray-400 ml-2">(Customers)</span></h2>
         
-        <form action="/admin/customers" method="get" class="w-full md:w-auto relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-          <input type="text" name="search" placeholder="Search customers..." value="<%= typeof search !== 'undefined' ? search : '' %>" 
-                 class="w-full md:w-80 pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+        <form action="/admin/customers" method="get" class="w-full md:w-auto relative flex items-center">
+          <div class="relative w-full">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" name="search" placeholder="Search customers..." value="<%= typeof search !== 'undefined' ? search : '' %>" 
+                   class="w-full md:w-80 pl-10 <%= typeof search !== 'undefined' && search !== '' ? 'pr-10' : 'pr-4' %> py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+            <% if (typeof search !== 'undefined' && search !== "") { %>
+              <a href="/admin/customers" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-50" title="Clear search">
+                <i class="fa-solid fa-xmark text-sm"></i>
+              </a>
+            <% } %>
+          </div>
+          <button type="submit" class="hidden">Search</button>
         </form>
       </div>
 

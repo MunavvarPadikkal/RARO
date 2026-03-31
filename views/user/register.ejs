@@ -298,14 +298,18 @@
 				function passValidateChecking() {
 					const passval = passid.value;
 					const cpassval = cpassid.value;
-					const passPattern = /^[A-Za-z0-9@]+$/;
 
-					if (passval.length < 6) {
-						error3.style.display = "block";
-						error3.innerHTML = "Should contain atleast 6 characters";
-					} else if (!passPattern.test(passval)) {
-						error3.style.display = "block";
-						error3.innerHTML = "Should contain numbers and alphabets";
+					error3.style.display = "block";
+					if (passval.length < 8) {
+						error3.innerHTML = "Password must be at least 8 characters";
+					} else if (!/[A-Z]/.test(passval)) {
+						error3.innerHTML = "Password must contain an uppercase letter";
+					} else if (!/[a-z]/.test(passval)) {
+						error3.innerHTML = "Password must contain a lowercase letter";
+					} else if (!/\d/.test(passval)) {
+						error3.innerHTML = "Password must contain a number";
+					} else if (!/[@$!%*?&]/.test(passval)) {
+						error3.innerHTML = "Password must contain a special character";
 					} else {
 						error3.style.display = "none";
 						error3.innerHTML = "";

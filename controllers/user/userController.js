@@ -32,18 +32,21 @@ const loadHomepage = async (req, res) => {
     }
 }
 
-const loadSignin = async (req, res) => {
-    try {
-        return res.render("signin", {
-            signinMessage: "",
-            registerMessage: "",
-            activeTab: "login"
-        });
-    } catch (error) {
-        console.log("Home page not found");
-        res.status(500).send("server error");
-    }
-}
+const loadSignin = (req, res) => {
+  let message = "";
+
+  if (req.session.messages) {
+    message = req.session.messages[0];
+    req.session.messages = []; // clear after showing
+  }
+
+  res.render("signin", {
+    signinMessage: message,
+    registerMessage: "",
+    activeTab: "login",
+  });
+};
+
 
 const loadRegister = async (req, res) => {
     try {
@@ -103,9 +106,25 @@ const register = async (req, res) => {
 
     try {
         const { name, email, password, confirmpassword } = req.body;
-        if (password !== confirmpassword) {
-            return res.render("register", { registerMessage: "Password do not match", signinMessage: "" });
-        }
+        if(password!==confirmpassword){
+        return res.render("register",{registerMessage:"Password do not match",signinMessage:""});
+      }
+
+      if (password.length < 8) {
+        return res.render("register", {registerMessage: "Password must be at least 8 characters", signinMessage:""});
+      }
+      if (!/[A-Z]/.test(password)) {
+        return res.render("register", {registerMessage: "Password must contain an uppercase letter", signinMessage:""});
+      }
+      if (!/[a-z]/.test(password)) {
+        return res.render("register", {registerMessage: "Password must contain a lowercase letter", signinMessage:""});
+      }
+      if (!/\d/.test(password)) {
+        return res.render("register", {registerMessage: "Password must contain a number", signinMessage:""});
+      }
+      if (!/[@$!%*?&]/.test(password)) {
+        return res.render("register", {registerMessage: "Password must contain a special character (e.g. @$!%*?&)", signinMessage:""});
+      }
 
         const findUser = await User.findOne({ email });
         if (findUser) {

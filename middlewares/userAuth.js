@@ -10,7 +10,7 @@ const isSignin = (req,res,next)=>{
     if(req.session.user){
         res.redirect('/')
     }else{
-        next()
+        next();
     }
 }
 module.exports = {checkSession, isSignin}

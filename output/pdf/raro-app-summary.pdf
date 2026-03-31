@@ -1,0 +1,600 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 7862 >>
+stream
+0.07 0.2 0.28 rg
+36 674 325 132 re f
+0.97 0.98 0.98 rg
+0.86 0.89 0.91 RG
+373 674 186 132 re B
+1 1 1 rg
+BT
+/F2 9 Tf
+54 778 Td
+1 1 1 rg
+(APP SUMMARY) Tj
+ET
+BT
+/F2 25 Tf
+54 750 Td
+1 1 1 rg
+(RARO) Tj
+ET
+BT
+/F1 11.3 Tf
+54 728 Td
+1 1 1 rg
+(RARO is a Node.js and Express web app with) Tj
+ET
+BT
+/F1 11.3 Tf
+54 713 Td
+1 1 1 rg
+(EJS-rendered user and admin interfaces backed by) Tj
+ET
+BT
+/F1 11.3 Tf
+54 698 Td
+1 1 1 rg
+(MongoDB. Repo evidence shows a storefront-style) Tj
+ET
+BT
+/F1 11.3 Tf
+54 683 Td
+1 1 1 rg
+(foundation centered on account access,) Tj
+ET
+BT
+/F1 11.3 Tf
+54 668 Td
+1 1 1 rg
+(session-based auth, and basic admin customer) Tj
+ET
+BT
+/F1 11.3 Tf
+54 653 Td
+1 1 1 rg
+(management.) Tj
+ET
+BT
+/F2 11.5 Tf
+389 778 Td
+0.05 0.42 0.45 rg
+(WHO IT'S FOR) Tj
+ET
+BT
+/F1 11 Tf
+389 758 Td
+0.07 0.13 0.17 rg
+(Primary users appear to) Tj
+ET
+BT
+/F1 11 Tf
+389 743.5 Td
+0.07 0.13 0.17 rg
+(be an ecommerce team) Tj
+ET
+BT
+/F1 11 Tf
+389 729 Td
+0.07 0.13 0.17 rg
+(operating a consumer) Tj
+ET
+BT
+/F1 11 Tf
+389 714.5 Td
+0.07 0.13 0.17 rg
+(web storefront:) Tj
+ET
+BT
+/F1 11 Tf
+389 700 Td
+0.07 0.13 0.17 rg
+(shoppers using sign in,) Tj
+ET
+BT
+/F1 11 Tf
+389 685.5 Td
+0.07 0.13 0.17 rg
+(registration, profile,) Tj
+ET
+BT
+/F1 11 Tf
+389 671 Td
+0.07 0.13 0.17 rg
+(and password recovery) Tj
+ET
+BT
+/F1 11 Tf
+389 656.5 Td
+0.07 0.13 0.17 rg
+(flows, plus an admin) Tj
+ET
+BT
+/F1 11 Tf
+389 642 Td
+0.07 0.13 0.17 rg
+(managing customer) Tj
+ET
+BT
+/F1 11 Tf
+389 627.5 Td
+0.07 0.13 0.17 rg
+(access from a separate) Tj
+ET
+BT
+/F1 11 Tf
+389 613 Td
+0.07 0.13 0.17 rg
+(dashboard.) Tj
+ET
+0.97 0.98 0.98 rg
+0.86 0.89 0.91 RG
+36 394 255.5 262 re B
+303.5 394 255.5 262 re B
+36 236 255.5 148 re B
+303.5 236 255.5 148 re B
+BT
+/F2 11.5 Tf
+52 634 Td
+0.05 0.42 0.45 rg
+(WHAT IT DOES) Tj
+ET
+BT
+/F2 10.3 Tf
+52 616 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.3 Tf
+62 616 Td
+0.07 0.13 0.17 rg
+(Serves public user pages for home, sign) Tj
+ET
+BT
+/F1 10.3 Tf
+62 602.9 Td
+0.07 0.13 0.17 rg
+(in, register, OTP verify, profile, and) Tj
+ET
+BT
+/F1 10.3 Tf
+62 589.8 Td
+0.07 0.13 0.17 rg
+(password recovery.) Tj
+ET
+BT
+/F2 10.3 Tf
+52 572.7 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.3 Tf
+62 572.7 Td
+0.07 0.13 0.17 rg
+(Supports email OTP registration and) Tj
+ET
+BT
+/F1 10.3 Tf
+62 559.6 Td
+0.07 0.13 0.17 rg
+(forgot-password flows using Nodemailer) Tj
+ET
+BT
+/F1 10.3 Tf
+62 546.5 Td
+0.07 0.13 0.17 rg
+(and Gmail transport.) Tj
+ET
+BT
+/F2 10.3 Tf
+52 529.4000000000001 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.3 Tf
+62 529.4000000000001 Td
+0.07 0.13 0.17 rg
+(Supports Google sign in with Passport) Tj
+ET
+BT
+/F1 10.3 Tf
+62 516.3000000000001 Td
+0.07 0.13 0.17 rg
+(Google OAuth 2.0.) Tj
+ET
+BT
+/F2 10.3 Tf
+52 499.2000000000001 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.3 Tf
+62 499.2000000000001 Td
+0.07 0.13 0.17 rg
+(Persists authenticated user state in) Tj
+ET
+BT
+/F1 10.3 Tf
+62 486.1000000000001 Td
+0.07 0.13 0.17 rg
+(Express sessions and exposes it to EJS) Tj
+ET
+BT
+/F1 10.3 Tf
+62 473.0000000000001 Td
+0.07 0.13 0.17 rg
+(views.) Tj
+ET
+BT
+/F2 10.3 Tf
+52 455.9000000000001 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.3 Tf
+62 455.9000000000001 Td
+0.07 0.13 0.17 rg
+(Provides a separate admin login and) Tj
+ET
+BT
+/F1 10.3 Tf
+62 442.80000000000007 Td
+0.07 0.13 0.17 rg
+(dashboard route space under /admin.) Tj
+ET
+BT
+/F2 10.3 Tf
+52 425.7000000000001 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.3 Tf
+62 425.7000000000001 Td
+0.07 0.13 0.17 rg
+(Lets admins search customers, paginate) Tj
+ET
+BT
+/F1 10.3 Tf
+62 412.6000000000001 Td
+0.07 0.13 0.17 rg
+(results, and block or unblock accounts.) Tj
+ET
+BT
+/F2 10.3 Tf
+52 395.5000000000001 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.3 Tf
+62 395.5000000000001 Td
+0.07 0.13 0.17 rg
+(Includes additional ecommerce-oriented) Tj
+ET
+BT
+/F1 10.3 Tf
+62 382.4000000000001 Td
+0.07 0.13 0.17 rg
+(schemas for products, carts, orders,) Tj
+ET
+BT
+/F1 10.3 Tf
+62 369.3000000000001 Td
+0.07 0.13 0.17 rg
+(coupons, categories, banners, wishlist,) Tj
+ET
+BT
+/F1 10.3 Tf
+62 356.2000000000001 Td
+0.07 0.13 0.17 rg
+(and addresses.) Tj
+ET
+BT
+/F2 11.5 Tf
+319.5 634 Td
+0.05 0.42 0.45 rg
+(HOW IT WORKS) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 614 Td
+0.07 0.13 0.17 rg
+(app.js boots Express, loads .env,) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 600.8 Td
+0.07 0.13 0.17 rg
+(connects to MongoDB via Mongoose, enables) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 587.6 Td
+0.07 0.13 0.17 rg
+(JSON/form parsing, sessions, Passport,) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 574.4 Td
+0.07 0.13 0.17 rg
+(and static assets from public/, then) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 561.2 Td
+0.07 0.13 0.17 rg
+(mounts routes/userRouter.js at / and) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 548 Td
+0.07 0.13 0.17 rg
+(routes/adminRouter.js at /admin. Routers) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 534.8 Td
+0.07 0.13 0.17 rg
+(call controller files in controllers/user) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 521.6 Td
+0.07 0.13 0.17 rg
+(and controllers/admin; middleware in) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 508.4 Td
+0.07 0.13 0.17 rg
+(middlewares/ guards user and admin) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 495.2 Td
+0.07 0.13 0.17 rg
+(access. Authentication data flows from) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 482 Td
+0.07 0.13 0.17 rg
+(form posts or Google OAuth into) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 468.8 Td
+0.07 0.13 0.17 rg
+(controllers, which query) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 455.6 Td
+0.07 0.13 0.17 rg
+(models/userSchema.js, hash passwords with) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 442.4 Td
+0.07 0.13 0.17 rg
+(bcrypt, store session state, and render) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 429.20000000000005 Td
+0.07 0.13 0.17 rg
+(EJS views from views/user and) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 416 Td
+0.07 0.13 0.17 rg
+(views/admin. Email OTPs are sent through) Tj
+ET
+BT
+/F1 10.2 Tf
+319.5 402.8 Td
+0.07 0.13 0.17 rg
+(Nodemailer.) Tj
+ET
+BT
+/F2 11.5 Tf
+52 372 Td
+0.05 0.42 0.45 rg
+(HOW TO RUN) Tj
+ET
+BT
+/F2 10.5 Tf
+52 352 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.5 Tf
+62 352 Td
+0.07 0.13 0.17 rg
+(Install dependencies: npm install.) Tj
+ET
+BT
+/F2 10.5 Tf
+52 334.6 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.5 Tf
+62 334.6 Td
+0.07 0.13 0.17 rg
+(Create or update .env with PORT,) Tj
+ET
+BT
+/F1 10.5 Tf
+62 321.20000000000005 Td
+0.07 0.13 0.17 rg
+(MONGODB_URI, SESSION_SECRET, Google) Tj
+ET
+BT
+/F1 10.5 Tf
+62 307.8 Td
+0.07 0.13 0.17 rg
+(OAuth keys, and Nodemailer credentials.) Tj
+ET
+BT
+/F2 10.5 Tf
+52 290.40000000000003 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.5 Tf
+62 290.40000000000003 Td
+0.07 0.13 0.17 rg
+(Start the app with npm start \(the repo) Tj
+ET
+BT
+/F1 10.5 Tf
+62 277.00000000000006 Td
+0.07 0.13 0.17 rg
+(script runs nodemon app\).) Tj
+ET
+BT
+/F2 10.5 Tf
+52 259.6 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.5 Tf
+62 259.6 Td
+0.07 0.13 0.17 rg
+(Open http://localhost:3000; use) Tj
+ET
+BT
+/F1 10.5 Tf
+62 246.20000000000002 Td
+0.07 0.13 0.17 rg
+(/admin/login for the admin area.) Tj
+ET
+BT
+/F2 11.5 Tf
+319.5 372 Td
+0.05 0.42 0.45 rg
+(NOT FOUND IN REPO) Tj
+ET
+BT
+/F2 10.4 Tf
+319.5 352 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 352 Td
+0.07 0.13 0.17 rg
+(README or explicit product overview.) Tj
+ET
+BT
+/F2 10.4 Tf
+319.5 334.8 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 334.8 Td
+0.07 0.13 0.17 rg
+(Deployment instructions beyond the) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 321.6 Td
+0.07 0.13 0.17 rg
+(local start script.) Tj
+ET
+BT
+/F2 10.4 Tf
+319.5 304.40000000000003 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 304.40000000000003 Td
+0.07 0.13 0.17 rg
+(Seed data, tests, API docs, or) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 291.20000000000005 Td
+0.07 0.13 0.17 rg
+(production config guidance.) Tj
+ET
+BT
+/F2 10.4 Tf
+319.5 274.00000000000006 Td
+0.07 0.13 0.17 rg
+(-) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 274.00000000000006 Td
+0.07 0.13 0.17 rg
+(Confirmed product/order/cart) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 260.80000000000007 Td
+0.07 0.13 0.17 rg
+(controller wiring for the extra) Tj
+ET
+BT
+/F1 10.4 Tf
+329.5 247.60000000000005 Td
+0.07 0.13 0.17 rg
+(schemas listed in models/.) Tj
+ET
+0.34 0.41 0.46 rg
+BT
+/F1 9.2 Tf
+36 22 Td
+0.34 0.41 0.46 rg
+(Evidence used: app.js, package.json, routes/, controllers/, middlewares/, config/, and models/.) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+8310
+%%EOF

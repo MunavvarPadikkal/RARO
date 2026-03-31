@@ -1,0 +1,108 @@
+<%-include("../../views/partials/user/header.ejs")%>
+
+<main class="main">
+    <div class="page-header text-center" style="background-image: url('assets/images/page-header-bg.jpg')">
+        <div class="container">
+            <h1 class="page-title">My Account<span>Edit Profile</span></h1>
+        </div><!-- End .container -->
+    </div><!-- End .page-header -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav mb-3">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/profile">Profile</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Profile</li>
+            </ol>
+        </div><!-- End .container -->
+    </nav><!-- End .breadcrumb-nav -->
+
+    <div class="page-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px; overflow: hidden; background: #ffffff;">
+                        <div class="card-body p-5">
+                            <h3 class="mb-4 text-center" style="font-weight: 600; color: #333;">Account Details</h3>
+                            
+                            <form id="accountDetailsForm">
+                                <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Full Name*</label>
+                                <input type="text" name="name" id="editName" class="form-control mb-3" value="<%= user && user.name ? user.name : '' %>" required style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+
+                                <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Email Address*</label>
+                                <input type="email" name="email" id="editEmail" class="form-control mb-3" value="<%= user && user.email ? user.email : '' %>" required style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;" readonly>
+
+                                <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Phone Number</label>
+                                <input type="text" name="phone" id="editPhone" class="form-control mb-3" value="<%= user && user.phone ? user.phone : '' %>" style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+
+                                <hr class="mt-4 mb-4">
+                                <h5 class="mb-3" style="font-size: 15px; font-weight: 600;">Password Change</h5>
+
+                                <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Current Password (leave blank to leave unchanged)</label>
+                                <input type="password" name="currentPassword" id="editCurrentPassword" class="form-control mb-3" style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+
+                                <label style="font-size: 13px; color: #666; margin-bottom: 5px;">New Password (leave blank to leave unchanged)</label>
+                                <input type="password" name="newPassword" id="editNewPassword" class="form-control mb-3" style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+
+                                <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Confirm New Password</label>
+                                <input type="password" name="confirmPassword" id="editConfirmPassword" class="form-control mb-4" style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+
+                                <div class="text-center mt-2">
+                                    <a href="/profile" class="btn btn-outline-dark mr-3" style="padding: 12px 30px; border-radius: 8px; font-weight: 500;">Cancel</a>
+                                    <button type="submit" class="btn btn-dark" style="padding: 12px 40px; font-weight: 500; letter-spacing: 1px; border-radius: 8px;">
+                                        <span>SAVE CHANGES</span>
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <script>
+                                document.getElementById('accountDetailsForm').addEventListener('submit', async function(e) {
+                                    e.preventDefault();
+                                    const formData = {
+                                        name: document.getElementById('editName').value,
+                                        phone: document.getElementById('editPhone').value,
+                                        currentPassword: document.getElementById('editCurrentPassword').value,
+                                        newPassword: document.getElementById('editNewPassword').value,
+                                        confirmPassword: document.getElementById('editConfirmPassword').value
+                                    };
+
+                                    try {
+                                        const response = await fetch('/updateProfile', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(formData)
+                                        });
+                                        const result = await response.json();
+                                        
+                                        if (result.success) {
+                                            if (typeof Swal !== 'undefined') { 
+                                                Swal.fire('Success', result.message, 'success').then(() => { 
+                                                    window.location.href = '/profile'; 
+                                                }); 
+                                            } else { 
+                                                alert(result.message); 
+                                                window.location.href = '/profile'; 
+                                            }
+                                        } else {
+                                            if (typeof Swal !== 'undefined') { Swal.fire('Error', result.message, 'error') } else { alert(result.message); }
+                                        }
+                                    } catch (error) {
+                                        console.error('Update Error:', error);
+                                        alert('An error occurred during profile update.');
+                                    }
+                                });
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- End .row -->
+        </div><!-- End .container -->
+    </div><!-- End .page-content -->
+</main><!-- End .main -->
+
+<%-include("../../views/partials/user/footer.ejs")%>
+
+<button id="scroll-top" title="Back to Top">
+  <i class="icon-arrow-up"></i>
+</button>
+
+<%-include("../../views/partials/user/mobileView.ejs")%>

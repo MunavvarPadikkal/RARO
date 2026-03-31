@@ -20,7 +20,7 @@ const customerInfo = async (req,res)=>{
                 {name:{$regex:".*"+search+".*"}},
                 {email:{$regex:".*"+search+".*"}}
             ]
-        }).limit(limit*1).skip((page-1)*limit).exec();
+        }).sort({ createdOn: -1 }).limit(limit*1).skip((page-1)*limit).exec();
 
         const count = await User.find({
                isAdmin:false,
