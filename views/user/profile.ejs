@@ -35,8 +35,7 @@
 										role="tab" aria-controls="tab-downloads" aria-selected="false">Coupons</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" id="tab-address-link" data-toggle="tab" href="#tab-address"
-										role="tab" aria-controls="tab-address" aria-selected="false">Adresses</a>
+									<a class="nav-link" href="/address">Addresses</a>
 								</li>
 								<li class="nav-item">
 									<a class="nav-link" id="tab-wallet-link" data-toggle="tab" href="#tab-wallet"
@@ -47,9 +46,32 @@
 										role="tab" aria-controls="tab-invite" aria-selected="false">Invite & earn</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" href="/logout">Sign Out</a>
+									<a class="nav-link" href="javascript:void(0);" onclick="confirmSignOut()">Sign
+										Out</a>
 								</li>
 							</ul>
+
+							<!-- SweetAlert2 CDN & Sign Out Logic -->
+							<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+							<script>
+								function confirmSignOut() {
+									Swal.fire({
+										title: 'Sign Out?',
+										text: "Are you sure you want to log out of your account?",
+										icon: 'warning',
+										showCancelButton: true,
+										confirmButtonColor: '#d33',
+										cancelButtonColor: '#3085d6',
+										confirmButtonText: 'Yes, Sign Out',
+										cancelButtonText: 'Cancel',
+										reverseButtons: true
+									}).then((result) => {
+										if (result.isConfirmed) {
+											window.location.href = '/logout';
+										}
+									});
+								}
+							</script>
 						</aside><!-- End .col-lg-3 -->
 
 						<div class="col-md-8 col-lg-9">
@@ -115,13 +137,21 @@
 
 															if (result.success) {
 																document.getElementById('userProfileImage').src = result.imagePath;
-																Swal.fire ? Swal.fire('Success', 'Profile photo updated', 'success') : alert('Profile photo updated');
+																if (typeof Swal !== 'undefined') {
+																	Swal.fire('Success', 'Profile photo updated', 'success');
+																} else {
+																	alert('Profile photo updated');
+																}
 															} else {
-																Swal.fire ? Swal.fire('Error', result.message || 'Failed to update photo', 'error') : alert(result.message || 'Error updating photo');
+																if (typeof Swal !== 'undefined') {
+																	Swal.fire('Error', result.message || 'Failed to update photo', 'error');
+																} else {
+																	alert(result.message || 'Error updating photo');
+																}
 															}
 														} catch (error) {
 															console.error('Upload Error:', error);
-															alert('An error occurred during upload.');
+															alert('An error occurred during upload: ' + error.message);
 														}
 													});
 												</script>
@@ -189,22 +219,47 @@
 													<div class="col-12">
 														<div class="p-3 detail-box"
 															style="background: #fdfdfd; border: 1px solid #f0f0f0; border-radius: 12px; transition: 0.3s;">
-															<div class="d-flex align-items-center mb-1">
-																<svg xmlns="http://www.w3.org/2000/svg" width="16"
-																	height="16" fill="#888" class="mr-2"
-																	viewBox="0 0 16 16">
-																	<path
-																		d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
-																</svg>
-																<small class="text-muted text-uppercase"
-																	style="font-size: 11px; letter-spacing: 0.5px;">Address
-																	Overview</small>
+															<div
+																class="d-flex align-items-center justify-content-between mb-2">
+																<div class="d-flex align-items-center">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="16"
+																		height="16" fill="#888" class="mr-2"
+																		viewBox="0 0 16 16">
+																		<path
+																			d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+																	</svg>
+																	<small class="text-muted text-uppercase"
+																		style="font-size: 11px; letter-spacing: 0.5px;">Default
+																		Address</small>
+																</div>
+																<a href="/address"
+																	style="font-size: 12px; color: #888; text-decoration: none; font-weight: 500;">Manage
+																	&rarr;</a>
 															</div>
-															<p class="mb-0 font-weight-medium"
-																style="color: #222; font-size: 15px;">
-																<%= user && user.address ? user.address
-																	: 'No address added' %>
-															</p>
+															<% const allAddresses=userAddress && userAddress.address ?
+																userAddress.address : []; %>
+																<% const defaultAddr=allAddresses.find(a=> a.isDefault)
+																	|| allAddresses[0] || null; %>
+																	<% if(defaultAddr) { %>
+																		<p class="mb-0 font-weight-medium"
+																			style="color: #222; font-size: 15px; line-height: 1.6;">
+																			<strong>
+																				<%= defaultAddr.name %>
+																			</strong><br>
+																			<span style="color:#555;font-size:14px;">
+																				<%= defaultAddr.landMark %>, <%=
+																						defaultAddr.city %>, <%=
+																							defaultAddr.state %> - <%=
+																								defaultAddr.pincode %>
+																			</span>
+																		</p>
+																		<% } else { %>
+																			<p class="mb-0"
+																				style="color: #aaa; font-size: 14px;">No
+																				address added. <a href="/address"
+																					style="color: #c8a165; font-weight: 500;">Add
+																					one &rarr;</a></p>
+																			<% } %>
 														</div>
 													</div>
 												</div>
@@ -325,7 +380,7 @@
 
 								</div><!-- .End .tab-pane -->
 
-								
+
 							</div>
 						</div><!-- End .col-lg-9 -->
 					</div><!-- End .row -->
@@ -340,4 +395,4 @@
 			<i class="icon-arrow-up"></i>
 		</button>
 
-	<%-include("../../views/partials/user/mobileView.ejs")%>
+		<%-include("../../views/partials/user/mobileView.ejs")%>

@@ -17,12 +17,6 @@ router.post('/signin', userController.signin);
 router.get("/logout", userController.logout);
 router.get("/profile", userAuth.checkSession, profileController.loadProfile);
 
-
-router.post("/updateProfilePhoto", userAuth.checkSession, upload.single("profilePhoto"), profileController.updateProfilePhoto);
-router.post("/updateProfile", userAuth.checkSession, profileController.updateProfile);
-router.get("/edit-profile", userAuth.checkSession, profileController.loadEditProfile);
-
-
 // Forgot Password Flow
 router.get("/forgotPassword", userController.forgotPasswordLoad);
 router.post("/forgotPassword", userController.forgotPasswordSendOtp);
@@ -31,6 +25,22 @@ router.post("/verifyForgotPasswordOtp", userController.forgotPasswordOtpVerify);
 router.post("/resendForgotPasswordOtp", userController.forgotPasswordResendOtp);
 router.get("/resetPassword", userController.resetPasswordLoad);
 router.post("/resetPassword", userController.resetPasswordUpdate);
+
+// Profile Management
+router.post("/updateProfilePhoto", userAuth.checkSession, upload.single("profilePhoto"), profileController.updateProfilePhoto);
+router.post("/updateProfile", userAuth.checkSession, profileController.updateProfile);
+router.get("/edit-profile", userAuth.checkSession, profileController.loadEditProfile);
+// Change Email with OTP
+router.post("/change-email/request", userAuth.checkSession, profileController.changeEmailRequest);
+router.post("/change-email/verify-otp", userAuth.checkSession, profileController.changeEmailVerifyOtp);
+router.post("/change-email/resend-otp", userAuth.checkSession, profileController.changeEmailResendOtp);
+
+// Address Management
+router.get("/address", userAuth.checkSession, profileController.loadAddress); 
+router.post("/addAddress", userAuth.checkSession, profileController.addAddress);
+router.post("/editAddress", userAuth.checkSession, profileController.editAddress);
+router.delete("/deleteAddress", userAuth.checkSession, profileController.deleteAddress);
+router.post("/setDefaultAddress", userAuth.checkSession, profileController.setDefaultAddress);
 
 
 

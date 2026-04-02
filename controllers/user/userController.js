@@ -1,9 +1,6 @@
 const User = require("../../models/userSchema");
-const nodemailer = require("nodemailer");
-const env = require("dotenv");
-env.config();
 const bcrypt = require("bcrypt");
-const { json } = require("express");
+const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils");
 
 
 const pageNotFound = async (req, res) => {
@@ -68,38 +65,7 @@ const loadOtp = async (req, res) => {
     }
 }
 
-function generateOtp() {
-    return Math.floor(1000 + Math.random() * 9000).toString();
-}
 
-async function sendVerificationEmail(email, otp) {
-    try {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            port: 587,
-            secure: false,
-            requireTLS: true,
-            auth: {
-                user: process.env.NODEMAILER_EMAIL,
-                pass: process.env.NODEMAILER_PASSWORD
-            }
-        })
-
-        const info = await transporter.sendMail({
-            from: process.env.NODEMAILER_EMAIL,
-            to: email,
-            subject: "verify your account",
-            text: `Your RARO OTP: ${otp}`,
-            html: `<b>Your RARO OTP: ${otp}</b>`
-        })
-
-        return info.accepted.length > 0
-
-    } catch (error) {
-        console.log("Error sending email")
-        return false;
-    }
-}
 
 
 const register = async (req, res) => {

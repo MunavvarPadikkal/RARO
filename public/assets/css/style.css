@@ -5731,7 +5731,7 @@ p {
   font-size: 1.4rem;
   line-height: 1.5;
   letter-spacing: -0.01em;
-  min-width: 170px;
+  min-width: 100px;
   border-radius: 0;
   white-space: normal;
   transition: all 0.3s;
@@ -10249,6 +10249,12 @@ button:focus {
   padding-left: 2rem;
   padding-right: 2rem;
 }
+/* Hero Button Hover */
+.hero-cta-btn:hover {
+  background: transparent !important;
+  color: #111111 !important;
+  border-color: #111111 !important;
+}
 .btn.btn-load-more i {
   margin: 0 !important;
 }
@@ -14034,7 +14040,6 @@ button:focus {
 }
 .mb-3 {
   margin-bottom: 3rem !important;
-  margin-top: 7rem;
 }
 .pt-3 {
   padding-top: 3rem !important;
