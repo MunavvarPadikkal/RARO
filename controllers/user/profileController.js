@@ -1,13 +1,12 @@
-const User = require("../../models/userSchema");
-const Address = require("../../models/addressSchema");
+const profileService = require("../../services/profileService");
 const bcrypt = require("bcrypt");
 const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils");
 
 const loadProfile = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const userData = await User.findById(userId);
-        const addressData = await Address.findOne({userId : userId});
+        const userData = await profileService.findUserById(userId);
+        const addressData = await profileService.findUserAddress(userId);
         return res.render("profile", {
             user: userData, userAddress: addressData ? addressData : { address: [] }
         });
@@ -25,7 +24,7 @@ const updateProfilePhoto = async (req, res) => {
         }
 
         const imagePath = `/uploads/profileImages/${req.file.filename}`;
-        await User.findByIdAndUpdate(userId, { profilePhoto: imagePath });
+        await profileService.updateUserPhoto(userId, imagePath);
 
         res.json({ success: true, imagePath: imagePath, message: "Profile photo updated successfully" });
     } catch (error) {
@@ -37,7 +36,7 @@ const updateProfilePhoto = async (req, res) => {
 const loadEditProfile = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const userData = await User.findById(userId);
+        const userData = await profileService.findUserById(userId);
         return res.render("edit-profile", { user: userData });
     } catch (error) {
         console.error("edit profile page not found", error);
@@ -58,7 +57,7 @@ const updateProfile = async (req, res) => {
                 return res.status(400).json({ success: false, message: "New passwords do not match" });
             }
             
-            const user = await User.findById(userId);
+            const user = await profileService.findUserById(userId);
             
             // If user has an existing password (prevents issues for Google Auth users without pass)
             if (user.password) {
@@ -75,7 +74,7 @@ const updateProfile = async (req, res) => {
             updateData.password = passwordHash;
         }
 
-        await User.findByIdAndUpdate(userId, updateData);
+        await profileService.updateUserDetails(userId, updateData);
         
         // Update session name if changed
         if (req.session.user) {
@@ -93,8 +92,8 @@ const updateProfile = async (req, res) => {
 const loadAddress = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const userData = await User.findById(userId);
-        const addressData = await Address.findOne({ userId: userId });
+        const userData = await profileService.findUserById(userId);
+        const addressData = await profileService.findUserAddress(userId);
 
         res.render("address", {
             user: userData,
@@ -111,20 +110,27 @@ const addAddress = async (req, res) => {
         const userId = req.session.user._id;
         const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
 
+        if (!name || name.trim().length < 3) return res.status(400).json({ success: false, message: "Valid house name is required" });
+        if (!phone || !/^[0-9]{10}$/.test(phone)) return res.status(400).json({ success: false, message: "Valid 10-digit phone number is required" });
+        if (altPhone && altPhone !== 'N/A' && !/^[0-9]{10}$/.test(altPhone)) return res.status(400).json({ success: false, message: "Valid 10-digit alternate phone number is required if provided" });
+        if (!landMark || landMark.trim().length === 0) return res.status(400).json({ success: false, message: "Landmark is required" });
+        if (!city || city.trim().length === 0) return res.status(400).json({ success: false, message: "City is required" });
+        if (!state || state.trim().length === 0) return res.status(400).json({ success: false, message: "State is required" });
+        if (!pincode || !/^[0-9]{6}$/.test(pincode)) return res.status(400).json({ success: false, message: "Valid 6-digit pincode is required" });
+
         const newAddress = { addressType, name, city, landMark, state, pincode, phone, altPhone };
-        let userAddress = await Address.findOne({ userId: userId });
+        let userAddress = await profileService.findUserAddress(userId);
 
         if (!userAddress) {
             // First address ever — make it default
             newAddress.isDefault = true;
-            userAddress = new Address({ userId: userId, address: [newAddress] });
-            await userAddress.save();
+            await profileService.createUserAddress(userId, [newAddress]);
         } else {
             // If no existing default, make this one default
             const hasDefault = userAddress.address.some(a => a.isDefault);
             if (!hasDefault) newAddress.isDefault = true;
             userAddress.address.push(newAddress);
-            await userAddress.save();
+            await profileService.saveUserAddress(userAddress);
         }
 
         res.json({ success: true, message: "Address added successfully!" });
@@ -139,7 +145,15 @@ const editAddress = async (req, res) => {
         const userId = req.session.user._id;
         const { addressId, addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
 
-        const userAddress = await Address.findOne({ userId: userId });
+        if (!name || name.trim().length < 3) return res.status(400).json({ success: false, message: "Valid house name is required" });
+        if (!phone || !/^[0-9]{10}$/.test(phone)) return res.status(400).json({ success: false, message: "Valid 10-digit phone number is required" });
+        if (altPhone && altPhone !== 'N/A' && !/^[0-9]{10}$/.test(altPhone)) return res.status(400).json({ success: false, message: "Valid 10-digit alternate phone number is required if provided" });
+        if (!landMark || landMark.trim().length === 0) return res.status(400).json({ success: false, message: "Landmark is required" });
+        if (!city || city.trim().length === 0) return res.status(400).json({ success: false, message: "City is required" });
+        if (!state || state.trim().length === 0) return res.status(400).json({ success: false, message: "State is required" });
+        if (!pincode || !/^[0-9]{6}$/.test(pincode)) return res.status(400).json({ success: false, message: "Valid 6-digit pincode is required" });
+
+        const userAddress = await profileService.findUserAddress(userId);
         if (!userAddress) {
             return res.status(404).json({ success: false, message: "Address not found" });
         }
@@ -158,7 +172,7 @@ const editAddress = async (req, res) => {
         exactAddress.phone = phone;
         exactAddress.altPhone = altPhone;
 
-        await userAddress.save();
+        await profileService.saveUserAddress(userAddress);
         res.json({ success: true, message: "Address updated successfully!" });
     } catch (error) {
         console.error("Error editing address", error);
@@ -171,7 +185,7 @@ const deleteAddress = async (req, res) => {
         const userId = req.session.user._id;
         const addressId = req.query.id;
 
-        const userAddress = await Address.findOne({ userId: userId });
+        const userAddress = await profileService.findUserAddress(userId);
         if (!userAddress) {
             return res.status(404).json({ success: false, message: "Address repository not found" });
         }
@@ -186,7 +200,7 @@ const deleteAddress = async (req, res) => {
             userAddress.address[0].isDefault = true;
         }
 
-        await userAddress.save();
+        await profileService.saveUserAddress(userAddress);
 
         res.json({ success: true, message: "Address deleted successfully!" });
     } catch (error) {
@@ -200,7 +214,7 @@ const setDefaultAddress = async (req, res) => {
         const userId = req.session.user._id;
         const { addressId } = req.body;
 
-        const userAddress = await Address.findOne({ userId: userId });
+        const userAddress = await profileService.findUserAddress(userId);
         if (!userAddress) {
             return res.status(404).json({ success: false, message: "No addresses found" });
         }
@@ -210,7 +224,7 @@ const setDefaultAddress = async (req, res) => {
             addr.isDefault = addr._id.toString() === addressId;
         });
 
-        await userAddress.save();
+        await profileService.saveUserAddress(userAddress);
         res.json({ success: true, message: "Default address updated!" });
     } catch (error) {
         console.error("Error setting default address", error);
@@ -228,12 +242,12 @@ const changeEmailRequest = async (req, res) => {
         }
 
         // Check new email isn't already in use
-        const existing = await User.findOne({ email: newEmail });
+        const existing = await profileService.findUserByEmail(newEmail);
         if (existing) {
             return res.status(400).json({ success: false, message: "This email is already registered to another account" });
         }
 
-        const user = await User.findById(userId);
+        const user = await profileService.findUserById(userId);
 
         // Verify current password
         if (!user.password) {
@@ -277,7 +291,7 @@ const changeEmailVerifyOtp = async (req, res) => {
         }
 
         const newEmail = req.session.changeEmailNewEmail;
-        await User.findByIdAndUpdate(userId, { email: newEmail });
+        await profileService.updateUserDetails(userId, { email: newEmail });
 
         // Update session
         req.session.user.email = newEmail;

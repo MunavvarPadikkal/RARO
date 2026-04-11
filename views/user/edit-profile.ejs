@@ -41,6 +41,7 @@
                                         <button type="button" id="changeEmailBtn" class="btn btn-outline-dark"
                                             style="padding: 12px 25px; border-radius: 8px; font-weight: 500; font-size: 12px; min-width: max-content; height: 40px; cursor: pointer; letter-spacing: 0.5px; white-space: nowrap;">Change
                                             Email</button>
+                                            
                                     </div>
 
                                     <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Phone
@@ -49,7 +50,10 @@
                                         value="<%= user && user.phone ? user.phone : '' %>"
                                         style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
 
+                                    <% if (!user.googleId) { %>
                                     <hr class="mt-4 mb-4">
+
+                                    <div>
                                     <h5 class="mb-3" style="font-size: 15px; font-weight: 600;">Password Change</h5>
 
                                     <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Current Password
@@ -70,11 +74,14 @@
                                         class="form-control mb-4"
                                         style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
 
+                                    </div>
+                                    <% } %>
+
                                     <div class="text-center mt-2">
                                         <a href="/profile" class="btn btn-outline-dark mr-3"
-                                            style="padding: 12px 30px; border-radius: 8px; font-weight: 500;">Cancel</a>
+                                            style="padding: 10px 30px; border-radius: 8px; font-weight: 500;">Cancel</a>
                                         <button type="submit" class="btn btn-dark"
-                                            style="padding: 12px 40px; font-weight: 500; letter-spacing: 1px; border-radius: 8px;">
+                                            style="padding: 12px 40px; font-weight: 500; border-radius: 8px;">
                                             <span>SAVE CHANGES</span>
                                         </button>
                                     </div>
@@ -169,9 +176,9 @@
             const formData = {
                 name: document.getElementById('editName').value,
                 phone: document.getElementById('editPhone').value,
-                currentPassword: document.getElementById('editCurrentPassword').value,
-                newPassword: document.getElementById('editNewPassword').value,
-                confirmPassword: document.getElementById('editConfirmPassword').value
+                currentPassword: document.getElementById('editCurrentPassword')?.value || "",
+                newPassword: document.getElementById('editNewPassword')?.value || "",
+                confirmPassword: document.getElementById('editConfirmPassword')?.value || ""
             };
             try {
                 const response = await fetch('/updateProfile', {

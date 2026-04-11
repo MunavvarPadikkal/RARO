@@ -1,4 +1,4 @@
-const User = require("../../models/userSchema");
+const adminService = require("../../services/adminService");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const { loadSignin } = require("../user/userController");
@@ -20,7 +20,7 @@ const loadLogin = (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const admin = await User.findOne({ email, isAdmin: true });
+        const admin = await adminService.findAdminByEmail(email);
         if (admin) {
             const passwordMatch = await bcrypt.compare(password, admin.password);
             if (passwordMatch) {

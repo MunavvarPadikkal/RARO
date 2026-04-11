@@ -209,42 +209,50 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const formHtml = `
-        <div class="row mt-3">
-            <div class="col-md-6 swal-form-group">
+        <div class="row mt-3 text-left">
+            <div class="col-md-6 swal-form-group text-left">
                 <label class="swal-form-label">Address Type</label>
                 <select id="addrType" class="swal-form-control">
                     <option value="Home">Home</option>
                     <option value="Work">Work</option>
                     <option value="Other">Other</option>
                 </select>
+                <div class="text-danger mt-1" id="err-addrType" style="font-size: 11px; display: none;"></div>
             </div>
-            <div class="col-md-6 swal-form-group">
+            <div class="col-md-6 swal-form-group text-left">
                 <label class="swal-form-label">House Name</label>
                 <input type="text" id="addrName" class="swal-form-control" placeholder="Jasmine villa">
+                <div class="text-danger mt-1" id="err-addrName" style="font-size: 11px; display: none;"></div>
             </div>
-            <div class="col-md-6 swal-form-group">
+            <div class="col-md-6 swal-form-group text-left">
                 <label class="swal-form-label">Phone Number</label>
                 <input type="number" id="addrPhone" class="swal-form-control" placeholder="10 Digits">
+                <div class="text-danger mt-1" id="err-addrPhone" style="font-size: 11px; display: none;"></div>
             </div>
-            <div class="col-md-6 swal-form-group">
+            <div class="col-md-6 swal-form-group text-left">
                 <label class="swal-form-label">Alt Phone</label>
                 <input type="number" id="addrAlt" class="swal-form-control" placeholder="Optional">
+                <div class="text-danger mt-1" id="err-addrAlt" style="font-size: 11px; display: none;"></div>
             </div>
-            <div class="col-12 swal-form-group">
+            <div class="col-12 swal-form-group text-left">
                 <label class="swal-form-label">Landmark / Street Address</label>
                 <input type="text" id="addrLandmark" class="swal-form-control" placeholder="123 Street Name">
+                <div class="text-danger mt-1" id="err-addrLandmark" style="font-size: 11px; display: none;"></div>
             </div>
-            <div class="col-md-4 swal-form-group">
+            <div class="col-md-4 swal-form-group text-left">
                 <label class="swal-form-label">City</label>
                 <input type="text" id="addrCity" class="swal-form-control" placeholder="City">
+                <div class="text-danger mt-1" id="err-addrCity" style="font-size: 11px; display: none;"></div>
             </div>
-            <div class="col-md-4 swal-form-group">
+            <div class="col-md-4 swal-form-group text-left">
                 <label class="swal-form-label">State</label>
                 <input type="text" id="addrState" class="swal-form-control" placeholder="State">
+                <div class="text-danger mt-1" id="err-addrState" style="font-size: 11px; display: none;"></div>
             </div>
-            <div class="col-md-4 swal-form-group">
+            <div class="col-md-4 swal-form-group text-left">
                 <label class="swal-form-label">Pincode</label>
                 <input type="number" id="addrPin" class="swal-form-control" placeholder="000000">
+                <div class="text-danger mt-1" id="err-addrPin" style="font-size: 11px; display: none;"></div>
             </div>
         </div>
     `;
@@ -259,20 +267,66 @@
             const state = document.getElementById('addrState').value.trim();
             const pin = document.getElementById('addrPin').value.trim();
 
-            if (!name || !phone || !landmark || !city || !state || !pin) {
-                Swal.showValidationMessage('Please fill all mandatory fields!');
-                return false;
+            const setError = (id, message) => {
+                const el = document.getElementById('err-' + id);
+                el.innerText = message;
+                el.style.display = message ? 'block' : 'none';
+            };
+
+            let isValid = true;
+            
+            // Clear previous errors
+            ['addrType', 'addrName', 'addrPhone', 'addrAlt', 'addrLandmark', 'addrCity', 'addrState', 'addrPin'].forEach(id => setError(id, ''));
+
+            if (!name) {
+                setError('addrName', 'House name is required');
+                isValid = false;
+            } else if (name.length < 3) {
+                setError('addrName', 'Minimum 3 characters required');
+                isValid = false;
             }
 
-            if (phone.length !== 10) {
-                Swal.showValidationMessage('Phone number must be exactly 10 digits!');
-                return false;
+            if (!phone) {
+                setError('addrPhone', 'Phone number is required');
+                isValid = false;
+            } else if (!/^[0-9]{10}$/.test(phone)) {
+                setError('addrPhone', 'Must be exactly 10 digits');
+                isValid = false;
             }
 
-            if (pin.length !== 6) {
-                Swal.showValidationMessage('Pincode must be exactly 6 digits!');
-                return false;
+            // Alt phone is optional but validate if provided
+            if (altPhone && !/^[0-9]{10}$/.test(altPhone)) {
+                setError('addrAlt', 'Must be exactly 10 digits');
+                isValid = false;
+            } else if (altPhone && altPhone === phone) {
+                setError('addrAlt', 'Alternate phone must be different');
+                isValid = false;
             }
+
+            if (!landmark) {
+                setError('addrLandmark', 'Landmark is required');
+                isValid = false;
+            }
+
+            if (!city) {
+                setError('addrCity', 'City is required');
+                isValid = false;
+            }
+
+            if (!state) {
+                setError('addrState', 'State is required');
+                isValid = false;
+            }
+
+            if (!pin) {
+                setError('addrPin', 'Pincode is required');
+                isValid = false;
+            } else if (!/^[0-9]{6}$/.test(pin)) {
+                setError('addrPin', 'Must be exactly 6 digits');
+                isValid = false;
+            }
+
+            if (!isValid) return false;
 
             return {
                 addressType: type, name: name, phone: phone, altPhone: altPhone || 'N/A',

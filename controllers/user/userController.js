@@ -1,4 +1,4 @@
-const User = require("../../models/userSchema");
+const userService = require("../../services/userService");
 const bcrypt = require("bcrypt");
 const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils");
 
@@ -16,7 +16,7 @@ const loadHomepage = async (req, res) => {
     try {
         const user = req.session.user;
         if (user) {
-            const userData = await User.findOne({ _id: user._id });
+            const userData = await userService.findUserById(user._id);
             res.render("home", { user: userData });
         } else {
             res.render("home");
@@ -92,7 +92,7 @@ const register = async (req, res) => {
         return res.render("register", {registerMessage: "Password must contain a special character (e.g. @$!%*?&)", signinMessage:""});
       }
 
-        const findUser = await User.findOne({ email });
+        const findUser = await userService.findUserByEmail(email);
         if (findUser) {
             return res.render("register", { registerMessage: "User with this email already exists", signinMessage: "" });
         }
@@ -106,7 +106,7 @@ const register = async (req, res) => {
         req.session.userOtp = otp;
         req.session.userOtpExpire = Date.now() + 60 * 1000;
         req.session.userData = { name, email, password };
-        res.render("otp");
+        res.redirect("/verify-otp");
         console.log("OTP Sent ", otp);
 
     } catch (error) {
@@ -143,12 +143,11 @@ const verifyOtp = async (req, res) => {
             const user = req.session.userData;
             const passwordHash = await securePassword(user.password);
 
-            const saveUserData = new User({
+            const saveUserData = await userService.createUser({
                 name: user.name,
                 email: user.email,
                 password: passwordHash,
-            })
-            await saveUserData.save();
+            });
 
             // Set session user same as normal signin
             req.session.user = {
@@ -204,10 +203,7 @@ const signin = async (req, res) => {
         const { signinEmail, signinPassword } = req.body;
         console.log(req.body);
 
-        const findUser = await User.findOne({
-            isAdmin: 0,
-            email: signinEmail,
-        });
+        const findUser = await userService.findCustomerByEmail(signinEmail);
 
         if (!findUser) {
             return res.render("signin", { signinMessage: "User not found", registerMessage: "", activeTab: "login" });
@@ -268,7 +264,7 @@ const forgotPasswordLoad = async (req, res) => {
 const forgotPasswordSendOtp = async (req, res) => {
     try {
         const { email } = req.body;
-        const findUser = await User.findOne({ email: email });
+        const findUser = await userService.findUserByEmail(email);
         if (!findUser) {
             return res.render("forgot-password", { message: "User with this email does not exist" });
         }
@@ -365,7 +361,7 @@ const resetPasswordUpdate = async (req, res) => {
         }
 
         const passwordHash = await securePassword(password);
-        await User.updateOne({ email: email }, { $set: { password: passwordHash } });
+        await userService.updateUserPassword(email, passwordHash);
         req.session.forgotPasswordEmail = null; // clear the session var
         res.redirect("/signin");
     } catch (error) {

@@ -1,4 +1,4 @@
-const User = require("../../models/userSchema");
+const customerService = require("../../services/customerService");
 
 
 
@@ -14,21 +14,7 @@ const customerInfo = async (req,res)=>{
             page = req.query.page
         }
         const limit = 3;
-        const userData = await User.find({
-            isAdmin:false,
-            $or:[
-                {name:{$regex:".*"+search+".*"}},
-                {email:{$regex:".*"+search+".*"}}
-            ]
-        }).sort({ createdOn: -1 }).limit(limit*1).skip((page-1)*limit).exec();
-
-        const count = await User.find({
-               isAdmin:false,
-            $or:[
-                {name:{$regex:".*"+search+".*"}},
-                {email:{$regex:".*"+search+".*"}}
-            ]
-        }).countDocuments();
+        const { data: userData, count } = await customerService.getCustomerInfo(search, page, limit);
 
         const totalPages = Math.ceil(count / limit);
         res.render("customers", { data: userData, totalPages, currentPage: page, search: req.query.search || "" });
@@ -44,7 +30,7 @@ const customerInfo = async (req,res)=>{
 const customerBlocked = async (req,res)=>{
     try {
         let id = req.query.id;
-        await User.updateOne({_id:id},{$set:{isBlocked:true}});
+        await customerService.updateCustomerBlockStatus(id, true);
         res.redirect("/admin/customers");
     } catch (error) {
         res.redirect("/admin/pageError");
@@ -54,7 +40,7 @@ const customerBlocked = async (req,res)=>{
 const customerunBlocked = async (req,res)=>{
     try {
         let id = req.query.id;
-        await User.updateOne({_id:id},{$set:{isBlocked:false}});
+        await customerService.updateCustomerBlockStatus(id, false);
         res.redirect("/admin/customers");
     } catch (error) {
         res.redirect("/admin/pageError");
