@@ -2,11 +2,65 @@
 
 
     <main class="main">
+        <style>
+            .intro-slider-container, .intro-slide {
+                min-height: calc(100vh - 150px);
+                max-height: 750px;
+                background-color: #333;
+            }
+            .intro-slide {
+                display: flex;
+                align-items: center;
+                background-size: cover;
+                background-position: center center;
+            }
+            .intro-slide .intro-content {
+                position: static;
+                left: auto;
+                top: auto;
+                transform: translateY(0);
+                padding-top: 6rem;
+                padding-bottom: 6rem;
+            }
+            .intro-content .btn {
+                text-transform: uppercase;
+            }
+            .intro-subtitle {
+                font-weight: 400;
+                font-size: 1.2rem;
+                letter-spacing: -.01em;
+                margin-bottom: 1rem;
+                color: #ebeaea;
+            }
+            .intro-title {
+                color: #fff;
+                font-weight: 600;
+                letter-spacing: -.025em;
+                margin-bottom: 1.3rem;
+            }
+            @media screen and (min-width: 768px) {
+                .intro-subtitle { font-size: 1.4rem; margin-bottom: 1.4rem; }
+                .intro-title { margin-bottom: 1.6rem; font-size: 3rem; }
+            }
+            @media screen and (min-width: 992px) {
+                .intro-subtitle { font-size: 1.6rem; margin-bottom: 1.8rem; }
+                .intro-title { font-size: 4.6rem; margin-bottom: 1.9rem; }
+            }
+            @media screen and (min-width: 1200px) {
+                .intro-slider-container, .intro-slide {
+                    min-height: 0;
+                    height: calc(100vh - 150px);
+                    max-height: 750px;
+                }
+                .intro-title { font-size: 5rem; }
+            }
+        </style>
+
         <section class="hero-full">
                 <!-- <a href="#" class="btn btn-outline-white banner-link">Shop Now<i class="icon-long-arrow-right"></i></a> -->
                 <img src="assets\images\RARO Hero image.png" alt="Hero Image" class="hero-img">
     
-            </section>
+        </section>
 
 
 

@@ -9,6 +9,7 @@ const adminRouter = require("./routes/adminRouter");
 const passport = require("passport");
 const nocache = require("nocache");
 require("./config/passport");
+const { errorHandler, notFoundHandler } = require("./middlewares/errorHandler");
 
 db();
 
@@ -60,6 +61,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", userRouter);
 app.use("/admin", adminRouter);
+
+// Error Handling Middlewares
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running at: http://localhost:${PORT}`);

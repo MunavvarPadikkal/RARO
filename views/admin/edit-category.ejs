@@ -1,0 +1,103 @@
+<%- include("./partials/adminHeader") %>
+<%- include("./partials/adminSidebar") %>
+
+<div class="flex-1 overflow-x-hidden overflow-y-auto">
+  <%- include("./partials/adminTopbar") %>
+
+  <main class="px-8 pb-8">
+    <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-6 max-w-2xl">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <a href="/admin/categories" class="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+          <i class="fa-solid fa-arrow-left text-sm"></i>
+        </a>
+        <h2 class="text-xl font-semibold text-gray-900">Edit Category</h2>
+      </div>
+
+      <!-- Edit Form -->
+      <form id="editCategoryForm" onsubmit="handleEditCategory(event)">
+        <input type="hidden" id="categoryId" value="<%= category._id %>">
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Category Name</label>
+            <input type="text" id="categoryName" name="name" value="<%= category.name %>"
+                   class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+            <textarea id="categoryDescription" name="description" rows="4"
+                      class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all resize-none"><%= category.description %></textarea>
+          </div>
+          <div id="editError" class="text-red-500 text-sm hidden"></div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <a href="/admin/categories" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all">Cancel</a>
+          <button type="submit" class="px-5 py-2.5 bg-brand-orange text-white rounded-xl text-sm font-medium hover:bg-opacity-90 transition-all">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  async function handleEditCategory(e) {
+    e.preventDefault();
+    const id = document.getElementById('categoryId').value;
+    const name = document.getElementById('categoryName').value.trim();
+    const description = document.getElementById('categoryDescription').value.trim();
+    const errorDiv = document.getElementById('editError');
+
+    // Frontend Validation
+    const nameRegex = /^[a-zA-Z0-9\s\-]+$/;
+
+    if (!name || !description) {
+      errorDiv.textContent = "All fields are required";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    if (name.length < 3 || name.length > 50) {
+      errorDiv.textContent = "Category name must be between 3 and 50 characters";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    if (!nameRegex.test(name)) {
+      errorDiv.textContent = "Category name can only contain letters, numbers, spaces, and hyphens";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    if (description.length < 10) {
+      errorDiv.textContent = "Description must be at least 10 characters long";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    // Clear previous errors
+    errorDiv.classList.add('hidden');
+
+    try {
+      const res = await fetch('/admin/editCategory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name, description })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        Swal.fire({ icon: 'success', title: 'Success', text: data.message, timer: 1500, showConfirmButton: false })
+          .then(() => window.location.href = '/admin/categories');
+      } else {
+        errorDiv.textContent = data.error;
+        errorDiv.classList.remove('hidden');
+      }
+    } catch (err) {
+      errorDiv.textContent = "Something went wrong";
+      errorDiv.classList.remove('hidden');
+    }
+  }
+</script>
+
+<%- include("./partials/adminFooter") %>
