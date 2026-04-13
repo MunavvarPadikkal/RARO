@@ -1,6 +1,8 @@
 const userService = require("../../services/userService");
 const bcrypt = require("bcrypt");
 const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils");
+const productService = require("../../services/productService");
+const categoryService = require("../../services/categoryService");
 
 
 const pageNotFound = async (req, res) => {
@@ -370,6 +372,52 @@ const resetPasswordUpdate = async (req, res) => {
     }
 }
 
+const loadShopPage = async (req, res) => {
+    try {
+        let search = req.query.search || "";
+        let page = parseInt(req.query.page) || 1;
+        let category = req.query.category || "";
+        let sort = req.query.sort || "newest";
+        const limit = 9;
+
+        let minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : undefined;
+        let maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : undefined;
+        
+        let sizes = req.query.size || [];
+        if (typeof sizes === "string" && sizes.trim() !== "") {
+            sizes = sizes.split(',');
+        } else if (!Array.isArray(sizes)) {
+            sizes = [];
+        }
+
+        const filters = { search, category, sort, page, limit, minPrice, maxPrice, sizes };
+        const { data: products, count } = await productService.getShopProducts(filters);
+        
+        const { data: allCats } = await categoryService.getCategoryInfo("", 1, 100);
+        const listedCategories = allCats.filter(c => c.isListed);
+        
+        const totalPages = Math.ceil(count / limit);
+
+        res.render("shop", {
+            products,
+            categories: listedCategories,
+            totalPages,
+            currentPage: page,
+            search,
+            selectedCategory: category,
+            selectedSort: sort,
+            totalProducts: count,
+            selectedSizes: sizes,
+            minPrice: minPrice || 0,
+            maxPrice: maxPrice || 1000
+        });
+
+    } catch (error) {
+        console.error("Shop page error:", error);
+        res.status(500).send("server error");
+    }
+}
+
 
 module.exports = {
     loadHomepage,
@@ -388,5 +436,6 @@ module.exports = {
     forgotPasswordOtpVerify,
     forgotPasswordResendOtp,
     resetPasswordLoad,
-    resetPasswordUpdate
+    resetPasswordUpdate,
+    loadShopPage
 }

@@ -4,7 +4,7 @@ const userController = require("../controllers/user/userController");
 const profileController = require("../controllers/user/profileController");
 const passport = require("passport");
 const userAuth = require("../middlewares/userAuth");
-const upload = require("../middlewares/multer");
+const { upload } = require("../middlewares/multer");
 
 router.get("/pageNotFound", userController.pageNotFound);
 router.get("/", userAuth.checkBlockedStatus,userController.loadHomepage)
@@ -17,6 +17,7 @@ router.post('/resend-otp', userController.resendOtp);
 router.post('/signin', userController.signin);
 router.get("/logout", userController.logout);
 router.get("/profile", userAuth.checkSession, profileController.loadProfile);
+router.get("/shop", userController.loadShopPage);
 
 // Forgot Password Flow
 router.get("/forgotPassword", userController.forgotPasswordLoad);

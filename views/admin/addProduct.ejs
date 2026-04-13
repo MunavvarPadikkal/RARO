@@ -1,0 +1,342 @@
+<%- include("./partials/adminHeader") %>
+<!-- Cropper.js CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"/>
+
+<%- include("./partials/adminSidebar") %>
+
+<div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50">
+  <%- include("./partials/adminTopbar") %>
+
+  <main class="px-8 pb-8">
+    <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 max-w-5xl mx-auto">
+      
+      <div class="flex items-center gap-4 border-b border-gray-100 pb-6 mb-6">
+        <a href="/admin/products" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h2 class="text-2xl font-semibold text-gray-900">Add New Product</h2>
+      </div>
+
+      <form id="addProductForm" enctype="multipart/form-data">
+        
+        <!-- Basic Information -->
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Basic Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+            <input type="text" id="productName" name="productName" required
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+            <span class="text-xs text-red-500 hidden mt-1" id="err-productName"></span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+            <select id="category" name="category" required
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+              <option value="" disabled selected>Select a category</option>
+              <% categories.forEach(cat => { %>
+                <option value="<%= cat._id %>"><%= cat.name %></option>
+              <% }) %>
+            </select>
+            <span class="text-xs text-red-500 hidden mt-1" id="err-category"></span>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+            <textarea id="description" name="description" rows="4" required
+                      class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors resize-none"></textarea>
+            <span class="text-xs text-red-500 hidden mt-1" id="err-description"></span>
+          </div>
+        </div>
+
+        <!-- Pricing & Details -->
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Pricing & Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Regular Price *</label>
+            <input type="number" id="regularPrice" name="regularPrice" step="0.01" min="1" required
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+            <span class="text-xs text-red-500 hidden mt-1" id="err-regularPrice"></span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sale Price *</label>
+            <input type="number" id="salePrice" name="salePrice" step="0.01" min="1" required
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+            <span class="text-xs text-red-500 hidden mt-1" id="err-salePrice"></span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Color *</label>
+            <input type="text" id="color" name="color" required placeholder="e.g. Black"
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+             <span class="text-xs text-red-500 hidden mt-1" id="err-color"></span>
+          </div>
+        </div>
+
+        <!-- Stock/Sizes -->
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Inventory (Stock by Size)</h3>
+        <div class="grid grid-cols-3 gap-6 mb-8">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Size S</label>
+            <input type="number" id="sizeS" name="sizeS" min="0" value="0"
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Size M</label>
+            <input type="number" id="sizeM" name="sizeM" min="0" value="0"
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Size L</label>
+            <input type="number" id="sizeL" name="sizeL" min="0" value="0"
+                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+          </div>
+        </div>
+        <span class="text-xs text-red-500 hidden mb-8" id="err-sizes">Product must have at least 1 unit of stock across all sizes.</span>
+
+        <!-- Images -->
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Product Images *</h3>
+        <p class="text-sm text-gray-500 mb-4">Upload minimum 3 to maximum 4 images. Images will be cropped to square (1:1).</p>
+        
+        <div class="mb-8">
+            <div class="flex flex-wrap gap-4" id="imagePreviewContainer">
+                <!-- Preview items will go here -->
+                
+                <!-- Add Image Button -->
+                <label id="uploadTriggerLabel" class="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-brand-orange transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 mb-2"></i>
+                    <span class="text-xs text-gray-500 font-medium">Add Image</span>
+                    <input type="file" id="imageInput" class="hidden" accept="image/png, image/jpeg, image/jpg, image/webp">
+                </label>
+            </div>
+            <span class="text-xs text-red-500 hidden mt-2" id="err-images"></span>
+        </div>
+
+        <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-100">
+          <button type="button" onclick="window.history.back()" class="px-6 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">Cancel</button>
+          <button type="submit" id="submitBtn" class="px-6 py-2.5 rounded-xl bg-brand-orange text-white font-medium hover:bg-opacity-90 transition-colors">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<!-- Cropper Modal -->
+<div id="cropperModal" class="fixed inset-0 z-50 hidden bg-black/80 items-center justify-center">
+  <div class="bg-white rounded-xl p-4 w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold">Crop Image</h3>
+      <button type="button" id="closeCropModal" class="text-gray-500 hover:text-gray-800"><i class="fa-solid fa-xmark text-xl"></i></button>
+    </div>
+    <div class="flex-1 w-full bg-gray-100 overflow-hidden relative" style="min-height: 400px;">
+      <img id="cropperImage" src="" class="block max-w-full">
+    </div>
+    <div class="mt-4 flex justify-end gap-3">
+      <button type="button" id="cancelCrop" class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+      <button type="button" id="saveCrop" class="px-4 py-2 bg-brand-orange text-white rounded-lg hover:bg-opacity-90">Save Crop</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    let croppedFiles = []; // Array of { id, file_blob }
+    let currentCropper = null;
+    let generateIdCounter = 0;
+
+    const imageInput = document.getElementById('imageInput');
+    const cropperModal = document.getElementById('cropperModal');
+    const cropperImage = document.getElementById('cropperImage');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const uploadTriggerLabel = document.getElementById('uploadTriggerLabel');
+
+    // Handle file selection
+    imageInput.addEventListener('change', function(e) {
+        if (croppedFiles.length >= 4) {
+            Swal.fire("Limit Reached", "You can only upload a maximum of 4 images.", "warning");
+            this.value = '';
+            return;
+        }
+
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                cropperImage.src = event.target.result;
+                cropperModal.classList.remove('hidden');
+                cropperModal.classList.add('flex');
+                
+                if (currentCropper) currentCropper.destroy();
+                
+                currentCropper = new Cropper(cropperImage, {
+                    aspectRatio: 1, // 1:1 square crop
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    background: false
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+        // clear input so same file can be selected again
+        this.value = '';
+    });
+
+    // Cancel crop
+    document.getElementById('cancelCrop').addEventListener('click', closeCrop);
+    document.getElementById('closeCropModal').addEventListener('click', closeCrop);
+
+    function closeCrop() {
+        cropperModal.classList.add('hidden');
+        cropperModal.classList.remove('flex');
+        if (currentCropper) {
+            currentCropper.destroy();
+            currentCropper = null;
+        }
+    }
+
+    // Save Crop
+    document.getElementById('saveCrop').addEventListener('click', function() {
+        if (!currentCropper) return;
+        
+        currentCropper.getCroppedCanvas({
+            width: 800,
+            height: 800
+        }).toBlob((blob) => {
+            const id = 'img_' + generateIdCounter++;
+            const file = new File([blob], id + '.webp', { type: 'image/webp' });
+            
+            croppedFiles.push({ id, file });
+            renderPreviews();
+            closeCrop();
+        }, 'image/webp', 0.9);
+    });
+
+    // Render preview thumbnails
+    function renderPreviews() {
+        // Clear existing previews
+        document.querySelectorAll('.img-preview-item').forEach(el => el.remove());
+        
+        croppedFiles.forEach(item => {
+            const url = URL.createObjectURL(item.file);
+            const div = document.createElement('div');
+            div.className = "img-preview-item relative w-32 h-32 rounded-xl border border-gray-200 overflow-hidden shadow-sm group";
+            div.innerHTML = `
+                <img src="${url}" class="w-full h-full object-cover">
+                <button type="button" onclick="removeImage('${item.id}')" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-red-500 shadow hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            `;
+            previewContainer.insertBefore(div, uploadTriggerLabel);
+        });
+
+        // Hide upload button if 4 images
+        if (croppedFiles.length >= 4) {
+            uploadTriggerLabel.style.display = 'none';
+        } else {
+            uploadTriggerLabel.style.display = 'flex';
+        }
+    }
+
+    // Remove image
+    window.removeImage = function(id) {
+        croppedFiles = croppedFiles.filter(item => item.id !== id);
+        renderPreviews();
+    };
+
+    // Main Form Submit
+    document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Reset errors
+        document.querySelectorAll('[id^="err-"]').forEach(el => {
+            el.classList.add('hidden');
+            el.textContent = '';
+        });
+
+        const name = document.getElementById('productName').value.trim();
+        const category = document.getElementById('category').value;
+        const desc = document.getElementById('description').value.trim();
+        const regPrice = parseFloat(document.getElementById('regularPrice').value);
+        const salePrice = parseFloat(document.getElementById('salePrice').value);
+        const color = document.getElementById('color').value.trim();
+        const sizeS = parseInt(document.getElementById('sizeS').value) || 0;
+        const sizeM = parseInt(document.getElementById('sizeM').value) || 0;
+        const sizeL = parseInt(document.getElementById('sizeL').value) || 0;
+
+        let hasError = false;
+
+        const showError = (id, msg) => {
+            const el = document.getElementById('err-' + id);
+            el.textContent = msg;
+            el.classList.remove('hidden');
+            hasError = true;
+        }
+
+        if (name.length < 3) showError('productName', 'Name must be at least 3 characters');
+        if (!category) showError('category', 'Category is required');
+        if (desc.length < 10) showError('description', 'Description minimum 10 characters');
+        if (regPrice <= 0) showError('regularPrice', 'Invalid price');
+        if (salePrice <= 0 || salePrice > regPrice) showError('salePrice', 'Sale price must be valid and <= regular price');
+        if (!color) showError('color', 'Color is required');
+        
+        if (sizeS + sizeM + sizeL <= 0) {
+            document.getElementById('err-sizes').classList.remove('hidden');
+            hasError = true;
+        }
+
+        if (croppedFiles.length < 3) {
+            showError('images', 'Minimum 3 images required');
+        }
+
+        if (hasError) return;
+
+        const formData = new FormData();
+        formData.append('productName', name);
+        formData.append('category', category);
+        formData.append('description', desc);
+        formData.append('regularPrice', regPrice);
+        formData.append('salePrice', salePrice);
+        formData.append('color', color);
+        formData.append('sizeS', sizeS);
+        formData.append('sizeM', sizeM);
+        formData.append('sizeL', sizeL);
+
+        croppedFiles.forEach(item => {
+            formData.append('productImages', item.file);
+        });
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...';
+        submitBtn.disabled = true;
+
+        try {
+            const res = await fetch('/admin/addProduct', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = '/admin/products';
+                });
+            } else {
+                Swal.fire('Error', data.error || 'Failed to add product', 'error');
+                submitBtn.innerHTML = 'Save Product';
+                submitBtn.disabled = false;
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Network error occurred', 'error');
+            submitBtn.innerHTML = 'Save Product';
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+
+<%- include("./partials/adminFooter") %>

@@ -28,10 +28,17 @@ const productSchema = new Schema({
         type:Number,
         default:0,
     },
-    quantity:{
-        type:Number,
-        default:true,
-    },
+    sizes:[{
+        size:{
+            type:String,
+            enum:["S","M","L"],
+            required:true,
+        },
+        quantity:{
+            type:Number,
+            default:0,
+        }
+    }],
     color:{
         type:String,
         required:true
@@ -41,6 +48,10 @@ const productSchema = new Schema({
         required:true,
     },
     isBlocked:{
+        type:Boolean,
+        default:false
+    },
+    isDeleted:{
         type:Boolean,
         default:false
     },

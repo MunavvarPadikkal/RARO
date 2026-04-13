@@ -5,12 +5,12 @@ const Category = require("../models/categorySchema");
 const MONGO_URI = process.env.MONGODB_URI;
 
 const categories = [
-    { name: "Men", description: "Premium t-shirts designed for men with modern fits and styles" },
-    { name: "Women", description: "Elegant and stylish t-shirts crafted for women" },
-    { name: "Oversized", description: "Relaxed fit oversized t-shirts for a streetwear look" },
-    { name: "Minimal", description: "Clean and minimal designs for a timeless aesthetic" },
-    { name: "Street Art Graphic", description: "Bold street art inspired graphic printed t-shirts" },
     { name: "Customized", description: "Personalized and customized t-shirts made to order" }
+    { name: "Street Art Graphic", description: "Bold street art inspired graphic printed t-shirts" },
+    { name: "Minimal", description: "Clean and minimal designs for a timeless aesthetic" },
+    { name: "Oversized", description: "Relaxed fit oversized t-shirts for a streetwear look" },
+    { name: "Women", description: "Elegant and stylish t-shirts crafted for women" },
+    { name: "Men", description: "Premium t-shirts designed for men with modern fits and styles" }
 ];
 
 async function seedCategories() {
