@@ -18,6 +18,8 @@ router.post('/signin', userController.signin);
 router.get("/logout", userController.logout);
 router.get("/profile", userAuth.checkSession, profileController.loadProfile);
 router.get("/shop", userController.loadShopPage);
+router.get("/product/:id", userController.loadProductDetails);
+router.post("/product/:id/review", userAuth.checkSession, userController.submitReview);
 
 // Forgot Password Flow
 router.get("/forgotPassword", userController.forgotPasswordLoad);

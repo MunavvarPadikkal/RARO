@@ -131,20 +131,23 @@
                     <% if (totalPages > 1) { %>
                         <nav aria-label="Page navigation">
                             <ul class="pagination justify-content-center">
+                                <% 
+                                    let queryParams = `search=${search}&category=${selectedCategory}&sort=${selectedSort}&minPrice=${minPrice}&maxPrice=${maxPrice}&size=${selectedSizes.join(',')}`;
+                                %>
                                 <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                                    <a class="page-link page-link-prev" href="/shop?page=<%= currentPage - 1 %><%= search ? '&search='+search : '' %><%= selectedCategory ? '&category='+selectedCategory : '' %><%= selectedSort ? '&sort='+selectedSort : '' %>" aria-label="Previous">
+                                    <a class="page-link page-link-prev" href="/shop?page=<%= currentPage - 1 %>&<%= queryParams %>" aria-label="Previous">
                                         <span aria-hidden="true"><i class="icon-long-arrow-left"></i></span>Prev
                                     </a>
                                 </li>
                                 
                                 <% for(let i = 1; i <= totalPages; i++) { %>
                                     <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                        <a class="page-link" href="/shop?page=<%= i %><%= search ? '&search='+search : '' %><%= selectedCategory ? '&category='+selectedCategory : '' %><%= selectedSort ? '&sort='+selectedSort : '' %>"><%= i %></a>
+                                        <a class="page-link" href="/shop?page=<%= i %>&<%= queryParams %>"><%= i %></a>
                                     </li>
                                 <% } %>
 
                                 <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                                    <a class="page-link page-link-next" href="/shop?page=<%= currentPage + 1 %><%= search ? '&search='+search : '' %><%= selectedCategory ? '&category='+selectedCategory : '' %><%= selectedSort ? '&sort='+selectedSort : '' %>" aria-label="Next">
+                                    <a class="page-link page-link-next" href="/shop?page=<%= currentPage + 1 %>&<%= queryParams %>" aria-label="Next">
                                         Next <span aria-hidden="true"><i class="icon-long-arrow-right"></i></span>
                                     </a>
                                 </li>
@@ -160,19 +163,7 @@
                             <a href="/shop" class="sidebar-filter-clear">Clean All</a>
                         </div><!-- End .widget widget-clean -->
 
-                        <div class="widget widget-search">
-                            <h3 class="widget-title">Search</h3>
-                            <form action="/shop" method="GET">
-                                <% if(selectedCategory) { %> <input type="hidden" name="category" value="<%= selectedCategory %>"> <% } %>
-                                <% if(selectedSort) { %> <input type="hidden" name="sort" value="<%= selectedSort %>"> <% } %>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" name="search" placeholder="Search..." value="<%= search %>">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-search" type="submit"><i class="icon-search"></i></button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div><!-- End .widget widget-search -->
+
 
                         <div class="widget widget-collapsible">
                             <h3 class="widget-title">

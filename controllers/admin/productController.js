@@ -30,7 +30,7 @@ const getProducts = async (req, res) => {
     try {
         let search = req.query.search || "";
         let page = parseInt(req.query.page) || 1;
-        const limit = 8;
+        const limit = 6;
 
         const { data: products, count } = await productService.getProducts(search, page, limit);
         const totalPages = Math.ceil(count / limit);
@@ -64,7 +64,7 @@ const getAddProduct = async (req, res) => {
 // ── Add Product POST ───────────────────────────────────────────────────
 const addProduct = async (req, res) => {
     try {
-        const { productName, description, category, regularPrice, salePrice, color, sizeS, sizeM, sizeL } = req.body;
+        const { productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, sizeS, sizeM, sizeL } = req.body;
 
         // Validation
         if (!productName || !description || !category || !regularPrice || !salePrice || !color) {
@@ -99,6 +99,8 @@ const addProduct = async (req, res) => {
         const productData = {
             productName: productName.trim(),
             description: description.trim(),
+            highlights: highlights ? highlights.split('\n').map(h => h.trim()).filter(h => h.length > 0) : [],
+            additionalInfo: additionalInfo ? additionalInfo.trim() : "",
             category,
             regularPrice: parseFloat(regularPrice),
             salePrice: parseFloat(salePrice),
@@ -138,7 +140,7 @@ const getEditProduct = async (req, res) => {
 // ── Edit Product POST ──────────────────────────────────────────────────
 const editProduct = async (req, res) => {
     try {
-        const { id, productName, description, category, regularPrice, salePrice, color, sizeS, sizeM, sizeL } = req.body;
+        const { id, productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, sizeS, sizeM, sizeL } = req.body;
 
         if (!productName || !description || !category || !regularPrice || !salePrice || !color) {
             return res.status(400).json({ error: "All fields are required" });
@@ -165,6 +167,8 @@ const editProduct = async (req, res) => {
         const updateData = {
             productName: productName.trim(),
             description: description.trim(),
+            highlights: highlights ? highlights.split('\n').map(h => h.trim()).filter(h => h.length > 0) : [],
+            additionalInfo: additionalInfo ? additionalInfo.trim() : "",
             category,
             regularPrice: parseFloat(regularPrice),
             salePrice: parseFloat(salePrice),

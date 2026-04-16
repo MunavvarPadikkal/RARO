@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils");
 const productService = require("../../services/productService");
 const categoryService = require("../../services/categoryService");
+const Product = require("../../models/productSchema");
+const Review = require("../../models/reviewSchema");
 
 
 const pageNotFound = async (req, res) => {
@@ -378,7 +380,7 @@ const loadShopPage = async (req, res) => {
         let page = parseInt(req.query.page) || 1;
         let category = req.query.category || "";
         let sort = req.query.sort || "newest";
-        const limit = 9;
+        const limit = 6;
 
         let minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : undefined;
         let maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : undefined;
@@ -418,6 +420,78 @@ const loadShopPage = async (req, res) => {
     }
 }
 
+const loadProductDetails = async (req, res) => {
+    try {
+        const id = req.params.id;
+        
+        // Fetch Product with category populated
+        const product = await Product.findById(id).populate('category').lean();
+        
+        if (!product || product.isDeleted) {
+            return res.redirect("/pageNotFound");
+        }
+        
+        if (product.isBlocked) {
+            return res.redirect("/shop");
+        }
+
+        // Fetch related products (same category, different id, limit 4)
+        const relatedProducts = await Product.find({
+            category: product.category._id,
+            _id: { $ne: product._id },
+            isBlocked: false,
+            isDeleted: false
+        }).limit(4).lean();
+
+        // Fetch reviews
+        const reviews = await Review.find({ product: product._id }).populate('user', 'name').sort({ createdAt: -1 }).lean();
+        
+        let avgRating = 0;
+        if (reviews.length > 0) {
+            const sum = reviews.reduce((acc, rev) => acc + rev.rating, 0);
+            avgRating = (sum / reviews.length).toFixed(1);
+        }
+
+        res.render("product-details", {
+            product,
+            relatedProducts,
+            reviews,
+            avgRating,
+            user: req.session.user // Pass user explicitly for the view
+        });
+
+    } catch (error) {
+        console.error("Error loading product details:", error);
+        res.redirect("/pageNotFound");
+    }
+}
+
+const submitReview = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const { rating, comment } = req.body;
+        const userId = req.session.user._id;
+
+        if (!rating || !comment) {
+            return res.redirect(`/product/${productId}`);
+        }
+
+        const newReview = new Review({
+            product: productId,
+            user: userId,
+            rating: parseInt(rating),
+            comment: comment.trim()
+        });
+
+        await newReview.save();
+        res.redirect(`/product/${productId}`);
+
+    } catch (error) {
+        console.error("Error submitting review:", error);
+        res.redirect(`/product/${req.params.id}`);
+    }
+}
+
 
 module.exports = {
     loadHomepage,
@@ -437,5 +511,7 @@ module.exports = {
     forgotPasswordResendOtp,
     resetPasswordLoad,
     resetPasswordUpdate,
-    loadShopPage
+    loadShopPage,
+    loadProductDetails,
+    submitReview
 }
