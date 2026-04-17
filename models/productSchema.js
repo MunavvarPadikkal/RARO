@@ -40,7 +40,7 @@ const productSchema = new Schema({
         }
     }],
     color:{
-        type:String,
+        type:[String],
         required:true
     },
     productImage:{

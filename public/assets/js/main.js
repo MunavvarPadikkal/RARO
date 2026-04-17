@@ -126,11 +126,11 @@ $(document).ready(function () {
     });
 
     // Clear All checkbox/remove filters in sidebar filter
-    $('.sidebar-filter-clear').on('click', function (e) {
+    /* $('.sidebar-filter-clear').on('click', function (e) {
     	$('.sidebar-shop').find('input').prop('checked', false);
 
     	e.preventDefault();
-    });
+    }); */
 
     // Popup - Iframe Video - Map etc.
     if ( $.fn.magnificPopup ) {
@@ -176,12 +176,12 @@ $(document).ready(function () {
 			margin: 200,
 			range: {
 				'min': 0,
-				'max': 1000
+				'max': 2000
 			},
 			tooltips: true,
 			format: wNumb({
 		        decimals: 0,
-		        prefix: '$'
+		        prefix: '₹'
 		    })
 		});
 

@@ -75,10 +75,26 @@
                                     </div><!-- End .product-content -->
 
                                     <div class="details-filter-row details-row-size">
-                                        <label>Color:</label>
-                                        <div class="product-nav product-nav-thumbs">
-                                            <span class="font-weight-bold" style="font-size: 16px;"><%= product.color %></span>
-                                        </div><!-- End .product-nav -->
+                                        <label for="color">Color:</label>
+                                        <div class="select-custom">
+                                            <select name="color" id="color" class="form-control" required>
+                                                <% 
+                                                let colors = Array.isArray(product.color) ? product.color : (product.color ? [product.color] : []);
+                                                if (colors.length === 1 && typeof colors[0] === 'string' && colors[0].includes(',')) {
+                                                    colors = colors[0].split(',').map(c => c.trim()).filter(c => c.length > 0);
+                                                }
+                                                if (colors.length > 0) {
+                                                    colors.forEach((col, index) => { 
+                                                %>
+                                                        <option value="<%= col %>" <%= index === 0 ? 'selected' : '' %>><%= col %></option>
+                                                <% 
+                                                    });
+                                                } else { 
+                                                %>
+                                                    <option value="" disabled>No color available</option>
+                                                <% } %>
+                                            </select>
+                                        </div><!-- End .select-custom -->
                                     </div><!-- End .details-filter-row -->
 
                                     <% 
@@ -324,8 +340,26 @@
 <script src="/assets/js/jquery.magnific-popup.min.js"></script>
 <script src="/assets/js/wNumb.js"></script>
 <script src="/assets/js/nouislider.min.js"></script>
+<script src="/assets/js/jquery.elevateZoom.min.js"></script>
 <!-- Main JS File -->
 <script src="/assets/js/main.js"></script>
+
+<script>
+    $(document).ready(function() {
+        if ($.fn.elevateZoom && $('#product-zoom').length > 0) {
+            // Re-initialize zoom to ensure it binds correctly after all scripts and images load
+            $('#product-zoom').elevateZoom({
+                gallery: 'product-zoom-gallery',
+                galleryActiveClass: 'active',
+                zoomType: "inner",
+                cursor: "crosshair",
+                zoomWindowFadeIn: 400,
+                zoomWindowFadeOut: 400,
+                responsive: true
+            });
+        }
+    });
+</script>
 
 <%-include("../../views/partials/user/mobileView.ejs")%>
 <%-include("../../views/partials/user/footer.ejs")%>

@@ -22,49 +22,48 @@
 
   <!-- Navigation Links -->
   <nav class="flex-1 px-4 space-y-1">
-    <!-- Active link example -->
     <a href="/admin/dashboard"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-sidebarActive text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/dashboard' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-chart-column w-5 text-center"></i>
       <span class="font-medium">Dashboard</span>
     </a>
     <a href="/admin/orders"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/orders' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-box w-5 text-center"></i>
       <span class="font-medium">Orders</span>
     </a>
     <a href="/admin/customers"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/customers' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-users w-5 text-center"></i>
       <span class="font-medium">Clients</span>
     </a>
     <a href="/admin/products"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= (path === '/admin/products' || path === '/admin/addProduct' || path === '/admin/editProduct') ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-cart-shopping w-5 text-center"></i>
       <span class="font-medium">Products</span>
     </a>
     <a href="/admin/categories"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= (path === '/admin/categories' || path === '/admin/editCategory') ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-layer-group w-5 text-center"></i>
       <span class="font-medium">Categories</span>
     </a>
     <a href="/admin/return-requests"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/return-requests' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-rotate-left w-5 text-center"></i>
       <span class="font-medium">Returns</span>
     </a>
     <a href="/admin/coupons"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/coupons' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-ticket w-5 text-center"></i>
       <span class="font-medium">Coupons</span>
     </a>
     <a href="/admin/banners"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/banners' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-regular fa-image w-5 text-center"></i>
       <span class="font-medium">Banners</span>
     </a>
     <a href="/admin/sales-report"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-sidebarActive hover:text-white transition-all">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/sales-report' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-arrow-trend-up w-5 text-center"></i>
       <span class="font-medium">Report</span>
     </a>

@@ -392,6 +392,8 @@ const loadShopPage = async (req, res) => {
             sizes = [];
         }
 
+        let layout = req.query.layout || "3col";
+
         const filters = { search, category, sort, page, limit, minPrice, maxPrice, sizes };
         const { data: products, count } = await productService.getShopProducts(filters);
         
@@ -411,7 +413,8 @@ const loadShopPage = async (req, res) => {
             totalProducts: count,
             selectedSizes: sizes,
             minPrice: minPrice || 0,
-            maxPrice: maxPrice || 1000
+            maxPrice: maxPrice || 2000,
+            selectedLayout: layout
         });
 
     } catch (error) {

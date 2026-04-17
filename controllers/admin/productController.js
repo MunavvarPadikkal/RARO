@@ -104,7 +104,7 @@ const addProduct = async (req, res) => {
             category,
             regularPrice: parseFloat(regularPrice),
             salePrice: parseFloat(salePrice),
-            color: color.trim(),
+            color: color.split(',').map(c => c.trim()).filter(c => c.length > 0),
             sizes,
             productImage: imageNames,
             status: totalQty > 0 ? "Available" : "Out of stock",
@@ -172,7 +172,7 @@ const editProduct = async (req, res) => {
             category,
             regularPrice: parseFloat(regularPrice),
             salePrice: parseFloat(salePrice),
-            color: color.trim(),
+            color: color.split(',').map(c => c.trim()).filter(c => c.length > 0),
             sizes,
             status: totalQty > 0 ? "Available" : "Out of stock",
         };
