@@ -1,7 +1,7 @@
 const adminService = require("../../services/adminService");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const { loadSignin } = require("../user/userController");
+
 
 
 
@@ -39,12 +39,14 @@ const login = async (req, res) => {
         return res.redirect("/pageError")
     }
 }
-0
+
 
 const loadDashboard = async (req, res) => {
     try {
         if (req.session.admin) {
             res.render("dashboard");
+        }else{
+            return res.redirect("/admin/login");
         }
     } catch (error) {
         res.redirect("/pageError");

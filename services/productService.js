@@ -54,16 +54,23 @@ const getShopProducts = async ({ search, category, sort, page, limit, minPrice, 
 
     const query = {
         isDeleted: false,
-        isBlocked: false,
-        category: { $in: listedCategoryIds }
+        isBlocked: false
     };
+
+    if (category) {
+        // If a category is selected, it must be both the selected category AND listed
+        if (listedCategoryIds.map(id => id.toString()).includes(category.toString())) {
+            query.category = category;
+        } else {
+            // Selected category is not listed, ensure no products are returned
+            query.category = { $in: [] };
+        }
+    } else {
+        query.category = { $in: listedCategoryIds };
+    }
 
     if (search) {
         query.productName = { $regex: ".*" + search + ".*", $options: "i" };
-    }
-
-    if (category) {
-        query.category = category;
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {

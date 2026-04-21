@@ -177,11 +177,51 @@ const editProduct = async (req, res) => {
             status: totalQty > 0 ? "Available" : "Out of stock",
         };
 
+        // Handle images to delete
+        let imagesToRemove = [];
+        if (req.body.imagesToDelete) {
+            try {
+                imagesToRemove = JSON.parse(req.body.imagesToDelete || "[]");
+            } catch (e) {
+                imagesToRemove = req.body.imagesToDelete;
+                if (typeof imagesToRemove === 'string') {
+                    imagesToRemove = JSON.parse(imagesToRemove);
+                }
+            }
+        }
+
+        const existingProduct = await productService.getProductById(id);
+        if (!existingProduct) return res.status(404).json({ error: "Product not found" });
+
+        // Calculate final image count
+        const newImagesCount = req.files ? req.files.length : 0;
+        const finalCount = existingProduct.productImage.length - imagesToRemove.length + newImagesCount;
+
+        if (finalCount < 3) {
+            return res.status(400).json({ error: "Product must have at least 3 images" });
+        }
+
+        // Perform deletions
+        if (imagesToRemove.length > 0) {
+            for (const imgName of imagesToRemove) {
+                const imgPath = path.join(PRODUCT_IMG_DIR, imgName);
+                if (fs.existsSync(imgPath)) {
+                    fs.unlinkSync(imgPath);
+                }
+                await productService.removeProductImage(id, imgName);
+            }
+        }
+
         // Process new images if uploaded
         if (req.files && req.files.length > 0) {
             const newImages = await processImages(req.files);
-            const existing = await productService.getProductById(id);
-            updateData.productImage = [...existing.productImage, ...newImages];
+            // Re-fetch to get updated images after deletions
+            const updatedProduct = await productService.getProductById(id);
+            if (updatedProduct) {
+                updateData.productImage = [...updatedProduct.productImage, ...newImages];
+            } else {
+                updateData.productImage = newImages;
+            }
         }
 
         await productService.updateProduct(id, updateData);

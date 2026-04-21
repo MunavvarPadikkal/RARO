@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user/userController");
 const profileController = require("../controllers/user/profileController");
+const cartController = require("../controllers/user/cartController");
+const wishlistController = require("../controllers/user/wishlistController");
 const passport = require("passport");
 const userAuth = require("../middlewares/userAuth");
 const { upload } = require("../middlewares/multer");
@@ -45,6 +47,17 @@ router.post("/addAddress", userAuth.checkSession, profileController.addAddress);
 router.post("/editAddress", userAuth.checkSession, profileController.editAddress);
 router.delete("/deleteAddress", userAuth.checkSession, profileController.deleteAddress);
 router.post("/setDefaultAddress", userAuth.checkSession, profileController.setDefaultAddress);
+
+// Cart Management
+router.get("/cart", userAuth.checkSession, cartController.loadCart);
+router.post("/cart/add", userAuth.checkSession, cartController.addToCart);
+router.patch("/cart/update-quantity", userAuth.checkSession, cartController.updateQuantity);
+router.delete("/cart/remove", userAuth.checkSession, cartController.removeFromCart);
+
+// Wishlist Management
+router.get("/wishlist", userAuth.checkSession, wishlistController.loadWishlist);
+router.post("/wishlist/add", wishlistController.addToWishlist); // User auth validated inside explicitly for guest warning support
+router.delete("/wishlist/remove", userAuth.checkSession, wishlistController.removeFromWishlist);
 
 
 

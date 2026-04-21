@@ -117,7 +117,9 @@
                 <% product.productImage.forEach(img => { %>
                     <div class="relative w-32 h-32 rounded-xl border border-gray-200 overflow-hidden shadow-sm group" id="existing-<%= img %>">
                         <img src="/uploads/productImages/<%= img %>" class="w-full h-full object-cover">
-                        <button type="button" onclick="deleteExistingImage('<%= product._id %>', '<%= img %>')" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-red-500 shadow hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" 
+                                data-image-name="<%= img %>"
+                                class="delete-existing-btn absolute top-1 right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-red-500 shadow hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
                             <i class="fa-solid fa-trash-can text-xs"></i>
                         </button>
                     </div>
@@ -166,8 +168,10 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let existingCount = <%= product.productImage.length %>;
+    // Wrap EJS data in quotes to avoid linter errors
+    let existingCount = parseInt('<%= product.productImage.length %>') || 0;
     let croppedFiles = []; 
+    let imagesToDelete = []; 
     let currentCropper = null;
     let generateIdCounter = 0;
 
@@ -177,8 +181,12 @@
     const previewContainer = document.getElementById('imagePreviewContainer');
     const uploadTriggerLabel = document.getElementById('uploadTriggerLabel');
 
+    function getEffectiveImageCount() {
+        return (existingCount - imagesToDelete.length) + croppedFiles.length;
+    }
+
     function updateUploadLimit() {
-        if (existingCount + croppedFiles.length >= 4) {
+        if (getEffectiveImageCount() >= 4) {
             uploadTriggerLabel.style.display = 'none';
         } else {
             uploadTriggerLabel.style.display = 'flex';
@@ -187,47 +195,28 @@
     
     updateUploadLimit();
 
-    // Delete existing image via AJAX
-    window.deleteExistingImage = async function(productId, imageName) {
-        if (existingCount + croppedFiles.length <= 3) {
-            Swal.fire('Warning', 'A product must have at least 3 images.', 'warning');
-            return;
-        }
+    // Handle existing image deletion via event delegation
+    document.getElementById('existingImageContainer').addEventListener('click', function(e) {
+        const btn = e.target.closest('.delete-existing-btn');
+        if (!btn) return;
+        
+        const imageName = btn.getAttribute('data-image-name');
+        if (!imageName) return;
 
-        Swal.fire({
-            title: 'Delete Image?',
-            text: "Are you sure you want to remove this image?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Yes, delete it'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const res = await fetch('/admin/deleteProductImage', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ productId, imageName })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        document.getElementById('existing-' + imageName).remove();
-                        existingCount--;
-                        updateUploadLimit();
-                        Swal.fire({ icon: 'success', title: 'Deleted', text: 'Image removed successfully', timer: 1000, showConfirmButton: false });
-                    } else {
-                        Swal.fire('Error', data.error, 'error');
-                    }
-                } catch (err) {
-                    Swal.fire('Error', 'Network error', 'error');
-                }
-            }
-        });
-    }
+        if (!imagesToDelete.includes(imageName)) {
+            imagesToDelete.push(imageName);
+        }
+        
+        const imgElement = document.getElementById('existing-' + imageName);
+        if (imgElement) {
+            imgElement.remove();
+        }
+        updateUploadLimit();
+    });
 
     // Handle new file selection
     imageInput.addEventListener('change', function(e) {
-        if (existingCount + croppedFiles.length >= 4) {
+        if (getEffectiveImageCount() >= 4) {
             Swal.fire("Limit Reached", "You can only upload a maximum of 4 images total.", "warning");
             this.value = '';
             return;
@@ -340,7 +329,7 @@
         if (desc.length < 10) showError('description', 'Description minimum 10 characters');
         if (salePrice <= 0 || salePrice > regPrice) showError('salePrice', 'Sale price must be <= regular price');
         
-        if (existingCount + croppedFiles.length < 3) {
+        if (getEffectiveImageCount() < 3) {
             Swal.fire('Warning', 'Minimum 3 images required total', 'warning');
             hasError = true;
         }
@@ -360,6 +349,9 @@
         formData.append('sizeS', sizeS);
         formData.append('sizeM', sizeM);
         formData.append('sizeL', sizeL);
+        
+        // Append images to delete
+        formData.append('imagesToDelete', JSON.stringify(imagesToDelete));
 
         croppedFiles.forEach(item => {
             formData.append('productImages', item.file);

@@ -13,10 +13,15 @@ const cartSchema = new Schema({
             ref:"Product",
             required:true,
         },
+        size:{
+            type:String,
+            required:true,
+        },
         quantity:{
             type:Number,
             default:1,
-        }, price:{
+        }, 
+        price:{
             type:Number,
             required:true,
         },
@@ -24,16 +29,12 @@ const cartSchema = new Schema({
             type:Number,
             required:true,
         },
-        status:{
-            type:String,
-            default:"placed"
-        },
-        cancellationReason:{
-            type:String,
-            default:"none"
+        addedAt:{
+            type:Date,
+            default:Date.now
         }
     }]
-})
+}, {timestamps: true})
 
 const Cart = mongoose.model("Cart",cartSchema);
 module.exports = Cart;

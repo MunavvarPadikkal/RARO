@@ -16,6 +16,9 @@ const pageNotFound = async (req, res) => {
 }
 
 
+
+
+
 const loadHomepage = async (req, res) => {
     try {
         const user = req.session.user;
@@ -430,8 +433,8 @@ const loadProductDetails = async (req, res) => {
         // Fetch Product with category populated
         const product = await Product.findById(id).populate('category').lean();
         
-        if (!product || product.isDeleted) {
-            return res.redirect("/pageNotFound");
+        if (!product || product.isDeleted || !product.category || !product.category.isListed) {
+            return res.redirect("/shop");
         }
         
         if (product.isBlocked) {
@@ -517,4 +520,4 @@ module.exports = {
     loadShopPage,
     loadProductDetails,
     submitReview
-}
+};

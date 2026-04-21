@@ -139,13 +139,13 @@
                                                             <div class="product-action">
                                                                 <a href="popup/quickView.html" class="btn-product btn-quickview" title="Quick view"><span>quick view</span></a>
                                                             </div>
-                                                            <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
+                                                            <a href="/product/<%= product._id %>" class="btn-product btn-cart"><span>select size</span></a>
                                                         </div>
                                                     </div>
 
                                                     <div class="col-lg-6">
                                                         <div class="product-body product-action-inner">
-                                                            <a href="#" class="btn-product btn-wishlist" title="Add to wishlist"><span>add to wishlist</span></a>
+                                                            <a href="#" class="btn-product btn-wishlist btn-add-wishlist" data-product-id="<%= product._id %>" title="Add to wishlist" style="font-size: 1.8rem;"><span>add to wishlist</span></a>
                                                             <div class="product-cat">
                                                                 <a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a>
                                                             </div>
@@ -198,11 +198,11 @@
                                                     </a>
 
                                                     <div class="product-action-vertical">
-                                                        <a href="#" class="btn-product-icon btn-wishlist btn-expandable"><span>add to wishlist</span></a>
+                                                        <a href="#" class="btn-product-icon btn-wishlist btn-expandable btn-add-wishlist" data-product-id="<%= product._id %>" style="font-size: 1.8rem;"><span>add to wishlist</span></a>
                                                     </div><!-- End .product-action-vertical -->
 
                                                     <div class="product-action">
-                                                        <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
+                                                        <a href="/product/<%= product._id %>" class="btn-product btn-cart"><span>select size</span></a>
                                                     </div><!-- End .product-action -->
                                                 </figure><!-- End .product-media -->
 
@@ -384,6 +384,7 @@ function updateQueryStringParameter(uri, key, value) {
 <script src="assets/js/nouislider.min.js"></script>
 <!-- Main JS File -->
 <script src="assets/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     $(document).ready(function() {
@@ -443,6 +444,69 @@ function updateQueryStringParameter(uri, key, value) {
             window.location.href = newUrl;
         }
     }
+
+    $(document).ready(function() {
+        $(document).on('click', '.btn-add-wishlist', async function(e) {
+            e.preventDefault();
+            const productId = $(this).data('product-id');
+
+            try {
+                const response = await fetch('/wishlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    });
+
+                    Toast.fire({
+                        icon: 'success',
+                        title: data.message
+                    });
+                } else {
+                    if (response.status === 401 || (typeof data.message === 'string' && data.message.toLowerCase().includes('login'))) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Please Login',
+                            text: 'You need to be logged in to save items to your wishlist.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Login Now'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/signin';
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: data.message || 'Could not add to wishlist.'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Wishlist error:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong.'
+                });
+            }
+        });
+    });
 </script>
 
 <%-include("../../views/partials/user/mobileView.ejs")%>

@@ -131,13 +131,13 @@
 
                                     <div class="product-details-action">
                                         <% if (totalStock > 0) { %>
-                                            <a href="#" class="btn-product btn-cart"><span>add to cart</span></a>
+                                            <a href="#" id="addToCartBtn" data-product-id="<%= product._id %>" class="btn-product btn-cart"><span>add to cart</span></a>
                                         <% } else { %>
                                             <a href="#" class="btn-product btn-cart disabled bg-secondary text-white border-0" style="pointer-events: none; opacity: 0.6;"><span>out of stock</span></a>
                                         <% } %>
 
                                         <div class="details-action-wrapper">
-                                            <a href="#" class="btn-product btn-wishlist" title="Wishlist"><span>Add to Wishlist</span></a>
+                                            <a href="#" class="btn-product btn-wishlist btn-add-wishlist" data-product-id="<%= product._id %>" title="Wishlist"><span>Add to Wishlist</span></a>
                                         </div><!-- End .details-action-wrapper -->
                                     </div><!-- End .product-details-action -->
 
@@ -343,6 +343,7 @@
 <script src="/assets/js/jquery.elevateZoom.min.js"></script>
 <!-- Main JS File -->
 <script src="/assets/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     $(document).ready(function() {
@@ -358,6 +359,132 @@
                 responsive: true
             });
         }
+
+        $('#addToCartBtn').on('click', async function(e) {
+            e.preventDefault();
+            const productId = $(this).data('product-id');
+            const size = $('#size').val();
+            const quantity = $('#qty').val();
+
+            if (!size) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Size Required',
+                    text: 'Please select a size before adding to cart.'
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ productId, size, quantity })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart',
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    if (response.status === 401 || (typeof data.message === 'string' && data.message.toLowerCase().includes('login'))) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Please Login',
+                            text: 'You need to be logged in to add items to your cart.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Login Now'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/signin';
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: data.message || 'Failed to add item to cart.'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Error adding to cart:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong. Please try again.'
+                });
+            }
+        });
+
+        $(document).on('click', '.btn-add-wishlist', async function(e) {
+            e.preventDefault();
+            const productId = $(this).data('product-id');
+
+            try {
+                const response = await fetch('/wishlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    });
+
+                    Toast.fire({
+                        icon: 'success',
+                        title: data.message
+                    });
+                } else {
+                    if (response.status === 401 || (typeof data.message === 'string' && data.message.toLowerCase().includes('login'))) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Please Login',
+                            text: 'You need to be logged in to save items to your wishlist.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Login Now'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/signin';
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: data.message || 'Could not add to wishlist.'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Wishlist error:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong.'
+                });
+            }
+        });
     });
 </script>
 
