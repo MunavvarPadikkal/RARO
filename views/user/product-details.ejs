@@ -375,6 +375,15 @@
                 return;
             }
 
+            if (quantity < 1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Quantity',
+                    text: 'Quantity must be at least 1'
+                });
+                return;
+            }
+
             try {
                 const response = await fetch('/cart/add', {
                     method: 'POST',

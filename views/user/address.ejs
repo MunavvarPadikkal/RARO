@@ -120,90 +120,99 @@
         </nav>
 
         <div class="page-content">
-            <div class="container">
-                <div class="row align-items-center mb-4">
-                    <div class="col-8">
-                        <h5 style="font-weight: 600; color: #333; margin:0;">Saved Addresses</h5>
-                    </div>
-                    <div class="col-4 text-right">
-                        <button class="btn btn-dark" onclick="openAddAddressModal()"
-                            style="border-radius: 8px; font-weight: 500;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                class="mr-2" viewBox="0 0 16 16">
-                                <path
-                                    d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-                            </svg> Add Address
-                        </button>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <% if(userAddress && userAddress.address && userAddress.address.length> 0) { %>
-                        <% userAddress.address.forEach(item=> { %>
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="address-card<%= item.isDefault ? ' address-card-default' : '' %>">
-
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <div class="custom-control custom-radio">
-                                            <input type="radio" id="default-<%= item._id %>" name="defaultAddress"
-                                                class="custom-control-input" <%=item.isDefault ? 'checked' : '' %>
-                                            onclick="setDefault('<%= item._id %>')">
-                                                <label class="custom-control-label"
-                                                    for="default-<%= item._id %>">Default</label>
-                                        </div>
-                                        <span class="badge badge-dark"
-                                            style="font-size: 11px; padding: 6px 12px; border-radius: 20px; font-weight: 500;">
-                                            <%= item.addressType %>
-                                        </span>
-                                    </div>
-
-                                    <h5 class="mb-1" style="font-weight: 600; font-size: 16px;">
-                                        <%= item.name %>
-                                    </h5>
-                                    <p class="mb-1" style="font-size: 14px; color: #666;">
-                                        <%= item.phone %>
-                                            <% if(item.altPhone && item.altPhone !=='N/A' ) { %> / <%= item.altPhone %>
-                                                    <% } %>
-                                    </p>
-
-                                    <p class="mb-3" style="font-size: 14px; color: #555; line-height: 1.6;">
-                                        <%= item.landMark %>, <%= item.city %><br>
-                                                <%= item.state %> - <strong>
-                                                        <%= item.pincode %>
-                                                    </strong>
-                                    </p>
-
-                                    <div class="d-flex flex-wrap" style="gap: 8px;">
-                                        <button class="btn btn-outline-dark btn-sm w-50"
-                                            style="border-radius: 6px; font-weight: 600; flex: 1; min-width: 70px;"
-                                            onclick="openEditAddressModal('<%= item._id %>', '<%= item.addressType %>', '<%= item.name %>', '<%= item.city %>', '<%= item.landMark %>', '<%= item.state %>', '<%= item.pincode %>', '<%= item.phone %>', '<%= item.altPhone %>')">
-                                            Edit
-                                        </button>
-                                        <button class="btn btn-outline-danger btn-sm w-50"
-                                            style="border-radius: 6px; font-weight: 600; flex: 1; min-width: 70px;"
-                                            onclick="deleteAddress('<%= item._id %>')">
-                                            Delete
-                                        </button>
-                                    </div>
+            <div class="dashboard">
+                <div class="container">
+                    <div class="row">
+                        <% var activeTab = 'addresses'; %>
+                        <%- include("../../views/partials/user/profileSidebar.ejs", { activeTab: activeTab }) %>
+                        <div class="col-md-8 col-lg-9">
+                            <div class="row align-items-center mb-4">
+                                <div class="col-8">
+                                    <h5 style="font-weight: 600; color: #333; margin:0;">Saved Addresses</h5>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <button class="btn btn-dark" onclick="openAddAddressModal()"
+                                        style="border-radius: 8px; font-weight: 500;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+                                            <path
+                                                d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                        </svg> Add Address
+                                    </button>
                                 </div>
                             </div>
-                            <% }) %>
-                                <% } else { %>
-                                    <div class="col-12 text-center py-5">
-                                        <div style="font-size: 50px; margin-bottom: 10px;">🏠</div>
-                                        <h4 style="font-weight: 600; color: #333;">No Addresses Saved</h4>
-                                        <p style="color: #666;">Start by adding a new address for faster checkout!</p>
-                                    </div>
-                                    <% } %>
-                </div>
 
-                <div class="text-center mt-3">
-                    <a href="/profile" class="btn btn-outline-dark"
-                        style="border-radius: 8px; font-weight: 500; font-size: 14px; padding: 10px 25px;">Back to
-                        Profile</a>
-                </div>
-            </div>
-        </div>
+                            <div class="row">
+                                <% if(userAddress && userAddress.address && userAddress.address.length> 0) { %>
+                                    <% userAddress.address.forEach(item=> { %>
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div
+                                                class="address-card<%= item.isDefault ? ' address-card-default' : '' %>">
+
+                                                <div
+                                                    class="d-flex align-items-center justify-content-between mb-2">
+                                                    <div class="custom-control custom-radio">
+                                                        <input type="radio" id="default-<%= item._id %>"
+                                                            name="defaultAddress" class="custom-control-input"
+                                                            <%=item.isDefault ? 'checked' : '' %>
+                                                        onclick="setDefault('<%= item._id %>')">
+                                                            <label class="custom-control-label"
+                                                                for="default-<%= item._id %>">Default</label>
+                                                    </div>
+                                                    <span class="badge badge-dark"
+                                                        style="font-size: 11px; padding: 6px 12px; border-radius: 20px; font-weight: 500;">
+                                                        <%= item.addressType %>
+                                                    </span>
+                                                </div>
+
+                                                <h5 class="mb-1" style="font-weight: 600; font-size: 16px;">
+                                                    <%= item.name %>
+                                                </h5>
+                                                <p class="mb-1" style="font-size: 14px; color: #666;">
+                                                    <%= item.phone %>
+                                                        <% if(item.altPhone && item.altPhone !=='N/A' ) { %> /
+                                                            <%= item.altPhone %>
+                                                                <% } %>
+                                                </p>
+
+                                                <p class="mb-3"
+                                                    style="font-size: 14px; color: #555; line-height: 1.6;">
+                                                    <%= item.landMark %>, <%= item.city %><br>
+                                                            <%= item.state %> - <strong>
+                                                                    <%= item.pincode %>
+                                                                </strong>
+                                                </p>
+
+                                                <div class="d-flex flex-wrap" style="gap: 8px;">
+                                                    <button class="btn btn-outline-dark btn-sm w-50"
+                                                        style="border-radius: 6px; font-weight: 600; flex: 1; min-width: 70px;"
+                                                        onclick="openEditAddressModal('<%= item._id %>', '<%= item.addressType %>', '<%= item.name %>', '<%= item.city %>', '<%= item.landMark %>', '<%= item.state %>', '<%= item.pincode %>', '<%= item.phone %>', '<%= item.altPhone %>')">
+                                                        Edit
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm w-50"
+                                                        style="border-radius: 6px; font-weight: 600; flex: 1; min-width: 70px;"
+                                                        onclick="deleteAddress('<%= item._id %>')">
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% }) %>
+                                            <% } else { %>
+                                                <div class="col-12 text-center py-5">
+                                                    <div style="font-size: 50px; margin-bottom: 10px;">🏠</div>
+                                                    <h4 style="font-weight: 600; color: #333;">No Addresses
+                                                        Saved</h4>
+                                                    <p style="color: #666;">Start by adding a new address for
+                                                        faster checkout!</p>
+                                                </div>
+                                                <% } %>
+                            </div>
+                        </div><!-- End .col-md-8 -->
+                    </div><!-- End .row -->
+                </div><!-- End .container -->
+            </div><!-- End .dashboard -->
+        </div><!-- End .page-content -->
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -274,7 +283,7 @@
             };
 
             let isValid = true;
-            
+
             // Clear previous errors
             ['addrType', 'addrName', 'addrPhone', 'addrAlt', 'addrLandmark', 'addrCity', 'addrState', 'addrPin'].forEach(id => setError(id, ''));
 
@@ -465,6 +474,6 @@
 
     <%- include("../../views/partials/user/footer.ejs") %>
 
-    </div><!-- End .page-wrapper -->
+        </div><!-- End .page-wrapper -->
 
-    <%-include("../../views/partials/user/mobileView.ejs")%>
+        <%-include("../../views/partials/user/mobileView.ejs")%>

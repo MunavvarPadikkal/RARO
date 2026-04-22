@@ -1,0 +1,342 @@
+<%- include("../../views/partials/user/header.ejs") %>
+
+<main class="main">
+    <div class="page-content pt-5 pb-5">
+        <div class="container">
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
+
+                    <!-- ── Success Card ── -->
+                    <div class="order-success-card">
+
+                        <!-- Animated success icon -->
+                        <div class="success-icon-wrapper">
+                            <div class="success-icon-circle">
+                                <svg class="success-checkmark" viewBox="0 0 52 52">
+                                    <circle class="success-checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                                    <path class="success-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <h1 class="success-heading">Order Placed!</h1>
+                        <p class="success-subtext">Thank you, <strong><%= user.name %></strong>! Your order has been confirmed.</p>
+
+                        <!-- ── Order Meta ── -->
+                        <div class="order-meta-grid">
+                            <div class="order-meta-item">
+                                <span class="meta-label">Order ID</span>
+                                <span class="meta-value order-id-value" title="<%= order.orderId %>">
+                                    #<%= order.orderId.substring(0, 8).toUpperCase() %>...
+                                </span>
+                            </div>
+                            <div class="order-meta-item">
+                                <span class="meta-label">Order Date</span>
+                                <span class="meta-value">
+                                    <%= new Date(order.createdOn).toLocaleDateString('en-IN', {
+                                        day: 'numeric', month: 'long', year: 'numeric'
+                                    }) %>
+                                </span>
+                            </div>
+                            <div class="order-meta-item">
+                                <span class="meta-label">Payment</span>
+                                <span class="meta-value"><%= order.paymentMethod %></span>
+                            </div>
+                            <div class="order-meta-item">
+                                <span class="meta-label">Status</span>
+                                <span class="meta-value order-status-badge"><%= order.orderStatus %></span>
+                            </div>
+                        </div>
+
+                        <!-- ── Ordered Items ── -->
+                        <div class="success-section">
+                            <h3 class="success-section-title">Items Ordered</h3>
+                            <div class="success-items-list">
+                                <% order.orderedItems.forEach(item => { %>
+                                    <div class="success-item-row">
+                                        <div class="success-item-img">
+                                            <% if (item.productImage) { %>
+                                                <img src="/uploads/productImages/<%= item.productImage %>"
+                                                     alt="<%= item.productName %>">
+                                            <% } else { %>
+                                                <img src="/assets/images/products/product-4.jpg" alt="Product">
+                                            <% } %>
+                                        </div>
+                                        <div class="success-item-info">
+                                            <p class="success-item-name"><%= item.productName %></p>
+                                            <p class="success-item-meta">
+                                                Size: <strong><%= item.size %></strong>
+                                                <% if (item.color) { %> &nbsp;·&nbsp; Color: <strong><%= item.color %></strong><% } %>
+                                                &nbsp;·&nbsp; Qty: <strong><%= item.quantity %></strong>
+                                            </p>
+                                        </div>
+                                        <div class="success-item-price">₹<%= item.itemTotal %></div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+
+                        <!-- ── Price Summary ── -->
+                        <div class="success-section">
+                            <h3 class="success-section-title">Price Breakdown</h3>
+                            <table class="success-price-table">
+                                <tr>
+                                    <td>Subtotal</td>
+                                    <td>₹<%= order.subtotal + order.discount %></td>
+                                </tr>
+                                <% if (order.discount > 0) { %>
+                                    <tr class="discount-row">
+                                        <td>Discount</td>
+                                        <td>− ₹<%= order.discount %></td>
+                                    </tr>
+                                <% } %>
+                                <tr>
+                                    <td>Shipping</td>
+                                    <td><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge %></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td><strong>Total Paid</strong></td>
+                                    <td><strong>₹<%= order.finalAmount %></strong></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- ── Delivery Address ── -->
+                        <div class="success-section">
+                            <h3 class="success-section-title">Delivering To</h3>
+                            <div class="success-address-box">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="address-type-pill"><%= order.shippingAddress.addressType %></span>
+                                </div>
+                                <p class="success-addr-name"><%= order.shippingAddress.name %></p>
+                                <p class="success-addr-line">
+                                    <%= order.shippingAddress.landMark ? order.shippingAddress.landMark + ', ' : '' %>
+                                    <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> — <%= order.shippingAddress.pincode %>
+                                </p>
+                                <p class="success-addr-phone">📞 <%= order.shippingAddress.phone %></p>
+                            </div>
+                        </div>
+
+                        <!-- ── Action Buttons ── -->
+                        <div class="success-actions">
+                            <a href="/orders" class="btn btn-outline-primary-2">
+                                <i class="icon-list"></i> View My Orders
+                            </a>
+                            <a href="/shop" class="btn btn-outline-dark-2">
+                                <i class="icon-shopping-cart"></i> Continue Shopping
+                            </a>
+                        </div>
+
+                    </div><!-- End .order-success-card -->
+
+                </div>
+            </div><!-- End .row -->
+        </div><!-- End .container -->
+    </div><!-- End .page-content -->
+</main>
+
+<button id="scroll-top" title="Back to Top"><i class="icon-arrow-up"></i></button>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     Order Success Page Styles
+═══════════════════════════════════════════════════════════════════════════ -->
+<style>
+    /* ── Card ──────────────────────────────────────────────────────────────── */
+    .order-success-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+        padding: 48px 40px;
+        text-align: center;
+    }
+    @media (max-width: 576px) {
+        .order-success-card { padding: 32px 20px; }
+    }
+
+    /* ── Animated Checkmark ────────────────────────────────────────────────── */
+    .success-icon-wrapper { margin-bottom: 24px; }
+    .success-icon-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 90px;
+        height: 90px;
+    }
+    .success-checkmark {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+    }
+    .success-checkmark-circle {
+        stroke: #43a047;
+        stroke-width: 2;
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-miterlimit: 10;
+        animation: strokeCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+    .success-checkmark-check {
+        stroke: #43a047;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: strokeCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
+    }
+    @keyframes strokeCircle {
+        100% { stroke-dashoffset: 0; }
+    }
+    @keyframes strokeCheck {
+        100% { stroke-dashoffset: 0; }
+    }
+
+    /* ── Headings ──────────────────────────────────────────────────────────── */
+    .success-heading {
+        font-size: 3.2rem;
+        font-weight: 800;
+        color: #222;
+        margin-bottom: 8px;
+    }
+    .success-subtext {
+        font-size: 1.5rem;
+        color: #666;
+        margin-bottom: 32px;
+    }
+
+    /* ── Order Meta Grid ───────────────────────────────────────────────────── */
+    .order-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        background: #f9f9f9;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 32px;
+        text-align: left;
+    }
+    @media (max-width: 480px) {
+        .order-meta-grid { grid-template-columns: 1fr; }
+    }
+    .order-meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-label {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .meta-value { font-size: 1.4rem; font-weight: 600; color: #333; }
+    .order-id-value {
+        font-family: monospace;
+        font-size: 1.3rem;
+        color: #c96;
+        cursor: help;
+    }
+    .order-status-badge {
+        display: inline-block;
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    /* ── Sections ──────────────────────────────────────────────────────────── */
+    .success-section {
+        text-align: left;
+        margin-bottom: 28px;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 24px;
+    }
+    .success-section-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 16px;
+    }
+
+    /* ── Items List ────────────────────────────────────────────────────────── */
+    .success-items-list { display: flex; flex-direction: column; gap: 12px; }
+    .success-item-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px;
+        border: 1px solid #f0f0f0;
+        border-radius: 10px;
+        background: #fafafa;
+    }
+    .success-item-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid #eee;
+    }
+    .success-item-img img { width: 100%; height: 100%; object-fit: cover; }
+    .success-item-info { flex: 1; }
+    .success-item-name { font-size: 1.4rem; font-weight: 600; color: #333; margin-bottom: 3px; }
+    .success-item-meta { font-size: 1.2rem; color: #777; margin: 0; }
+    .success-item-price { font-size: 1.4rem; font-weight: 700; color: #c96; white-space: nowrap; }
+
+    /* ── Price Table ───────────────────────────────────────────────────────── */
+    .success-price-table { width: 100%; border-collapse: collapse; font-size: 1.4rem; }
+    .success-price-table td { padding: 8px 4px; color: #444; }
+    .success-price-table td:last-child { text-align: right; font-weight: 600; }
+    .success-price-table .discount-row td { color: #2e7d32; }
+    .success-price-table .total-row td {
+        font-size: 1.6rem;
+        color: #222;
+        border-top: 2px solid #eee;
+        padding-top: 12px;
+    }
+
+    /* ── Delivery Address Box ──────────────────────────────────────────────── */
+    .success-address-box {
+        background: #f9f9f9;
+        border-left: 4px solid #c96;
+        border-radius: 8px;
+        padding: 16px 20px;
+    }
+    .address-type-pill {
+        background: #c96;
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 2px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .success-addr-name { font-size: 1.5rem; font-weight: 700; color: #222; margin: 8px 0 4px; }
+    .success-addr-line { font-size: 1.3rem; color: #555; margin-bottom: 4px; }
+    .success-addr-phone { font-size: 1.3rem; color: #777; margin: 0; }
+
+    /* ── Action Buttons ────────────────────────────────────────────────────── */
+    .success-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #f0f0f0;
+    }
+    .success-actions .btn { min-width: 180px; }
+</style>
+
+<script src="/assets/js/jquery.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/jquery.hoverIntent.min.js"></script>
+<script src="/assets/js/jquery.waypoints.min.js"></script>
+<script src="/assets/js/superfish.min.js"></script>
+<script src="/assets/js/owl.carousel.min.js"></script>
+<script src="/assets/js/jquery.magnific-popup.min.js"></script>
+<script src="/assets/js/main.js"></script>
+
+<%- include("../../views/partials/user/mobileView.ejs") %>
+<%- include("../../views/partials/user/footer.ejs") %>

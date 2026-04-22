@@ -17,81 +17,100 @@
         </nav>
 
         <div class="page-content">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-6">
-                        <div class="card shadow-sm border-0 mb-4"
-                            style="border-radius: 16px; overflow: hidden; background: #ffffff;">
-                            <div class="card-body p-5">
-                                <h3 class="mb-4 text-center" style="font-weight: 600; color: #333;">Account Details</h3>
+            <div class="dashboard">
+                <div class="container">
+                    <div class="row">
+                        <% var activeTab = 'edit-profile'; %>
+                        <%- include("../../views/partials/user/profileSidebar.ejs", { activeTab: activeTab }) %>
+                        <div class="col-md-8 col-lg-9">
+                            <div class="card shadow-sm border-0 mb-4"
+                                style="border-radius: 16px; overflow: hidden; background: #ffffff;">
+                                <div class="card-body p-5">
+                                    <h3 class="mb-4 text-center" style="font-weight: 600; color: #333;">Account Details</h3>
 
-                                <form id="accountDetailsForm">
-                                    <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Full Name*</label>
-                                    <input type="text" name="name" id="editName" class="form-control mb-3"
-                                        value="<%= user && user.name ? user.name : '' %>" required
-                                        style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+                                    <form id="accountDetailsForm">
+                                        <label
+                                            style="font-size: 13px; color: #666; margin-bottom: 5px;">Full
+                                            Name*</label>
+                                        <input type="text" name="name" id="editName"
+                                            class="form-control mb-3"
+                                            value="<%= user && user.name ? user.name : '' %>" required
+                                            style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
 
-                                    <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Email
-                                        Address*</label>
-                                    <div class="d-flex mb-3" style="gap: 8px;">
-                                        <input type="email" name="email" id="editEmail" class="form-control mb-0"
-                                            value="<%= user && user.email ? user.email : '' %>"
-                                            style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none; flex: 1;"
-                                            readonly>
-                                        <button type="button" id="changeEmailBtn" class="btn btn-outline-dark"
-                                            style="padding: 12px 25px; border-radius: 8px; font-weight: 500; font-size: 12px; min-width: max-content; height: 40px; cursor: pointer; letter-spacing: 0.5px; white-space: nowrap;">Change
-                                            Email</button>
-                                            
-                                    </div>
+                                        <label
+                                            style="font-size: 13px; color: #666; margin-bottom: 5px;">Email
+                                            Address*</label>
+                                        <div class="d-flex mb-3" style="gap: 8px;">
+                                            <input type="email" name="email" id="editEmail"
+                                                class="form-control mb-0"
+                                                value="<%= user && user.email ? user.email : '' %>"
+                                                style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none; flex: 1;"
+                                                readonly>
+                                            <button type="button" id="changeEmailBtn"
+                                                class="btn btn-outline-dark"
+                                                style="padding: 12px 25px; border-radius: 8px; font-weight: 500; font-size: 12px; min-width: max-content; height: 40px; cursor: pointer; letter-spacing: 0.5px; white-space: nowrap;">Change
+                                                Email</button>
 
-                                    <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Phone
-                                        Number</label>
-                                    <input type="text" name="phone" id="editPhone" class="form-control mb-3"
-                                        value="<%= user && user.phone ? user.phone : '' %>"
-                                        style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+                                        </div>
 
-                                    <% if (!user.googleId) { %>
-                                    <hr class="mt-4 mb-4">
+                                        <label
+                                            style="font-size: 13px; color: #666; margin-bottom: 5px;">Phone
+                                            Number</label>
+                                        <input type="text" name="phone" id="editPhone"
+                                            class="form-control mb-3"
+                                            value="<%= user && user.phone ? user.phone : '' %>"
+                                            style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
 
-                                    <div>
-                                    <h5 class="mb-3" style="font-size: 15px; font-weight: 600;">Password Change</h5>
+                                        <% if (!user.googleId) { %>
+                                            <hr class="mt-4 mb-4">
 
-                                    <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Current Password
-                                        (leave blank to leave unchanged)</label>
-                                    <input type="password" name="currentPassword" id="editCurrentPassword"
-                                        class="form-control mb-3"
-                                        style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+                                            <div>
+                                                <h5 class="mb-3"
+                                                    style="font-size: 15px; font-weight: 600;">Password
+                                                    Change</h5>
 
-                                    <label style="font-size: 13px; color: #666; margin-bottom: 5px;">New Password (leave
-                                        blank to leave unchanged)</label>
-                                    <input type="password" name="newPassword" id="editNewPassword"
-                                        class="form-control mb-3"
-                                        style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+                                                <label
+                                                    style="font-size: 13px; color: #666; margin-bottom: 5px;">Current
+                                                    Password
+                                                    (leave blank to leave unchanged)</label>
+                                                <input type="password" name="currentPassword"
+                                                    id="editCurrentPassword" class="form-control mb-3"
+                                                    style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
 
-                                    <label style="font-size: 13px; color: #666; margin-bottom: 5px;">Confirm New
-                                        Password</label>
-                                    <input type="password" name="confirmPassword" id="editConfirmPassword"
-                                        class="form-control mb-4"
-                                        style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
+                                                <label
+                                                    style="font-size: 13px; color: #666; margin-bottom: 5px;">New
+                                                    Password (leave
+                                                    blank to leave unchanged)</label>
+                                                <input type="password" name="newPassword"
+                                                    id="editNewPassword" class="form-control mb-3"
+                                                    style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
 
-                                    </div>
-                                    <% } %>
+                                                <label
+                                                    style="font-size: 13px; color: #666; margin-bottom: 5px;">Confirm
+                                                    New
+                                                    Password</label>
+                                                <input type="password" name="confirmPassword"
+                                                    id="editConfirmPassword" class="form-control mb-4"
+                                                    style="background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; padding: 12px 15px; box-shadow: none;">
 
-                                    <div class="text-center mt-2">
-                                        <a href="/profile" class="btn btn-outline-dark mr-3"
-                                            style="padding: 10px 30px; border-radius: 8px; font-weight: 500;">Cancel</a>
-                                        <button type="submit" class="btn btn-dark"
-                                            style="padding: 12px 40px; font-weight: 500; border-radius: 8px;">
-                                            <span>SAVE CHANGES</span>
-                                        </button>
-                                    </div>
-                                </form>
+                                            </div>
+                                            <% } %>
+
+                                                <div class="text-center mt-2">
+
+                                                    <button type="submit" class="btn btn-dark"
+                                                        style="padding: 12px 40px; font-weight: 500; border-radius: 8px;">
+                                                        <span>SAVE CHANGES</span>
+                                                    </button>
+                                                </div>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        </div><!-- End .col-md-8 -->
+                    </div><!-- End .row -->
+                </div><!-- End .container -->
+            </div><!-- End .dashboard -->
+        </div><!-- End .page-content -->
     </main>
 
     <!-- SweetAlert2 -->
@@ -372,7 +391,7 @@
 
     <%- include("../../views/partials/user/footer.ejs") %>
 
-    </div><!-- End .page-wrapper -->
+        </div><!-- End .page-wrapper -->
 
         <button id="scroll-top" title="Back to Top">
             <i class="icon-arrow-up"></i>

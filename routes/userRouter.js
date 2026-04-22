@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require("../controllers/user/userController");
 const profileController = require("../controllers/user/profileController");
 const cartController = require("../controllers/user/cartController");
+const checkoutController = require("../controllers/user/checkoutController");
 const wishlistController = require("../controllers/user/wishlistController");
 const passport = require("passport");
 const userAuth = require("../middlewares/userAuth");
@@ -53,6 +54,11 @@ router.get("/cart", userAuth.checkSession, cartController.loadCart);
 router.post("/cart/add", userAuth.checkSession, cartController.addToCart);
 router.patch("/cart/update-quantity", userAuth.checkSession, cartController.updateQuantity);
 router.delete("/cart/remove", userAuth.checkSession, cartController.removeFromCart);
+
+// Checkout & Orders
+router.get("/checkout", userAuth.checkSession, checkoutController.loadCheckout);
+router.post("/checkout/place-order", userAuth.checkSession, checkoutController.placeOrder);
+router.get("/order-success/:orderId", userAuth.checkSession, checkoutController.orderSuccess);
 
 // Wishlist Management
 router.get("/wishlist", userAuth.checkSession, wishlistController.loadWishlist);

@@ -1,65 +1,133 @@
 const mongoose = require("mongoose");
-const {Schema} = mongoose;
-const {v4:uuidv4} = require("uuid")
+const { Schema } = mongoose;
+const { v4: uuidv4 } = require("uuid");
 
-
-const orderSchema = new Schema({
-    orderId:{
-        type:String,
-        default:()=>uuidv4(),
-        unique:true
-    },
-    orderedItems:[{
-        product:{
-            type:Schema.Types.ObjectId,
-            ref:"Product",
-            required:true
+const orderSchema = new Schema(
+    {
+        orderId: {
+            type: String,
+            default: () => uuidv4(),
+            unique: true,
         },
-        quantity:{
-            type:Number,
-            required:true
+
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
         },
-        price:{
-            type:Number,
-            default:0
-        }
-    }],
-    totalPrice:{
-        type:Number,
-        required:true
-    },
-    discount:{
-        type:Number,
-        default:0
-    },
-    finalAmount:{
-        type:Number,
-        required:true
-    },
-    address:{
-        type:Schema.Types.ObjectId,
-        ref:"User",
-        required:true
-    },
-    invoiceDate:{
-        type:Date
-    },
-    status:{
-        type:String,
-        required:true,
-        enum:["Pending","Processing","Shipped","Delivered","Cancelled","Return Request","Returned"]
-    },
-    createdOn:{
-        type:Date,
-        default:Date.now,
-        required:true
-    },
-    couponApplied:{
-        type:Boolean,
-        default:false
-    }
-})
 
+        // Snapshot of ordered products — immutable record even if product is later deleted/edited
+        orderedItems: [
+            {
+                productId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "Product",
+                    required: true,
+                },
+                productName: {
+                    type: String,
+                    required: true,
+                },
+                productImage: {
+                    type: String,
+                    default: "",
+                },
+                size: {
+                    type: String,
+                    required: true,
+                },
+                color: {
+                    type: String,
+                    default: "",
+                },
+                quantity: {
+                    type: Number,
+                    required: true,
+                    min: 1,
+                },
+                price: {
+                    type: Number,
+                    required: true,
+                },
+                itemTotal: {
+                    type: Number,
+                    required: true,
+                },
+            },
+        ],
 
-const Order = mongoose.model("Order",orderSchema);
+        // Snapshot of the delivery address — immutable even if user later edits/deletes the address
+        shippingAddress: {
+            addressType: { type: String, default: "Home" },
+            name: { type: String, required: true },
+            phone: { type: String, required: true },
+            landMark: { type: String, default: "" },
+            city: { type: String, required: true },
+            state: { type: String, required: true },
+            pincode: { type: Number, required: true },
+        },
+
+        paymentMethod: {
+            type: String,
+            enum: ["Cash on Delivery"],
+            default: "Cash on Delivery",
+            required: true,
+        },
+
+        paymentStatus: {
+            type: String,
+            enum: ["Pending", "Paid", "Failed"],
+            default: "Pending",
+        },
+
+        orderStatus: {
+            type: String,
+            enum: ["Placed", "Processing", "Shipped", "Delivered", "Cancelled"],
+            default: "Placed",
+            required: true,
+        },
+
+        subtotal: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+
+        discount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+
+        shippingCharge: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+
+        finalAmount: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+
+        couponApplied: {
+            type: Boolean,
+            default: false,
+        },
+
+        couponCode: {
+            type: String,
+            default: null,
+        },
+
+        createdOn: {
+            type: Date,
+            default: Date.now,
+        },
+    },
+    { timestamps: true }
+);
+
+const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;

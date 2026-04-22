@@ -1,236 +1,487 @@
-<%-include("../../views/partials/user/header.ejs")%>
+<%- include("../../views/partials/user/header.ejs") %>
 
 <main class="main">
-        	<div class="page-header text-center" style="background-image: url('assets/images/page-header-bg.jpg')">
-        		<div class="container">
-        			<h1 class="page-title">Checkout<span>Shop</span></h1>
-        		</div><!-- End .container -->
-        	</div><!-- End .page-header -->
-            <nav aria-label="breadcrumb" class="breadcrumb-nav">
-                <div class="container">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                        <li class="breadcrumb-item"><a href="#">Shop</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Checkout</li>
-                    </ol>
-                </div><!-- End .container -->
-            </nav><!-- End .breadcrumb-nav -->
+    <div class="page-header text-center" style="background-image: url('/assets/images/page-header-bg.jpg')">
+        <div class="container">
+            <h1 class="page-title">Checkout<span>Shop</span></h1>
+        </div>
+    </div>
 
-            <div class="page-content">
-            	<div class="checkout">
-	                <div class="container">
-            			<div class="checkout-discount">
-            				<form action="#">
-        						<input type="text" class="form-control" required id="checkout-discount-input">
-            					<label for="checkout-discount-input" class="text-truncate">Have a coupon? <span>Click here to enter your code</span></label>
-            				</form>
-            			</div><!-- End .checkout-discount -->
-            			<form action="#">
-		                	<div class="row">
-		                		<div class="col-lg-9">
-		                			<h2 class="checkout-title">Billing Details</h2><!-- End .checkout-title -->
-		                				<div class="row">
-		                					<div class="col-sm-6">
-		                						<label>First Name *</label>
-		                						<input type="text" class="form-control" required>
-		                					</div><!-- End .col-sm-6 -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
+                <li class="breadcrumb-item"><a href="/cart">Cart</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+            </ol>
+        </div>
+    </nav>
 
-		                					<div class="col-sm-6">
-		                						<label>Last Name *</label>
-		                						<input type="text" class="form-control" required>
-		                					</div><!-- End .col-sm-6 -->
-		                				</div><!-- End .row -->
+    <div class="page-content">
+        <div class="checkout">
+            <div class="container">
 
-	            						<label>Company Name (Optional)</label>
-	            						<input type="text" class="form-control">
+                <div class="row">
+                    <!-- ══════════════════════════════════════════════════════════
+                         LEFT COLUMN — Address Selection + Order Items
+                    ═══════════════════════════════════════════════════════════ -->
+                    <div class="col-lg-9">
 
-	            						<label>Country *</label>
-	            						<input type="text" class="form-control" required>
+                        <!-- ── SECTION 1: Delivery Address ── -->
+                        <h2 class="checkout-title">Select Delivery Address</h2>
 
-	            						<label>Street address *</label>
-	            						<input type="text" class="form-control" placeholder="House number and Street name" required>
-	            						<input type="text" class="form-control" placeholder="Appartments, suite, unit etc ..." required>
+                        <% if (addresses && addresses.length > 0) { %>
+                            <div class="row" id="address-cards-container">
+                                <% addresses.forEach((addr, index) => { %>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="checkout-address-card <%= addr.isDefault ? 'selected' : '' %>"
+                                             id="addr-card-<%= addr._id %>"
+                                             onclick="selectAddress('<%= addr._id %>', this)">
 
-	            						<div class="row">
-		                					<div class="col-sm-6">
-		                						<label>Town / City *</label>
-		                						<input type="text" class="form-control" required>
-		                					</div><!-- End .col-sm-6 -->
+                                            <div class="address-card-header">
+                                                <div class="d-flex align-items-center">
+                                                    <input type="radio"
+                                                           name="selectedAddress"
+                                                           id="addr-radio-<%= addr._id %>"
+                                                           value="<%= addr._id %>"
+                                                           class="address-radio mr-2"
+                                                           <%= addr.isDefault ? 'checked' : '' %>>
+                                                    <span class="address-type-badge"><%= addr.addressType || "Home" %></span>
+                                                    <% if (addr.isDefault) { %>
+                                                        <span class="default-badge ml-2">Default</span>
+                                                    <% } %>
+                                                </div>
+                                                <a href="/address"
+                                                   class="address-edit-btn"
+                                                   onclick="event.stopPropagation()">
+                                                    <i class="icon-edit"></i> Edit
+                                                </a>
+                                            </div>
 
-		                					<div class="col-sm-6">
-		                						<label>State / County *</label>
-		                						<input type="text" class="form-control" required>
-		                					</div><!-- End .col-sm-6 -->
-		                				</div><!-- End .row -->
+                                            <div class="address-card-body">
+                                                <p class="address-name"><%= addr.name %></p>
+                                                <p class="address-line"><%= addr.landMark %></p>
+                                                <p class="address-line"><%= addr.city %>, <%= addr.state %> — <%= addr.pincode %></p>
+                                                <p class="address-phone"><i class="icon-phone"></i> <%= addr.phone %></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
 
-		                				<div class="row">
-		                					<div class="col-sm-6">
-		                						<label>Postcode / ZIP *</label>
-		                						<input type="text" class="form-control" required>
-		                					</div><!-- End .col-sm-6 -->
+                            <div class="mb-4">
+                                <a href="/address" class="btn btn-outline-dark-2 btn-sm">
+                                    <i class="icon-plus"></i> Add New Address
+                                </a>
+                            </div>
 
-		                					<div class="col-sm-6">
-		                						<label>Phone *</label>
-		                						<input type="tel" class="form-control" required>
-		                					</div><!-- End .col-sm-6 -->
-		                				</div><!-- End .row -->
+                        <% } else { %>
+                            <!-- No addresses saved -->
+                            <div class="alert alert-warning mb-4" style="font-size: 1.4rem;">
+                                <i class="icon-warning"></i>
+                                You have no saved addresses.
+                                <a href="/address" class="font-weight-bold">Add an address</a> to continue.
+                            </div>
+                        <% } %>
 
-	                					<label>Email address *</label>
-	        							<input type="email" class="form-control" required>
+                        <!-- ── SECTION 2: Order Items ── -->
+                        <h2 class="checkout-title mt-4">Order Summary</h2>
 
-	        							<div class="custom-control custom-checkbox">
-											<input type="checkbox" class="custom-control-input" id="checkout-create-acc">
-											<label class="custom-control-label" for="checkout-create-acc">Create an account?</label>
-										</div><!-- End .custom-checkbox -->
+                        <div class="checkout-items-list">
+                            <% cartItems.forEach(item => { %>
+                                <div class="checkout-item-row">
+                                    <div class="checkout-item-image">
+                                        <% if (item.productImage) { %>
+                                            <img src="/uploads/productImages/<%= item.productImage %>"
+                                                 alt="<%= item.productName %>">
+                                        <% } else { %>
+                                            <img src="/assets/images/products/product-4.jpg"
+                                                 alt="No image">
+                                        <% } %>
+                                    </div>
+                                    <div class="checkout-item-details">
+                                        <h4 class="checkout-item-name"><%= item.productName %></h4>
+                                        <div class="checkout-item-meta">
+                                            <span class="meta-badge">Size: <%= item.size %></span>
+                                            <% if (item.color) { %>
+                                                <span class="meta-badge">Color: <%= item.color %></span>
+                                            <% } %>
+                                            <span class="meta-badge">Qty: <%= item.quantity %></span>
+                                        </div>
+                                        <div class="checkout-item-pricing">
+                                            <% if (item.regularPrice > item.price) { %>
+                                                <span class="checkout-item-original">₹<%= item.regularPrice %></span>
+                                            <% } %>
+                                            <span class="checkout-item-price">₹<%= item.price %></span>
+                                            <span class="checkout-item-separator">×</span>
+                                            <span class="checkout-item-qty"><%= item.quantity %></span>
+                                            <span class="checkout-item-separator">=</span>
+                                            <span class="checkout-item-total">₹<%= item.itemTotal %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
 
-										<div class="custom-control custom-checkbox">
-											<input type="checkbox" class="custom-control-input" id="checkout-diff-address">
-											<label class="custom-control-label" for="checkout-diff-address">Ship to a different address?</label>
-										</div><!-- End .custom-checkbox -->
+                    </div><!-- End .col-lg-9 -->
 
-	                					<label>Order notes (optional)</label>
-	        							<textarea class="form-control" cols="30" rows="4" placeholder="Notes about your order, e.g. special notes for delivery"></textarea>
-		                		</div><!-- End .col-lg-9 -->
-		                		<aside class="col-lg-3">
-		                			<div class="summary">
-		                				<h3 class="summary-title">Your Order</h3><!-- End .summary-title -->
+                    <!-- ══════════════════════════════════════════════════════════
+                         RIGHT COLUMN — Price Summary + Payment + Place Order
+                    ═══════════════════════════════════════════════════════════ -->
+                    <aside class="col-lg-3">
+                        <div class="summary">
+                            <h3 class="summary-title">Price Details</h3>
 
-		                				<table class="table table-summary">
-		                					<thead>
-		                						<tr>
-		                							<th>Product</th>
-		                							<th>Total</th>
-		                						</tr>
-		                					</thead>
+                            <table class="table table-summary">
+                                <tbody>
+                                    <tr class="summary-subtotal">
+                                        <td>Price (<%= itemsCount %> item<%= itemsCount > 1 ? 's' : '' %>):</td>
+                                        <td>₹<%= subtotal + discount %></td>
+                                    </tr>
 
-		                					<tbody>
-		                						<tr>
-		                							<td><a href="#">Beige knitted elastic runner shoes</a></td>
-		                							<td>$84.00</td>
-		                						</tr>
+                                    <% if (discount > 0) { %>
+                                        <tr>
+                                            <td class="text-success">Discount:</td>
+                                            <td class="text-success">− ₹<%= discount %></td>
+                                        </tr>
+                                    <% } %>
 
-		                						<tr>
-		                							<td><a href="#">Blue utility pinafore denimdress</a></td>
-		                							<td>$76,00</td>
-		                						</tr>
-		                						<tr class="summary-subtotal">
-		                							<td>Subtotal:</td>
-		                							<td>$160.00</td>
-		                						</tr><!-- End .summary-subtotal -->
-		                						<tr>
-		                							<td>Shipping:</td>
-		                							<td>Free shipping</td>
-		                						</tr>
-		                						<tr class="summary-total">
-		                							<td>Total:</td>
-		                							<td>$160.00</td>
-		                						</tr><!-- End .summary-total -->
-		                					</tbody>
-		                				</table><!-- End .table table-summary -->
+                                    <tr>
+                                        <td>Shipping:</td>
+                                        <td class="text-success">
+                                            <% if (shippingCharge === 0) { %>
+                                                Free
+                                            <% } else { %>
+                                                ₹<%= shippingCharge %>
+                                            <% } %>
+                                        </td>
+                                    </tr>
 
-		                				<div class="accordion-summary" id="accordion-payment">
-										    <div class="card">
-										        <div class="card-header" id="heading-1">
-										            <h2 class="card-title">
-										                <a role="button" data-toggle="collapse" href="#collapse-1" aria-expanded="true" aria-controls="collapse-1">
-										                    Direct bank transfer
-										                </a>
-										            </h2>
-										        </div><!-- End .card-header -->
-										        <div id="collapse-1" class="collapse show" aria-labelledby="heading-1" data-parent="#accordion-payment">
-										            <div class="card-body">
-										                Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.
-										            </div><!-- End .card-body -->
-										        </div><!-- End .collapse -->
-										    </div><!-- End .card -->
+                                    <tr class="summary-total">
+                                        <td>Total Amount:</td>
+                                        <td>₹<%= finalAmount %></td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-										    <div class="card">
-										        <div class="card-header" id="heading-2">
-										            <h2 class="card-title">
-										                <a class="collapsed" role="button" data-toggle="collapse" href="#collapse-2" aria-expanded="false" aria-controls="collapse-2">
-										                    Check payments
-										                </a>
-										            </h2>
-										        </div><!-- End .card-header -->
-										        <div id="collapse-2" class="collapse" aria-labelledby="heading-2" data-parent="#accordion-payment">
-										            <div class="card-body">
-										                Ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. 
-										            </div><!-- End .card-body -->
-										        </div><!-- End .collapse -->
-										    </div><!-- End .card -->
+                            <% if (discount > 0) { %>
+                                <div class="checkout-savings-banner">
+                                    🎉 You save ₹<%= discount %> on this order!
+                                </div>
+                            <% } %>
 
-										    <div class="card">
-										        <div class="card-header" id="heading-3">
-										            <h2 class="card-title">
-										                <a class="collapsed" role="button" data-toggle="collapse" href="#collapse-3" aria-expanded="false" aria-controls="collapse-3">
-										                    Cash on delivery
-										                </a>
-										            </h2>
-										        </div><!-- End .card-header -->
-										        <div id="collapse-3" class="collapse" aria-labelledby="heading-3" data-parent="#accordion-payment">
-										            <div class="card-body">Quisque volutpat mattis eros. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. 
-										            </div><!-- End .card-body -->
-										        </div><!-- End .collapse -->
-										    </div><!-- End .card -->
+                            <!-- ── Payment Method ── -->
+                            <div class="checkout-payment-section mt-3">
+                                <h5 class="checkout-payment-title">Payment Method</h5>
+                                <div class="checkout-payment-card selected-payment">
+                                    <div class="d-flex align-items-center">
+                                        <input type="radio" name="paymentMethod" id="cod-radio"
+                                               value="Cash on Delivery" checked class="mr-2">
+                                        <label for="cod-radio" class="mb-0">
+                                            <i class="icon-money" style="font-size: 1.8rem; margin-right: 8px;"></i>
+                                            Cash on Delivery
+                                        </label>
+                                    </div>
+                                    <p class="cod-note">Pay when your order arrives at your doorstep.</p>
+                                </div>
+                            </div>
 
-										    <div class="card">
-										        <div class="card-header" id="heading-4">
-										            <h2 class="card-title">
-										                <a class="collapsed" role="button" data-toggle="collapse" href="#collapse-4" aria-expanded="false" aria-controls="collapse-4">
-										                    PayPal <small class="float-right paypal-link">What is PayPal?</small>
-										                </a>
-										            </h2>
-										        </div><!-- End .card-header -->
-										        <div id="collapse-4" class="collapse" aria-labelledby="heading-4" data-parent="#accordion-payment">
-										            <div class="card-body">
-										                Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede. Donec nec justo eget felis facilisis fermentum.
-										            </div><!-- End .card-body -->
-										        </div><!-- End .collapse -->
-										    </div><!-- End .card -->
+                            <!-- ── Place Order Button ── -->
+                            <% if (addresses && addresses.length > 0) { %>
+                                <button id="place-order-btn"
+                                        class="btn btn-outline-primary-2 btn-order btn-block mt-3"
+                                        onclick="submitOrder()">
+                                    <span class="btn-text">Place Order</span>
+                                    <span class="btn-hover-text">Confirm & Order</span>
+                                </button>
+                            <% } else { %>
+                                <button class="btn btn-outline-primary-2 btn-order btn-block mt-3 disabled"
+                                        style="pointer-events: none; opacity: 0.6;" disabled>
+                                    Add Address to Continue
+                                </button>
+                            <% } %>
 
-										    <div class="card">
-										        <div class="card-header" id="heading-5">
-										            <h2 class="card-title">
-										                <a class="collapsed" role="button" data-toggle="collapse" href="#collapse-5" aria-expanded="false" aria-controls="collapse-5">
-										                    Credit Card (Stripe)
-										                    <img src="assets/images/payments-summary.png" alt="payments cards">
-										                </a>
-										            </h2>
-										        </div><!-- End .card-header -->
-										        <div id="collapse-5" class="collapse" aria-labelledby="heading-5" data-parent="#accordion-payment">
-										            <div class="card-body"> Donec nec justo eget felis facilisis fermentum.Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Lorem ipsum dolor sit ame.
-										            </div><!-- End .card-body -->
-										        </div><!-- End .collapse -->
-										    </div><!-- End .card -->
-										</div><!-- End .accordion -->
+                            <a href="/cart" class="btn btn-outline-dark-2 btn-block mt-2">
+                                <span>Back to Cart</span>
+                                <i class="icon-long-arrow-left"></i>
+                            </a>
+                        </div>
+                    </aside><!-- End aside.col-lg-3 -->
 
-		                				<button type="submit" class="btn btn-outline-primary-2 btn-order btn-block">
-		                					<span class="btn-text">Place Order</span>
-		                					<span class="btn-hover-text">Proceed to Checkout</span>
-		                				</button>
-		                			</div><!-- End .summary -->
-		                		</aside><!-- End .col-lg-3 -->
-		                	</div><!-- End .row -->
-            			</form>
-	                </div><!-- End .container -->
-                </div><!-- End .checkout -->
-            </div><!-- End .page-content -->
-        </main><!-- End .main -->
+                </div><!-- End .row -->
+            </div><!-- End .container -->
+        </div><!-- End .checkout -->
+    </div><!-- End .page-content -->
+</main><!-- End .main -->
 
+<button id="scroll-top" title="Back to Top"><i class="icon-arrow-up"></i></button>
 
- <button id="scroll-top" title="Back to Top">
-            <i class="icon-arrow-up"></i>
-        </button>
+<!-- ══════════════════════════════════════════════════════════════════════════
+     Checkout Page Custom Styles
+═══════════════════════════════════════════════════════════════════════════ -->
+<style>
+    /* ── Address Cards ─────────────────────────────────────────────────────── */
+    .checkout-address-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 16px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        background: #fff;
+        height: 100%;
+        user-select: none;
+    }
+    .checkout-address-card:hover {
+        border-color: #c96;
+        box-shadow: 0 4px 12px rgba(204, 153, 102, 0.15);
+        transform: translateY(-2px);
+    }
+    .checkout-address-card.selected {
+        border-color: #c96;
+        box-shadow: 0 4px 16px rgba(204, 153, 102, 0.25);
+        background: #fffaf5;
+    }
+    .address-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .address-type-badge {
+        display: inline-block;
+        background: #f5f5f5;
+        color: #555;
+        font-size: 1.1rem;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .default-badge {
+        display: inline-block;
+        background: #c96;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    .address-edit-btn {
+        font-size: 1.2rem;
+        color: #c96;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .address-edit-btn:hover { color: #a07850; }
+    .address-card-body { font-size: 1.3rem; color: #444; line-height: 1.6; }
+    .address-name { font-weight: 700; font-size: 1.4rem; color: #222; margin-bottom: 2px; }
+    .address-line { margin-bottom: 2px; }
+    .address-phone { color: #666; margin-top: 4px; }
+    .address-radio { accent-color: #c96; width: 16px; height: 16px; cursor: pointer; }
 
-        <script src="assets/js/jquery.min.js"></script>
-        <script src="assets/js/bootstrap.bundle.min.js"></script>
-        <script src="assets/js/jquery.hoverIntent.min.js"></script>
-        <script src="assets/js/jquery.waypoints.min.js"></script>
-        <script src="assets/js/superfish.min.js"></script>
-        <script src="assets/js/owl.carousel.min.js"></script>
-        <script src="assets/js/jquery.magnific-popup.min.js"></script>
-        <!-- Main JS File -->
-        <script src="assets/js/main.js"></script>
+    /* ── Order Items ───────────────────────────────────────────────────────── */
+    .checkout-items-list {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    .checkout-item-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border-bottom: 1px solid #f0f0f0;
+        background: #fff;
+        transition: background 0.15s;
+    }
+    .checkout-item-row:last-child { border-bottom: none; }
+    .checkout-item-row:hover { background: #fafafa; }
+    .checkout-item-image {
+        flex-shrink: 0;
+        width: 70px;
+        height: 70px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #eee;
+    }
+    .checkout-item-image img { width: 100%; height: 100%; object-fit: cover; }
+    .checkout-item-details { flex: 1; }
+    .checkout-item-name {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 6px;
+    }
+    .checkout-item-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .meta-badge {
+        font-size: 1.1rem;
+        background: #f5f5f5;
+        color: #666;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    .checkout-item-pricing {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.3rem;
+    }
+    .checkout-item-original {
+        text-decoration: line-through;
+        color: #aaa;
+        font-size: 1.2rem;
+    }
+    .checkout-item-price { color: #c96; font-weight: 700; }
+    .checkout-item-separator { color: #aaa; }
+    .checkout-item-qty { color: #555; }
+    .checkout-item-total { font-weight: 700; color: #333; font-size: 1.4rem; }
 
-<%-include("../../views/partials/user/mobileView.ejs")%>
-<%-include("../../views/partials/user/footer.ejs")%>
+    /* ── Price Summary ─────────────────────────────────────────────────────── */
+    .summary { position: sticky; top: 20px; }
+    .checkout-savings-banner {
+        background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+        color: #2e7d32;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        border-left: 4px solid #43a047;
+        margin-top: 6px;
+    }
+
+    /* ── Payment Section ───────────────────────────────────────────────────── */
+    .checkout-payment-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    .checkout-payment-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 14px 16px;
+        background: #fff;
+        transition: border-color 0.2s;
+    }
+    .checkout-payment-card.selected-payment {
+        border-color: #c96;
+        background: #fffaf5;
+    }
+    .checkout-payment-card label {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #333;
+        cursor: pointer;
+    }
+    .cod-note {
+        font-size: 1.2rem;
+        color: #888;
+        margin: 6px 0 0 26px;
+    }
+
+    /* ── Place Order Button states ─────────────────────────────────────────── */
+    #place-order-btn:disabled,
+    #place-order-btn.processing {
+        opacity: 0.65;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+</style>
+
+<script src="/assets/js/jquery.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/jquery.hoverIntent.min.js"></script>
+<script src="/assets/js/jquery.waypoints.min.js"></script>
+<script src="/assets/js/superfish.min.js"></script>
+<script src="/assets/js/owl.carousel.min.js"></script>
+<script src="/assets/js/jquery.magnific-popup.min.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Track which address is selected
+    let selectedAddressId = null;
+
+    // Auto-select the default (or first) address on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkedRadio = document.querySelector('.address-radio:checked');
+        if (checkedRadio) {
+            selectedAddressId = checkedRadio.value;
+        }
+    });
+
+    function selectAddress(addressId, cardEl) {
+        // Deselect all cards
+        document.querySelectorAll('.checkout-address-card').forEach(c => c.classList.remove('selected'));
+        // Uncheck all radios
+        document.querySelectorAll('.address-radio').forEach(r => r.checked = false);
+
+        // Select the clicked card
+        cardEl.classList.add('selected');
+        const radio = document.getElementById('addr-radio-' + addressId);
+        if (radio) radio.checked = true;
+
+        selectedAddressId = addressId;
+    }
+
+    async function submitOrder() {
+        if (!selectedAddressId) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Address Selected',
+                text: 'Please select a delivery address before placing your order.'
+            });
+            return;
+        }
+
+        const btn = document.getElementById('place-order-btn');
+
+        // Disable button to prevent double submission
+        btn.disabled = true;
+        btn.classList.add('processing');
+        btn.querySelector('.btn-text').textContent = 'Placing Order...';
+
+        try {
+            const response = await fetch('/checkout/place-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ addressId: selectedAddressId })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                window.location.href = '/order-success/' + data.orderId;
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Order Failed',
+                    text: data.message || 'Could not place order. Please try again.'
+                }).then(() => {
+                    // Re-enable button so user can retry
+                    btn.disabled = false;
+                    btn.classList.remove('processing');
+                    btn.querySelector('.btn-text').textContent = 'Place Order';
+                });
+            }
+        } catch (error) {
+            console.error('Order placement error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Network Error',
+                text: 'Something went wrong. Please check your connection and try again.'
+            }).then(() => {
+                btn.disabled = false;
+                btn.classList.remove('processing');
+                btn.querySelector('.btn-text').textContent = 'Place Order';
+            });
+        }
+    }
+</script>
+
+<%- include("../../views/partials/user/mobileView.ejs") %>
+<%- include("../../views/partials/user/footer.ejs") %>

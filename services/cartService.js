@@ -54,6 +54,10 @@ const addToCart = async (userId, productId, size, quantity) => {
     const price = getProductPrice(product);
     const parsedQuantity = parseInt(quantity);
 
+    if (parsedQuantity < 1) {
+        throw new Error("Quantity must be at least 1");
+    }
+
     if (existingItemIndex > -1) {
         const newQuantity = cart.items[existingItemIndex].quantity + parsedQuantity;
         if (newQuantity > sizeData.quantity) {

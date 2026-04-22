@@ -19,60 +19,8 @@
 			<div class="dashboard">
 				<div class="container">
 					<div class="row">
-						<aside class="col-md-4 col-lg-3">
-							<ul class="nav nav-dashboard flex-column mb-3 mb-md-0" role="tablist">
-								<li class="nav-item">
-									<a class="nav-link active" id="tab-dashboard-link" data-toggle="tab"
-										href="#tab-dashboard" role="tab" aria-controls="tab-dashboard"
-										aria-selected="true">Dashboard</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" id="tab-orders-link" data-toggle="tab" href="#tab-orders"
-										role="tab" aria-controls="tab-orders" aria-selected="false">Orders</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" id="tab-downloads-link" data-toggle="tab" href="#tab-downloads"
-										role="tab" aria-controls="tab-downloads" aria-selected="false">Coupons</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" href="/address">Addresses</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" id="tab-wallet-link" data-toggle="tab" href="#tab-wallet"
-										role="tab" aria-controls="tab-wallet" aria-selected="false">Wallet</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" id="tab-invite-link" data-toggle="tab" href="#tab-invite"
-										role="tab" aria-controls="tab-invite" aria-selected="false">Invite & earn</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" href="javascript:void(0);" onclick="confirmSignOut()">Sign
-										Out</a>
-								</li>
-							</ul>
-
-							<!-- SweetAlert2 CDN & Sign Out Logic -->
-							<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-							<script>
-								function confirmSignOut() {
-									Swal.fire({
-										title: 'Sign Out?',
-										text: "Are you sure you want to log out of your account?",
-										icon: 'warning',
-										showCancelButton: true,
-										confirmButtonColor: '#d33',
-										cancelButtonColor: '#3085d6',
-										confirmButtonText: 'Yes, Sign Out',
-										cancelButtonText: 'Cancel',
-										reverseButtons: true
-									}).then((result) => {
-										if (result.isConfirmed) {
-											window.location.href = '/logout';
-										}
-									});
-								}
-							</script>
-						</aside><!-- End .col-lg-3 -->
+                        <% var activeTab = 'dashboard'; %>
+                        <%- include("../../views/partials/user/profileSidebar.ejs", { activeTab: activeTab }) %>
 
 						<div class="col-md-8 col-lg-9">
 							<div class="tab-content">

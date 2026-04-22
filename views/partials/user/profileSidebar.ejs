@@ -1,0 +1,120 @@
+<%
+  // activeTab is passed by the including page via locals or a var assignment:
+  // 'dashboard' | 'orders' | 'addresses' | 'wallet' | 'edit-profile' | 'coupons'
+  var _activeTab = (typeof activeTab !== 'undefined') ? activeTab : 'dashboard';
+%>
+
+<style>
+  .profile-sidebar-nav {
+    margin-bottom: 2rem;
+  }
+  .profile-sidebar-nav .nav-item {
+    border-bottom: .1rem solid #ebebeb;
+  }
+  .profile-sidebar-nav .nav-item:last-child {
+    border-bottom: none;
+  }
+  .profile-sidebar-nav .nav-link {
+    position: relative;
+    padding: 1.4rem .5rem;
+    font-weight: 300;
+    font-size: 1.35rem;
+    color: #333333;
+    text-transform: none;
+    transition: all .3s;
+    display: block;
+  }
+  .profile-sidebar-nav .nav-link.active {
+    color: #c96;
+    font-weight: 400;
+  }
+  .profile-sidebar-nav .nav-link::before {
+    content: '\203A'; /* Prettier chevron-right › */
+    position: absolute;
+    left: -1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 600;
+    font-size: 1.8rem;
+    opacity: 0;
+    transition: all 0.3s;
+  }
+  .profile-sidebar-nav .nav-link.active::before {
+    opacity: 1;
+    left: -1rem;
+  }
+</style>
+
+<aside class="col-md-4 col-lg-3">
+  <ul class="nav profile-sidebar-nav flex-column" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link <%= _activeTab === 'dashboard' ? 'active' : '' %>" href="/profile">
+        Dashboard
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link <%= _activeTab === 'orders' ? 'active' : '' %>" href="/orders">
+        Orders
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link <%= _activeTab === 'coupons' ? 'active' : '' %>" href="#">
+        Coupons
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link <%= _activeTab === 'addresses' ? 'active' : '' %>" href="/address">
+        Addresses
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link <%= _activeTab === 'wallet' ? 'active' : '' %>" href="#">
+        Wallet
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link <%= _activeTab === 'invite' ? 'active' : '' %>" href="#">
+        Invite & earn
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link <%= _activeTab === 'edit-profile' ? 'active' : '' %>" href="/edit-profile">
+        Account Details
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link signout-link" href="javascript:void(0);" onclick="confirmSignOut()">
+        Sign Out
+      </a>
+    </li>
+  </ul>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function confirmSignOut() {
+    Swal.fire({
+      title: 'Sign Out?',
+      text: "Are you sure you want to log out of your account?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, Sign Out',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = '/logout';
+      }
+    });
+  }
+</script>
+

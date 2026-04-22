@@ -77,7 +77,8 @@
                                             <td class="quantity-col">
                                                 <div class="cart-product-quantity">
                                                     <input type="number" class="form-control qty-input" 
-                                                           value="<%= item.quantity %>" min="1" max="<%= maxAllowed > 0 ? maxAllowed : 1 %>" 
+                                                           value="<%= item.quantity %>" min="1" 
+                                                           data-max="<%= maxAllowed > 0 ? maxAllowed : 1 %>"
                                                            step="1" data-decimals="0" required <%= isOutOfStock ? 'disabled' : '' %>>
                                                 </div><!-- End .cart-product-quantity -->
                                             </td>
@@ -209,7 +210,30 @@
             const row = $(this).closest('tr');
             const productId = row.data('product-id');
             const size = row.data('size');
-            const newQuantity = $(this).val();
+            const max = parseInt($(this).data('max'));
+            const newQuantity = parseInt($(this).val());
+
+            if (newQuantity > max) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Limit Reached',
+                    text: max === 5 ? 'Maximum 5 units allowed per item.' : `Only ${max} units available in stock.`
+                }).then(() => {
+                    $(this).val(max);
+                });
+                return;
+            }
+
+            if (newQuantity < 1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Quantity Error',
+                    text: 'Quantity must be at least 1'
+                }).then(() => {
+                    $(this).val(1);
+                });
+                return;
+            }
 
             try {
                 const response = await fetch('/cart/update-quantity', {
@@ -226,7 +250,7 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Update failed',
+                        title: 'Quantity Error',
                         text: data.message || 'Could not update quantity'
                     }).then(() => {
                         window.location.reload();

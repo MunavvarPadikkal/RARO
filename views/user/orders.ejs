@@ -1,21 +1,99 @@
 <%-include("../../views/partials/user/header.ejs")%>
 
+    <main class="main">
+        <div class="page-header text-center" style="background-image: url('assets/images/page-header-bg.jpg')">
+            <div class="container">
+                <h1 class="page-title">My Account<span>My Orders</span></h1>
+            </div>
+        </div>
+        <nav aria-label="breadcrumb" class="breadcrumb-nav mb-3">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/profile">Profile</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Orders</li>
+                </ol>
+            </div>
+        </nav>
 
+        <div class="page-content">
+            <div class="dashboard">
+                <div class="container">
+                    <div class="row">
+                        <% var activeTab = 'orders'; %>
+                        <%- include("../../views/partials/user/profileSidebar.ejs", { activeTab: activeTab }) %>
+                        
+                        <div class="col-md-8 col-lg-9">
+                            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px; overflow: hidden; background: #ffffff;">
+                                <div class="card-body p-4">
+                                    <h5 style="font-weight: 600; color: #333; margin-bottom: 20px;">Order History</h5>
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
+                                                    <th>Total</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if (orders && orders.length > 0) { %>
+                                                    <% orders.forEach(order => { %>
+                                                        <tr>
+                                                            <td style="font-weight: 600;">#<%= order.orderId %></td>
+                                                            <td><%= new Date(order.createdOn).toLocaleDateString() %></td>
+                                                            <td>
+                                                                <span class="badge badge-<%= 
+                                                                    order.status === 'Cancelled' ? 'danger' : 
+                                                                    order.status === 'Delivered' ? 'success' : 
+                                                                    order.status === 'Processing' ? 'info' : 'warning' 
+                                                                %>" style="padding: 6px 12px; border-radius: 20px; font-weight: 500;">
+                                                                    <%= order.status %>
+                                                                </span>
+                                                            </td>
+                                                            <td style="font-weight: 600;">₹<%= order.finalAmount.toLocaleString() %></td>
+                                                            <td>
+                                                                <a href="/order-details/<%= order._id %>" class="btn btn-outline-dark btn-sm" style="border-radius: 6px;">View</a>
+                                                            </td>
+                                                        </tr>
+                                                    <% }) %>
+                                                <% } else { %>
+                                                    <tr>
+                                                        <td colspan="5" class="text-center py-5">
+                                                            <div style="font-size: 50px; margin-bottom: 10px;">📦</div>
+                                                            <h5 style="color: #666;">No orders found yet.</h5>
+                                                            <a href="/shop" class="btn btn-dark mt-3" style="border-radius: 8px;">Go Shopping</a>
+                                                        </td>
+                                                    </tr>
+                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- End .col-lg-9 -->
+                    </div><!-- End .row -->
+                </div><!-- End .container -->
+            </div><!-- End .dashboard -->
+        </div><!-- End .page-content -->
+    </main>
 
+    <button id="scroll-top" title="Back to Top">
+        <i class="icon-arrow-up"></i>
+    </button>
 
- <button id="scroll-top" title="Back to Top">
-            <i class="icon-arrow-up"></i>
-        </button>
-
-        <script src="assets/js/jquery.min.js"></script>
-        <script src="assets/js/bootstrap.bundle.min.js"></script>
-        <script src="assets/js/jquery.hoverIntent.min.js"></script>
-        <script src="assets/js/jquery.waypoints.min.js"></script>
-        <script src="assets/js/superfish.min.js"></script>
-        <script src="assets/js/owl.carousel.min.js"></script>
-        <script src="assets/js/jquery.magnific-popup.min.js"></script>
-        <!-- Main JS File -->
-        <script src="assets/js/main.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/jquery.hoverIntent.min.js"></script>
+    <script src="assets/js/jquery.waypoints.min.js"></script>
+    <script src="assets/js/superfish.min.js"></script>
+    <script src="assets/js/owl.carousel.min.js"></script>
+    <script src="assets/js/jquery.magnific-popup.min.js"></script>
+    <!-- Main JS File -->
+    <script src="assets/js/main.js"></script>
 
 <%-include("../../views/partials/user/mobileView.ejs")%>
-<%-include("../../views/partials/user/footer.ejs")%>
+<%-include("../../views/partials/user/footer.ejs")%>
