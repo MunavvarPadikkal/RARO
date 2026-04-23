@@ -59,6 +59,10 @@ router.delete("/cart/remove", userAuth.checkSession, cartController.removeFromCa
 router.get("/checkout", userAuth.checkSession, checkoutController.loadCheckout);
 router.post("/checkout/place-order", userAuth.checkSession, checkoutController.placeOrder);
 router.get("/order-success/:orderId", userAuth.checkSession, checkoutController.orderSuccess);
+router.get("/download-invoice/:orderId", userAuth.checkSession, checkoutController.downloadInvoice);
+
+// Development Only: Preview Invoice with dummy data
+router.get("/dev/invoice-preview", checkoutController.devInvoicePreview);
 
 // Wishlist Management
 router.get("/wishlist", userAuth.checkSession, wishlistController.loadWishlist);

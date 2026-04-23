@@ -32,15 +32,15 @@ const getCart = async (userId) => {
     };
 };
 
-const addToCart = async (userId, productId, size, quantity) => {
+const addToCart = async (userId, productId, size, color, quantity) => {
     const product = await Product.findById(productId);
     if (!product || product.isBlocked || product.isDeleted) {
         throw new Error("Product is not available");
     }
 
-    const sizeData = product.sizes.find(s => s.size === size);
-    if (!sizeData) {
-        throw new Error("Selected size is not available for this product");
+    const variant = product.variants.find(v => v.color === color && v.size === size);
+    if (!variant) {
+        throw new Error("Selected variant is not available for this product");
     }
 
     let cart = await Cart.findOne({ userId });
@@ -49,7 +49,11 @@ const addToCart = async (userId, productId, size, quantity) => {
         cart = new Cart({ userId, items: [] });
     }
 
-    const existingItemIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString() && item.size === size);
+    const existingItemIndex = cart.items.findIndex(item => 
+        item.productId.toString() === productId.toString() && 
+        item.size === size &&
+        item.color === color
+    );
     
     const price = getProductPrice(product);
     const parsedQuantity = parseInt(quantity);
@@ -60,8 +64,8 @@ const addToCart = async (userId, productId, size, quantity) => {
 
     if (existingItemIndex > -1) {
         const newQuantity = cart.items[existingItemIndex].quantity + parsedQuantity;
-        if (newQuantity > sizeData.quantity) {
-             throw new Error(`Cannot add more. Only ${sizeData.quantity} units available in stock.`);
+        if (newQuantity > variant.stock) {
+             throw new Error(`Cannot add more. Only ${variant.stock} units available in stock.`);
         }
         if (newQuantity > 5) {
              throw new Error("Maximum 5 units allowed per item.");
@@ -70,8 +74,8 @@ const addToCart = async (userId, productId, size, quantity) => {
         cart.items[existingItemIndex].price = price;
         cart.items[existingItemIndex].totalPrice = newQuantity * price;
     } else {
-        if (parsedQuantity > sizeData.quantity) {
-             throw new Error(`Cannot add more than ${sizeData.quantity} units.`);
+        if (parsedQuantity > variant.stock) {
+             throw new Error(`Cannot add more than ${variant.stock} units.`);
         }
         if (parsedQuantity > 5) {
              throw new Error("Maximum 5 units allowed per item.");
@@ -79,6 +83,7 @@ const addToCart = async (userId, productId, size, quantity) => {
         cart.items.push({
             productId,
             size,
+            color,
             quantity: parsedQuantity,
             price: price,
             totalPrice: parsedQuantity * price
@@ -100,7 +105,7 @@ const addToCart = async (userId, productId, size, quantity) => {
     return cart;
 };
 
-const updateQuantity = async (userId, productId, size, quantity) => {
+const updateQuantity = async (userId, productId, size, color, quantity) => {
     const parsedQuantity = parseInt(quantity);
     if (parsedQuantity < 1) {
         throw new Error("Quantity must be at least 1");
@@ -114,19 +119,23 @@ const updateQuantity = async (userId, productId, size, quantity) => {
         throw new Error("Product is not available");
     }
 
-    const sizeData = product.sizes.find(s => s.size === size);
-    if (!sizeData) {
-         throw new Error("Selected size is not available for this product");
+    const variant = product.variants.find(v => v.color === color && v.size === size);
+    if (!variant) {
+         throw new Error("Selected variant is not available for this product");
     }
 
-    if (parsedQuantity > sizeData.quantity) {
-        throw new Error(`Only ${sizeData.quantity} units available in stock`);
+    if (parsedQuantity > variant.stock) {
+        throw new Error(`Only ${variant.stock} units available in stock`);
     }
 
     const cart = await Cart.findOne({ userId });
     if (!cart) throw new Error("Cart not found");
 
-    const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString() && item.size === size);
+    const itemIndex = cart.items.findIndex(item => 
+        item.productId.toString() === productId.toString() && 
+        item.size === size &&
+        item.color === color
+    );
     if (itemIndex === -1) {
         throw new Error("Product not found in cart");
     }
@@ -140,11 +149,15 @@ const updateQuantity = async (userId, productId, size, quantity) => {
     return cart;
 };
 
-const removeFromCart = async (userId, productId, size) => {
+const removeFromCart = async (userId, productId, size, color) => {
     const cart = await Cart.findOne({ userId });
     if (!cart) throw new Error("Cart not found");
 
-    cart.items = cart.items.filter(item => !(item.productId.toString() === productId.toString() && item.size === size));
+    cart.items = cart.items.filter(item => !(
+        item.productId.toString() === productId.toString() && 
+        item.size === size &&
+        item.color === color
+    ));
     
     await cart.save();
     return cart;

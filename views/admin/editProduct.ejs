@@ -56,55 +56,123 @@
         </div>
 
         <!-- Pricing & Details -->
-        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Pricing & Details</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Regular Price *</label>
-            <input type="number" id="regularPrice" name="regularPrice" step="0.01" min="1" value="<%= product.regularPrice %>" required
-                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+          <div class="md:col-span-2">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Pricing</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Regular Price *</label>
+                <input type="number" id="regularPrice" name="regularPrice" step="0.01" min="1" value="<%= product.regularPrice %>" required
+                       class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+                <span class="text-xs text-red-500 hidden mt-1" id="err-regularPrice"></span>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Offer Price *</label>
+                <input type="number" id="salePrice" name="salePrice" step="0.01" min="1" value="<%= product.salePrice %>" required
+                       class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+                <span class="text-xs text-red-500 hidden mt-1" id="err-salePrice"></span>
+              </div>
+            </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Sale Price *</label>
-            <input type="number" id="salePrice" name="salePrice" step="0.01" min="1" value="<%= product.salePrice %>" required
+            <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Color</h3>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Available Colors *</label>
+            <input type="text" id="availableColors" name="color" value="<%= Array.isArray(product.color) ? product.color.join(', ') : product.color %>" required placeholder="e.g. Red, Blue"
                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
-            <span class="text-xs text-red-500 hidden mt-1" id="err-salePrice"></span>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Colors * (comma-separated)</label>
-            <input type="text" id="color" name="color" value="<%= Array.isArray(product.color) ? product.color.join(', ') : product.color %>" required placeholder="e.g. Black, White"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
+            <span class="text-xs text-red-500 hidden mt-1" id="err-availableColors"></span>
           </div>
         </div>
 
-        <!-- Stock/Sizes -->
-        <% 
-          let sQty = 0, mQty = 0, lQty = 0;
-          if (product.sizes) {
-              const s = product.sizes.find(sz => sz.size === 'S');
-              const m = product.sizes.find(sz => sz.size === 'M');
-              const l = product.sizes.find(sz => sz.size === 'L');
-              if (s) sQty = s.quantity;
-              if (m) mQty = m.quantity;
-              if (l) lQty = l.quantity;
-          }
-        %>
-        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Inventory (Stock by Size)</h3>
-        <div class="grid grid-cols-3 gap-6 mb-8">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Size S</label>
-            <input type="number" id="sizeS" name="sizeS" min="0" value="<%= sQty %>"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Size M</label>
-            <input type="number" id="sizeM" name="sizeM" min="0" value="<%= mQty %>"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Size L</label>
-            <input type="number" id="sizeL" name="sizeL" min="0" value="<%= lQty %>"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
-          </div>
+        <!-- Variants Section -->
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Product Variants (Color, Size, Stock, SKU)</h3>
+        <div class="mb-8 overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500 border border-gray-100 rounded-lg overflow-hidden" id="variantsTable">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3">Color *</th>
+                        <th class="px-4 py-3">Size *</th>
+                        <th class="px-4 py-3">Stock *</th>
+                        <th class="px-4 py-3">SKU *</th>
+                        <th class="px-4 py-3 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="variantsBody">
+                    <% if (product.variants && product.variants.length > 0) { %>
+                        <% product.variants.forEach(variant => { %>
+                            <tr class="variant-row border-b border-gray-50">
+                                <td class="px-4 py-2">
+                                    <select name="variantColor" required
+                                            class="variant-color-select px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                                        <option value="" disabled>Select Color</option>
+                                        <% 
+                                           const productColors = Array.isArray(product.color) ? product.color : (product.color ? product.color.split(',').map(c => c.trim()) : []);
+                                           productColors.forEach(c => { 
+                                        %>
+                                            <option value="<%= c %>" <%= variant.color === c ? 'selected' : '' %>><%= c %></option>
+                                        <% }) %>
+                                    </select>
+                                </td>
+                                <td class="px-4 py-2">
+                                    <select name="variantSize" required
+                                            class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                                        <option value="S" <%= variant.size === 'S' ? 'selected' : '' %>>S</option>
+                                        <option value="M" <%= variant.size === 'M' ? 'selected' : '' %>>M</option>
+                                        <option value="L" <%= variant.size === 'L' ? 'selected' : '' %>>L</option>
+                                    </select>
+                                </td>
+                                <td class="px-4 py-2">
+                                    <input type="number" name="variantStock" value="<%= variant.stock %>" min="0" required
+                                           class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                                </td>
+                                <td class="px-4 py-2">
+                                    <input type="text" name="variantSku" value="<%= variant.sku %>" placeholder="SKU-123" required
+                                           class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                                </td>
+                                <td class="px-4 py-2 text-center">
+                                    <button type="button" class="text-red-500 hover:text-red-700 remove-variant-btn">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <!-- Fallback Row -->
+                        <tr class="variant-row border-b border-gray-50">
+                            <td class="px-4 py-2">
+                                <select name="variantColor" required
+                                        class="variant-color-select px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                                    <option value="" disabled selected>Select Color</option>
+                                </select>
+                            </td>
+                            <td class="px-4 py-2">
+                                <select name="variantSize" required
+                                        class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                                    <option value="S">S</option>
+                                    <option value="M">M</option>
+                                    <option value="L" selected>L</option>
+                                </select>
+                            </td>
+                            <td class="px-4 py-2">
+                                <input type="number" name="variantStock" min="0" value="0" required
+                                       class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                            </td>
+                            <td class="px-4 py-2">
+                                <input type="text" name="variantSku" placeholder="SKU-123" required
+                                       class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <button type="button" class="text-red-500 hover:text-red-700 remove-variant-btn">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+            <button type="button" id="addVariantBtn" class="mt-4 px-4 py-2 text-sm font-medium text-brand-orange bg-brand-orange/5 rounded-lg hover:bg-brand-orange/10 transition-colors">
+                <i class="fa-solid fa-plus mr-2"></i> Add Another Variant
+            </button>
+            <span class="text-xs text-red-500 hidden mt-2" id="err-variants"></span>
         </div>
 
         <!-- Images -->
@@ -168,6 +236,130 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    // --- Dynamic Variants Logic ---
+    const variantsBody = document.getElementById('variantsBody');
+    const addVariantBtn = document.getElementById('addVariantBtn');
+    const productNameInput = document.getElementById('productName');
+    const availableColorsInput = document.getElementById('availableColors');
+
+    function getSelectedColors() {
+        return availableColorsInput.value.split(',')
+            .map(c => c.trim())
+            .filter(c => c.length > 0);
+    }
+
+    function updateColorDropdowns() {
+        const colors = getSelectedColors();
+        document.querySelectorAll('.variant-color-select').forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="" disabled ' + (currentValue === "" ? 'selected' : '') + '>Select Color</option>';
+            colors.forEach(color => {
+                const option = document.createElement('option');
+                option.value = color;
+                option.textContent = color;
+                if (color === currentValue) option.selected = true;
+                select.appendChild(option);
+            });
+        });
+    }
+
+    availableColorsInput.addEventListener('input', updateColorDropdowns);
+
+    function generateSKU(name, color, size) {
+        if (!name || !color || !size) return '';
+        const productCode = name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase();
+        const colorCode = color.slice(0, 3).toUpperCase();
+        return `${productCode}-${colorCode}-${size.toUpperCase()}`;
+    }
+
+    function updateRowSKU(row) {
+        const name = productNameInput.value.trim();
+        const color = row.querySelector('[name="variantColor"]').value.trim();
+        const size = row.querySelector('[name="variantSize"]').value;
+        const skuInput = row.querySelector('[name="variantSku"]');
+        if (name && color && size) {
+            skuInput.value = generateSKU(name, color, size);
+        }
+    }
+
+    function updateAllSKUs() {
+        document.querySelectorAll('.variant-row').forEach(row => updateRowSKU(row));
+    }
+
+    productNameInput.addEventListener('input', updateAllSKUs);
+
+    addVariantBtn.addEventListener('click', () => {
+        const colors = getSelectedColors();
+        let colorOptions = '<option value="" disabled selected>Select Color</option>';
+        colors.forEach(c => {
+            colorOptions += `<option value="${c}">${c}</option>`;
+        });
+
+        const tr = document.createElement('tr');
+        tr.className = "variant-row border-b border-gray-50";
+        tr.innerHTML = `
+            <td class="px-4 py-2">
+                <select name="variantColor" required
+                        class="variant-color-select px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                    ${colorOptions}
+                </select>
+            </td>
+            <td class="px-4 py-2">
+                <select name="variantSize" required
+                        class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L" selected>L</option>
+                </select>
+            </td>
+            <td class="px-4 py-2">
+                <input type="number" name="variantStock" min="0" value="0" required
+                       class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+            </td>
+            <td class="px-4 py-2">
+                <input type="text" name="variantSku" placeholder="SKU-XXX" required
+                       class="px-3 py-1 border border-gray-200 rounded-md focus:ring-1 focus:ring-brand-orange/50 focus:border-brand-orange outline-none w-full">
+            </td>
+            <td class="px-4 py-2 text-center">
+                <button type="button" class="text-red-500 hover:text-red-700 remove-variant-btn">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        variantsBody.appendChild(tr);
+        updateRowSKU(tr); // Initial SKU if name is present
+    });
+
+    variantsBody.addEventListener('input', (e) => {
+        if (e.target.name === 'variantColor' || e.target.name === 'variantSize' || e.target.classList.contains('variant-color-select')) {
+            updateRowSKU(e.target.closest('tr'));
+        }
+    });
+
+    variantsBody.addEventListener('change', (e) => {
+        if (e.target.name === 'variantSize' || e.target.name === 'variantColor') {
+            updateRowSKU(e.target.closest('tr'));
+        }
+    });
+
+    variantsBody.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-variant-btn')) {
+            const rows = document.querySelectorAll('.variant-row');
+            if (rows.length > 1) {
+                e.target.closest('tr').remove();
+            } else {
+                Swal.fire("Required", "Product must have at least one variant.", "warning");
+            }
+        }
+    });
+
+    // Initialize SKUs
+    updateAllSKUs();
+
     // Wrap EJS data in quotes to avoid linter errors
     let existingCount = parseInt('<%= product.productImage.length %>') || 0;
     let croppedFiles = []; 
@@ -310,10 +502,31 @@
         const desc = document.getElementById('description').value.trim();
         const regPrice = parseFloat(document.getElementById('regularPrice').value);
         const salePrice = parseFloat(document.getElementById('salePrice').value);
-        const color = document.getElementById('color').value.trim();
-        const sizeS = parseInt(document.getElementById('sizeS').value) || 0;
-        const sizeM = parseInt(document.getElementById('sizeM').value) || 0;
-        const sizeL = parseInt(document.getElementById('sizeL').value) || 0;
+        const availableColors = getSelectedColors();
+
+        // Collect Variants
+        const variantRows = document.querySelectorAll('.variant-row');
+        const variants = [];
+        let variantErr = '';
+
+        variantRows.forEach(row => {
+            const col = row.querySelector('[name="variantColor"]').value;
+            const sz = row.querySelector('[name="variantSize"]').value;
+            const stk = parseInt(row.querySelector('[name="variantStock"]').value);
+            const sk = row.querySelector('[name="variantSku"]').value.trim();
+
+            if (!col || !sz || isNaN(stk) || !sk) {
+                variantErr = 'All variant fields are required';
+            }
+            
+            // Check for duplicate color+size combination
+            const duplicate = variants.find(v => v.color.toLowerCase() === col.toLowerCase() && v.size === sz);
+            if (duplicate) {
+                variantErr = `Duplicate variant combination: ${col} - ${sz}`;
+            }
+
+            variants.push({ color: col, size: sz, stock: stk, sku: sk });
+        });
 
         let hasError = false;
         const showError = (id, msg) => {
@@ -328,6 +541,10 @@
         if (name.length < 3) showError('productName', 'Name must be at least 3 characters');
         if (desc.length < 10) showError('description', 'Description minimum 10 characters');
         if (salePrice <= 0 || salePrice > regPrice) showError('salePrice', 'Sale price must be <= regular price');
+        if (availableColors.length === 0) showError('availableColors', 'At least one color is required');
+        
+        if (variants.length === 0) showError('variants', 'At least one variant is required');
+        if (variantErr) showError('variants', variantErr);
         
         if (getEffectiveImageCount() < 3) {
             Swal.fire('Warning', 'Minimum 3 images required total', 'warning');
@@ -345,10 +562,8 @@
         formData.append('additionalInfo', document.getElementById('additionalInfo').value.trim());
         formData.append('regularPrice', regPrice);
         formData.append('salePrice', salePrice);
-        formData.append('color', color);
-        formData.append('sizeS', sizeS);
-        formData.append('sizeM', sizeM);
-        formData.append('sizeL', sizeL);
+        formData.append('color', availableColors.join(','));
+        formData.append('variants', JSON.stringify(variants));
         
         // Append images to delete
         formData.append('imagesToDelete', JSON.stringify(imagesToDelete));

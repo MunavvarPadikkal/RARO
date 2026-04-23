@@ -88,17 +88,18 @@
                   <td class="py-4 px-4 text-sm text-center">
                     <% 
                       let totalQty = 0;
-                      if (product.sizes && product.sizes.length > 0) {
-                        totalQty = product.sizes.reduce((sum, s) => sum + s.quantity, 0);
+                      if (product.variants && product.variants.length > 0) {
+                        totalQty = product.variants.reduce((sum, v) => sum + v.stock, 0);
                       }
                     %>
                     <div class="flex flex-col items-center">
                       <span class="font-medium <%= totalQty > 0 ? 'text-gray-800' : 'text-red-500' %>"><%= totalQty %></span>
                       <div class="text-[10px] text-gray-400 mt-0.5 flex gap-1">
-                        <% if (product.sizes) { %>
-                          <% product.sizes.forEach(s => { %>
-                            <span><%= s.size %>:<%= s.quantity %></span>
+                        <% if (product.variants) { %>
+                          <% product.variants.slice(0, 3).forEach(v => { %>
+                            <span><%= v.color %>-<%= v.size %>:<%= v.stock %></span>
                           <% }) %>
+                          <% if (product.variants.length > 3) { %> <span>...</span> <% } %>
                         <% } %>
                       </div>
                     </div>

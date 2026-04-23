@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #INV-<%= order.orderId.substring(0, 8).toUpperCase() %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            font-family: 'Inter', sans-serif;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .preview-actions {
+            background: #fff;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-print {
+            background: #43a047;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #388e3c;
+        }
+
+        .btn-back {
+            background: #fff;
+            color: #666;
+            border-color: #ddd;
+        }
+
+        .btn-back:hover {
+            background: #f9f9f9;
+        }
+
+        /* Invoice Content */
+        .invoice-card {
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 60px;
+            margin-bottom: 50px;
+        }
+
+        .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        .pdf-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #c96;
+            margin-bottom: 5px;
+        }
+
+        .pdf-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+
+        .pdf-info-box h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #999;
+            margin: 0 0 12px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        .pdf-table th {
+            background: #fbfbfb;
+            text-align: left;
+            padding: 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid #eee;
+            color: #666;
+        }
+
+        .pdf-table td {
+            padding: 16px 14px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .pdf-footer {
+            margin-top: 60px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            border-top: 1px solid #eee;
+            padding-top: 25px;
+        }
+
+        /* Logo Stability Fixes */
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .invoice-text-logo {
+    font-size: 33px;
+    font-weight: 733;
+    color: #222;
+    letter-spacing: -1.5px;
+    line-height: 1;
+    margin-bottom: 1px;
+    text-transform: uppercase;
+        }
+        .tagline {
+            margin: 0;
+            color: #888;
+            font-size: 15px;
+            letter-spacing: 1px;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+
+        @media print {
+            .preview-actions { display: none; }
+            body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .invoice-card { box-shadow: none; padding: 0; margin: 0; border: none; }
+            .container { max-width: 100%; width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="preview-actions">
+        <div class="container flex-between">
+            <a href="/order-success/<%= order._id %>" class="btn btn-back">
+                &lsaquo; Back to Order
+            </a>
+            <button onclick="window.print()" class="btn btn-print">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print / Download PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="invoice-card" id="invoiceArea">
+            <div class="pdf-header">
+                <div class="logo-section">
+                    <div class="invoice-text-logo">RARO</div>
+                    <p class="tagline">Wear What's Rare</p>
+                </div>
+                <div style="text-align: right;">
+                    <div class="pdf-title" style="color: #c96; font-size: 32px; font-weight: 800; letter-spacing: 1px;">INVOICE</div>
+                    <p style="margin: 5px 0 2px 0; font-weight: 700; color: #000; font-size: 16px;">#INV-<%= order.orderId ? order.orderId.toUpperCase() : 'DEV-MOCK-FULL' %></p>
+                    <p style="margin: 0; color: #888; font-size: 14px; font-weight: 400;"><%= order.createdOn ? new Date(order.createdOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '23 April 2026' %></p>
+                </div>
+            </div>
+
+            <div class="pdf-info-grid">
+                <div class="pdf-info-box">
+                    <h4>Billed To</h4>
+                    <p style="margin: 0 0 5px 0; font-weight: 700; font-size: 16px; color: #222;"><%= order.shippingAddress.name %></p>
+                    <p style="margin: 0; line-height: 1.6; color: #666; font-size: 14px;">
+                        <%= order.shippingAddress.landMark ? order.shippingAddress.landMark + ', ' : '' %>
+                        <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %><br>
+                        <%= order.shippingAddress.pincode %><br>
+                        Phone: <%= order.shippingAddress.phone %>
+                    </p>
+                </div>
+                <div class="pdf-info-box">
+                    <h4>Payment Information</h4>
+                    <p style="margin: 0 0 5px 0; font-weight: 600; color: #333; font-size: 14px;">Method: <%= order.paymentMethod %></p>
+                    <p style="margin: 0; color: #666; font-size: 14px;">Order Status: <span style="color: #43a047; font-weight: 700;"><%= order.orderStatus %></span></p>
+                </div>
+            </div>
+
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Item Description</th>
+                        <th style="text-align: center;">Size</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Price</th>
+                        <th style="text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% order.orderedItems.forEach(item => { %>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600; font-size: 15px; color: #222; margin-bottom: 4px;"><%= item.productName %></div>
+                                <div style="font-size: 12px; color: #999;">Color: <%= item.color %></div>
+                            </td>
+                            <td style="text-align: center;"><%= item.size %></td>
+                            <td style="text-align: center;"><%= item.quantity %></td>
+                            <td style="text-align: right;">₹<%= (item.itemTotal / item.quantity).toFixed(2) %></td>
+                            <td style="text-align: right; font-weight: 700; color: #222;">₹<%= item.itemTotal %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <table style="width: 300px; font-size: 15px; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 10px 0; color: #888;">Subtotal</td>
+                        <td style="padding: 10px 0; text-align: right; color: #333;">₹<%= order.subtotal + order.discount %></td>
+                    </tr>
+                    <% if (order.discount > 0) { %>
+                    <tr>
+                        <td style="padding: 10px 0; color: #2e7d32;">Discount</td>
+                        <td style="padding: 10px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= order.discount %></td>
+                    </tr>
+                    <% } %>
+                    <tr>
+                        <td style="padding: 10px 0; color: #888;">Shipping Charge</td>
+                        <td style="padding: 10px 0; text-align: right; color: #333;"><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge %></td>
+                    </tr>
+                    <tr style="border-top: 2px solid #c96;">
+                        <td style="padding: 20px 0; font-weight: 800; font-size: 20px; color: #222;">Total Amount</td>
+                        <td style="padding: 20px 0; text-align: right; font-weight: 800; font-size: 20px; color: #c96;">₹<%= order.finalAmount %></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="pdf-footer">
+                <p style="font-weight: 600; color: #666; margin-bottom: 8px;">Thank you for shopping with RARO!</p>
+                <p>This is a computer generated invoice and does not require a physical signature.</p>
+                <p style="margin-top: 15px;">www.raro-fashion.com | support@raro-fashion.com</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

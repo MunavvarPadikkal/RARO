@@ -8,7 +8,18 @@
                 <div class="col-lg-8 col-md-10">
 
                     <!-- ── Success Card ── -->
-                    <div class="order-success-card">
+                    <div class="order-success-card relative">
+                        <!-- Invoice Download Button -->
+                        <div class="invoice-download-btn-wrapper">
+                            <button id="downloadInvoice" class="btn-invoice-download">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download Invoice
+                            </button>
+                        </div>
 
                         <!-- Animated success icon -->
                         <div class="success-icon-wrapper">
@@ -327,7 +338,246 @@
         border-top: 1px solid #f0f0f0;
     }
     .success-actions .btn { min-width: 180px; }
+
+    .invoice-download-btn-wrapper {
+        position: absolute;
+        top: 25px;
+        right: 25px;
+    }
+    .btn-invoice-download {
+        background-color: #43a047;
+        color: #fff !important;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 1.2rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(67, 160, 71, 0.1);
+        cursor: pointer;
+    }
+    .btn-invoice-download:hover {
+        background-color: #388e3c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(67, 160, 71, 0.25);
+    }
+    .btn-invoice-download i {
+        font-size: 1.6rem;
+    }
+    @media (max-width: 576px) {
+        .invoice-download-btn-wrapper {
+            position: static;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+    }
+
+    /* ── Hidden Invoice Template for PDF ── */
+    #invoiceTemplate {
+        display: none;
+    }
+
+    /* Styles specifically for the PDF content when rendered */
+    .pdf-container {
+        padding: 40px;
+        font-family: 'Inter', sans-serif;
+        color: #333;
+        background: #fff;
+    }
+    .pdf-header {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    .pdf-logo { font-size: 28px; font-weight: 800; color: #222; }
+    .pdf-title { font-size: 24px; font-weight: 700; color: #c96; }
+    .pdf-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+    .pdf-info-box h4 {
+        font-size: 14px;
+        text-transform: uppercase;
+        color: #999;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+    }
+    .pdf-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+    .pdf-table th {
+        background: #f9f9f9;
+        text-align: left;
+        padding: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        border-bottom: 2px solid #eee;
+    }
+    .pdf-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+    }
+    .pdf-footer {
+        margin-top: 50px;
+        text-align: center;
+        color: #999;
+        font-size: 12px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
 </style>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────
+     Invoice Template (Hidden)
+     ───────────────────────────────────────────────────────────────────────────── -->
+<style>
+  .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .invoice-text-logo {
+    font-size: 33px;
+    font-weight: 750;
+    color: #222;
+    margin-bottom: 1px;
+    text-transform: uppercase;
+        }
+        .tagline {
+            margin: 0;
+            color: #888;
+            font-size: 15px;
+            letter-spacing: 1px;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+</style>
+
+<div id="invoiceTemplate">
+    <div class="pdf-container">
+        <div class="pdf-header">
+            
+            <div class="logo-section">
+                    <div class="invoice-text-logo">RARO</div>
+                    <p class="tagline">Wear What's Rare</p>
+            </div>
+            
+            <div style="text-align: right;">
+                <div class="pdf-title">INVOICE</div>
+                <p style="margin: 5px 0; font-weight: 600;">#INV-<%= order.orderId.substring(0, 8).toUpperCase() %></p>
+                <p style="margin: 0; color: #666;"><%= new Date(order.createdOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+            </div>
+        </div>
+
+        <div class="pdf-info-grid">
+            <div class="pdf-info-box">
+                <h4>Billed To</h4>
+                <p style="margin: 5px 0; font-weight: 700; font-size: 15px;"><%= order.shippingAddress.name %></p>
+                <p style="margin: 0; line-height: 1.5; color: #555;">
+                    <%= order.shippingAddress.landMark ? order.shippingAddress.landMark + ', ' : '' %>
+                    <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %><br>
+                    <%= order.shippingAddress.pincode %><br>
+                    Phone: <%= order.shippingAddress.phone %>
+                </p>
+            </div>
+            <div class="pdf-info-box">
+                <h4>Payment Method</h4>
+                <p style="margin: 5px 0; font-weight: 600;"><%= order.paymentMethod %></p>
+                <p style="margin: 5px 0; color: #666;">Status: <%= order.orderStatus %></p>
+            </div>
+        </div>
+
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th>Item Description</th>
+                    <th style="text-align: center;">Size</th>
+                    <th style="text-align: center;">Qty</th>
+                    <th style="text-align: right;">Price</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% order.orderedItems.forEach(item => { %>
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600;"><%= item.productName %></div>
+                            <div style="font-size: 11px; color: #888;"><%= item.color %></div>
+                        </td>
+                        <td style="text-align: center;"><%= item.size %></td>
+                        <td style="text-align: center;"><%= item.quantity %></td>
+                        <td style="text-align: right;">₹<%= (item.itemTotal / item.quantity).toFixed(2) %></td>
+                        <td style="text-align: right; font-weight: 600;">₹<%= item.itemTotal %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <table style="width: 250px; font-size: 14px; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Subtotal</td>
+                    <td style="padding: 8px 0; text-align: right;">₹<%= order.subtotal + order.discount %></td>
+                </tr>
+                <% if (order.discount > 0) { %>
+                <tr>
+                    <td style="padding: 8px 0; color: #2e7d32;">Discount</td>
+                    <td style="padding: 8px 0; text-align: right; color: #2e7d32;">− ₹<%= order.discount %></td>
+                </tr>
+                <% } %>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Shipping</td>
+                    <td style="padding: 8px 0; text-align: right;"><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge %></td>
+                </tr>
+                <tr style="border-top: 2px solid #c96;">
+                    <td style="padding: 15px 0; font-weight: 800; font-size: 18px;">Total Amount</td>
+                    <td style="padding: 15px 0; text-align: right; font-weight: 800; font-size: 18px; color: #c96;">₹<%= order.finalAmount %></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="pdf-footer">
+            <p>Thank you for shopping with RARO. This is a computer generated invoice.</p>
+            <p>www.raro-fashion.com | support@raro-fashion.com</p>
+        </div>
+    </div>
+</div>
+
+<!-- html2pdf JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+    document.getElementById('downloadInvoice').addEventListener('click', function() {
+        const element = document.getElementById('invoiceTemplate');
+        
+        // Temporarily show the template for capturing
+        element.style.display = 'block';
+        
+        const options = {
+            margin:       0,
+            filename:     'Invoice_<%= order.orderId.substring(0,8).toUpperCase() %>.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(options).save().then(() => {
+            // Hide it back
+            element.style.display = 'none';
+        });
+    });
+</script>
 
 <script src="/assets/js/jquery.min.js"></script>
 <script src="/assets/js/bootstrap.bundle.min.js"></script>

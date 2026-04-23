@@ -78,63 +78,43 @@
                                         <label for="color">Color:</label>
                                         <div class="select-custom">
                                             <select name="color" id="color" class="form-control" required>
+                                                <option value="" selected disabled>Select a color</option>
                                                 <% 
-                                                let colors = Array.isArray(product.color) ? product.color : (product.color ? [product.color] : []);
-                                                if (colors.length === 1 && typeof colors[0] === 'string' && colors[0].includes(',')) {
-                                                    colors = colors[0].split(',').map(c => c.trim()).filter(c => c.length > 0);
-                                                }
-                                                if (colors.length > 0) {
-                                                    colors.forEach((col, index) => { 
+                                                const uniqueColors = [...new Set(product.variants.map(v => v.color))];
+                                                uniqueColors.forEach(col => { 
                                                 %>
-                                                        <option value="<%= col %>" <%= index === 0 ? 'selected' : '' %>><%= col %></option>
-                                                <% 
-                                                    });
-                                                } else { 
-                                                %>
-                                                    <option value="" disabled>No color available</option>
-                                                <% } %>
+                                                    <option value="<%= col %>"><%= col %></option>
+                                                <% }); %>
                                             </select>
                                         </div><!-- End .select-custom -->
                                     </div><!-- End .details-filter-row -->
 
                                     <% 
-                                      let totalStock = 0;
-                                      if (product.sizes) {
-                                          totalStock = product.sizes.reduce((acc, curr) => acc + curr.quantity, 0);
-                                      }
+                                      let totalStock = product.variants.reduce((acc, curr) => acc + curr.stock, 0);
                                     %>
 
                                     <div class="details-filter-row details-row-size">
                                         <label for="size">Size:</label>
                                         <div class="select-custom">
-                                            <select name="size" id="size" class="form-control">
-                                                <option value="" selected="selected">Select a size</option>
-                                                <% if (product.sizes) { %>
-                                                    <% product.sizes.forEach(s => { %>
-                                                        <% if (s.quantity > 0) { %>
-                                                            <option value="<%= s.size %>"><%= s.size %> (<%= s.quantity %> in stock)</option>
-                                                        <% } else { %>
-                                                            <option value="<%= s.size %>" disabled><%= s.size %> (Out of Stock)</option>
-                                                        <% } %>
-                                                    <% }) %>
-                                                <% } %>
+                                            <select name="size" id="size" class="form-control" disabled>
+                                                <option value="" selected disabled>Select a color first</option>
                                             </select>
                                         </div><!-- End .select-custom -->
                                     </div><!-- End .details-filter-row -->
 
+                                    <div id="stock-display" class="mb-2" style="font-size: 1.4rem;">
+                                        <!-- Real-time stock status injected here -->
+                                    </div>
+
                                     <div class="details-filter-row details-row-size">
                                         <label for="qty">Qty:</label>
                                         <div class="product-details-quantity">
-                                            <input type="number" id="qty" class="form-control" value="1" min="1" max="<%= totalStock > 0 ? totalStock : 1 %>" step="1" data-decimals="0" required>
+                                            <input type="number" id="qty" class="form-control" value="1" min="1" max="1" step="1" data-decimals="0" required>
                                         </div><!-- End .product-details-quantity -->
                                     </div><!-- End .details-filter-row -->
 
                                     <div class="product-details-action">
-                                        <% if (totalStock > 0) { %>
-                                            <a href="#" id="addToCartBtn" data-product-id="<%= product._id %>" class="btn-product btn-cart"><span>add to cart</span></a>
-                                        <% } else { %>
-                                            <a href="#" class="btn-product btn-cart disabled bg-secondary text-white border-0" style="pointer-events: none; opacity: 0.6;"><span>out of stock</span></a>
-                                        <% } %>
+                                        <a href="#" id="addToCartBtn" data-product-id="<%= product._id %>" class="btn-product btn-cart"><span>add to cart</span></a>
 
                                         <div class="details-action-wrapper">
                                             <a href="#" class="btn-product btn-wishlist btn-add-wishlist" data-product-id="<%= product._id %>" title="Wishlist"><span>Add to Wishlist</span></a>
@@ -360,17 +340,65 @@
             });
         }
 
+        // Variant Data Injection
+        const variants = <%- JSON.stringify(product.variants) %>;
+
+        // --- Dependent Dropdown Logic ---
+        $('#color').on('change', function() {
+            const selectedColor = $(this).val();
+            const $sizeSelect = $('#size');
+            const $stockDisplay = $('#stock-display');
+
+            // Reset Size select
+            $sizeSelect.prop('disabled', false).html('<option value="" selected disabled>Select a size</option>');
+            $stockDisplay.html('');
+            
+            // Filter sizes for selected color
+            const availableSizes = variants.filter(v => v.color === selectedColor);
+            
+            availableSizes.forEach(v => {
+                const stockText = v.stock > 0 ? '' : ' (Out of Stock)';
+                const disabled = v.stock > 0 ? '' : 'disabled';
+                $sizeSelect.append(`<option value="${v.size}" ${disabled}>${v.size}${stockText}</option>`);
+            });
+
+            // If only one size available and it has stock, auto-select it? Maybe not, let user pick.
+        });
+
+        $('#size').on('change', function() {
+            const selectedColor = $('#color').val();
+            const selectedSize = $(this).val();
+            const $stockDisplay = $('#stock-display');
+            const $qtyInput = $('#qty');
+            const $addBtn = $('#addToCartBtn');
+
+            const variant = variants.find(v => v.color === selectedColor && v.size === selectedSize);
+            
+            if (variant) {
+                if (variant.stock > 0) {
+                    $stockDisplay.html(`<span class="text-success font-weight-bold">${variant.stock} units in stock</span>`);
+                    $qtyInput.attr('max', variant.stock).val(1);
+                    $addBtn.removeClass('disabled bg-secondary text-white border-0').css({'pointer-events': '', 'opacity': ''}).find('span').text('add to cart');
+                } else {
+                    $stockDisplay.html('<span class="text-danger font-weight-bold">Out of stock</span>');
+                    $qtyInput.attr('max', 0).val(0);
+                    $addBtn.addClass('disabled bg-secondary text-white border-0').css({'pointer-events': 'none', 'opacity': '0.6'}).find('span').text('out of stock');
+                }
+            }
+        });
+
         $('#addToCartBtn').on('click', async function(e) {
             e.preventDefault();
             const productId = $(this).data('product-id');
+            const color = $('#color').val();
             const size = $('#size').val();
             const quantity = $('#qty').val();
 
-            if (!size) {
+            if (!color || !size) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Size Required',
-                    text: 'Please select a size before adding to cart.'
+                    title: 'Selection Required',
+                    text: 'Please select both color and size before adding to cart.'
                 });
                 return;
             }
@@ -388,9 +416,10 @@
                 const response = await fetch('/cart/add', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ productId, size, quantity })
+                    body: JSON.stringify({ productId, color, size, quantity })
                 });
 
                 const data = await response.json();
@@ -418,18 +447,20 @@
                         });
                     } else {
                         Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
+                            icon: 'warning',
+                            title: 'Notice',
                             text: data.message || 'Failed to add item to cart.'
                         });
                     }
                 }
             } catch (error) {
                 console.error("Error adding to cart:", error);
+                
+                // Only show this for actual technical/network errors
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Something went wrong. Please try again.'
+                    text: 'Something went wrong. Please try again later.'
                 });
             }
         });

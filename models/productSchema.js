@@ -28,21 +28,30 @@ const productSchema = new Schema({
         type:Number,
         default:0,
     },
-    sizes:[{
-        size:{
-            type:String,
-            enum:["S","M","L"],
-            required:true,
+    color: {
+        type: [String],
+        required: true,
+    },
+    variants: [{
+        color: {
+            type: String,
+            required: true,
         },
-        quantity:{
-            type:Number,
-            default:0,
+        size: {
+            type: String,
+            enum: ["S", "M", "L"],
+            required: true,
+        },
+        stock: {
+            type: Number,
+            default: 0,
+            required: true,
+        },
+        sku: {
+            type: String,
+            required: true,
         }
     }],
-    color:{
-        type:[String],
-        required:true
-    },
     productImage:{
         type:[String],
         required:true,

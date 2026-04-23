@@ -40,10 +40,10 @@
                                 // Determine effective price
                                 const effectivePrice = product.salePrice < product.regularPrice ? product.salePrice : product.regularPrice;
                                 
-                                // Calculate total available stock across sizes
+                                // Calculate total available stock across variants
                                 let totalStock = 0;
-                                if (product.sizes) {
-                                    totalStock = product.sizes.reduce((acc, curr) => acc + curr.quantity, 0);
+                                if (product.variants) {
+                                    totalStock = product.variants.reduce((acc, curr) => acc + curr.stock, 0);
                                 }
                                 const isOutOfStock = totalStock <= 0 || isBlocked || isDeleted;
                             %>

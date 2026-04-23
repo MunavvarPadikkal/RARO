@@ -64,10 +64,10 @@ const getAddProduct = async (req, res) => {
 // ── Add Product POST ───────────────────────────────────────────────────
 const addProduct = async (req, res) => {
     try {
-        const { productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, sizeS, sizeM, sizeL } = req.body;
+        const { productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, variants: variantsJSON } = req.body;
 
         // Validation
-        if (!productName || !description || !category || !regularPrice || !salePrice || !color) {
+        if (!productName || !description || !category || !regularPrice || !salePrice || !color || !variantsJSON) {
             return res.status(400).json({ error: "All fields are required" });
         }
 
@@ -88,13 +88,19 @@ const addProduct = async (req, res) => {
         // Process images with sharp
         const imageNames = await processImages(req.files);
 
-        const sizes = [
-            { size: "S", quantity: parseInt(sizeS) || 0 },
-            { size: "M", quantity: parseInt(sizeM) || 0 },
-            { size: "L", quantity: parseInt(sizeL) || 0 },
-        ];
+        const variants = JSON.parse(variantsJSON);
+        
+        // Backend duplicate variant check
+        const variantSet = new Set();
+        for (const v of variants) {
+            const key = `${v.color.toLowerCase()}_${v.size}`;
+            if (variantSet.has(key)) {
+                return res.status(400).json({ error: `Duplicate variant combination: ${v.color} - ${v.size}` });
+            }
+            variantSet.add(key);
+        }
 
-        const totalQty = sizes.reduce((sum, s) => sum + s.quantity, 0);
+        const totalQty = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
 
         const productData = {
             productName: productName.trim(),
@@ -105,7 +111,7 @@ const addProduct = async (req, res) => {
             regularPrice: parseFloat(regularPrice),
             salePrice: parseFloat(salePrice),
             color: color.split(',').map(c => c.trim()).filter(c => c.length > 0),
-            sizes,
+            variants,
             productImage: imageNames,
             status: totalQty > 0 ? "Available" : "Out of stock",
         };
@@ -140,9 +146,9 @@ const getEditProduct = async (req, res) => {
 // ── Edit Product POST ──────────────────────────────────────────────────
 const editProduct = async (req, res) => {
     try {
-        const { id, productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, sizeS, sizeM, sizeL } = req.body;
+        const { id, productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, variants: variantsJSON } = req.body;
 
-        if (!productName || !description || !category || !regularPrice || !salePrice || !color) {
+        if (!productName || !description || !category || !regularPrice || !salePrice || !color || !variantsJSON) {
             return res.status(400).json({ error: "All fields are required" });
         }
 
@@ -157,12 +163,19 @@ const editProduct = async (req, res) => {
             return res.status(409).json({ error: "Product with this name already exists" });
         }
 
-        const sizes = [
-            { size: "S", quantity: parseInt(sizeS) || 0 },
-            { size: "M", quantity: parseInt(sizeM) || 0 },
-            { size: "L", quantity: parseInt(sizeL) || 0 },
-        ];
-        const totalQty = sizes.reduce((sum, s) => sum + s.quantity, 0);
+        const variants = JSON.parse(variantsJSON);
+
+        // Backend duplicate variant check
+        const variantSet = new Set();
+        for (const v of variants) {
+            const key = `${v.color.toLowerCase()}_${v.size}`;
+            if (variantSet.has(key)) {
+                return res.status(400).json({ error: `Duplicate variant combination: ${v.color} - ${v.size}` });
+            }
+            variantSet.add(key);
+        }
+
+        const totalQty = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
 
         const updateData = {
             productName: productName.trim(),
@@ -173,7 +186,7 @@ const editProduct = async (req, res) => {
             regularPrice: parseFloat(regularPrice),
             salePrice: parseFloat(salePrice),
             color: color.split(',').map(c => c.trim()).filter(c => c.length > 0),
-            sizes,
+            variants,
             status: totalQty > 0 ? "Available" : "Out of stock",
         };
 

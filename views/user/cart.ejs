@@ -27,6 +27,7 @@
                                     <th>Product</th>
                                     <th>Price</th>
                                     <th>Size</th>
+                                    <th>Color</th>
                                     <th>Quantity</th>
                                     <th>Total</th>
                                     <th></th>
@@ -43,13 +44,13 @@
                                             
                                             // Determine effective price 
                                             const effectivePrice = product.salePrice < product.regularPrice ? product.salePrice : product.regularPrice;
-                                            const sizeData = product.sizes ? product.sizes.find(s => s.size === item.size) : null;
-                                            const availableStock = sizeData ? sizeData.quantity : 0;
+                                            const variant = product.variants ? product.variants.find(v => v.size === item.size && v.color === item.color) : null;
+                                            const availableStock = variant ? variant.stock : 0;
                                             const isOutOfStock = availableStock <= 0;
                                             
                                             const maxAllowed = Math.min(availableStock, 5);
                                         %>
-                                        <tr class="cart-item-row" data-product-id="<%= product._id %>" data-size="<%= item.size %>">
+                                        <tr class="cart-item-row" data-product-id="<%= product._id %>" data-size="<%= item.size %>" data-color="<%= item.color %>">
                                             <td class="product-col">
                                                 <div class="product">
                                                     <figure class="product-media">
@@ -74,6 +75,7 @@
                                             </td>
                                             <td class="price-col">₹<%= effectivePrice %></td>
                                             <td class="size-col"><%= item.size %></td>
+                                            <td class="color-col"><%= item.color %></td>
                                             <td class="quantity-col">
                                                 <div class="cart-product-quantity">
                                                     <input type="number" class="form-control qty-input" 
@@ -157,8 +159,8 @@
                                      const p = item.productId;
                                      if (!p || p.isDeleted || p.isBlocked) { hasInvalidItems = true; }
                                      else {
-                                         const sData = p.sizes ? p.sizes.find(s => s.size === item.size) : null;
-                                         if (!sData || sData.quantity < item.quantity) {
+                                         const vData = p.variants ? p.variants.find(v => v.size === item.size && v.color === item.color) : null;
+                                         if (!vData || vData.stock < item.quantity) {
                                              hasInvalidItems = true;
                                          }
                                      }
@@ -210,6 +212,7 @@
             const row = $(this).closest('tr');
             const productId = row.data('product-id');
             const size = row.data('size');
+            const color = row.data('color');
             const max = parseInt($(this).data('max'));
             const newQuantity = parseInt($(this).val());
 
@@ -239,7 +242,7 @@
                 const response = await fetch('/cart/update-quantity', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId, size, quantity: newQuantity })
+                    body: JSON.stringify({ productId, size, color, quantity: newQuantity })
                 });
 
                 const data = await response.json();
@@ -275,6 +278,7 @@
             const row = $(this).closest('tr');
             const productId = row.data('product-id');
             const size = row.data('size');
+            const color = row.data('color');
 
             const confirm = await Swal.fire({
                 title: 'Are you sure?',
@@ -291,7 +295,7 @@
                     const response = await fetch('/cart/remove', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ productId, size })
+                        body: JSON.stringify({ productId, size, color })
                     });
 
                     const data = await response.json();

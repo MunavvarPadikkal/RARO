@@ -80,10 +80,10 @@ const getShopProducts = async ({ search, category, sort, page, limit, minPrice, 
     }
 
     if (sizes && sizes.length > 0) {
-        query.sizes = {
+        query.variants = {
             $elemMatch: {
                 size: { $in: sizes },
-                quantity: { $gt: 0 }
+                stock: { $gt: 0 }
             }
         };
     }

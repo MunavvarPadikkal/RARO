@@ -56,7 +56,12 @@
                                                             </td>
                                                             <td style="font-weight: 600;">₹<%= order.finalAmount.toLocaleString() %></td>
                                                             <td>
-                                                                <a href="/order-details/<%= order._id %>" class="btn btn-outline-dark btn-sm" style="border-radius: 6px;">View</a>
+                                                                <div class="d-flex gap-2">
+                                                                    <a href="/order-details/<%= order._id %>" class="btn btn-outline-dark btn-sm" style="border-radius: 6px;">View</a>
+                                                                    <a href="/download-invoice/<%= order._id %>" target="_blank" class="btn btn-outline-success btn-sm" style="border-radius: 6px;">
+                                                                        <i class="icon-download"></i> Invoice
+                                                                    </a>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     <% }) %>

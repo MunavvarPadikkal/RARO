@@ -99,8 +99,87 @@ const orderSuccess = async (req, res) => {
     }
 };
 
+/**
+ * GET /download-invoice/:orderId
+ * Render the dedicated invoice preview page for PDF generation.
+ */
+const downloadInvoice = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const order = await orderService.getOrderById(orderId);
+
+        if (!order) {
+            return res.status(404).send("Order not found");
+        }
+
+        // Security check
+        if (order.userId.toString() !== req.session.user._id.toString()) {
+            return res.status(403).send("Unauthorized");
+        }
+
+        return res.render("invoice", {
+            user: req.session.user,
+            order,
+        });
+    } catch (error) {
+        console.error("Error loading invoice preview:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+};
+
+/**
+ * DEV ONLY: Preview invoice with dummy data
+ */
+const devInvoicePreview = async (req, res) => {
+    try {
+        const dummyOrder = {
+            orderId: "DEV-MOCK-123",
+            createdOn: new Date(),
+            paymentMethod: "Razorpay (Test)",
+            orderStatus: "Success",
+            shippingAddress: {
+                name: "John Developer",
+                phone: "9876543210",
+                landMark: "Tech Park",
+                city: "Innovate City",
+                state: "Dev State",
+                pincode: "400001"
+            },
+            orderedItems: [
+                {
+                    productName: "Premium Cotton Shirt",
+                    color: "Navy Blue",
+                    size: "XL",
+                    quantity: 2,
+                    itemTotal: 2998.00
+                },
+                {
+                    productName: "Slim Fit Chinos",
+                    color: "Beige",
+                    size: "32",
+                    quantity: 1,
+                    itemTotal: 1499.00
+                }
+            ],
+            subtotal: 4497.00,
+            discount: 500.00,
+            shippingCharge: 0,
+            finalAmount: 3997.00
+        };
+
+        return res.render("invoice", {
+            order: dummyOrder,
+            user: { name: "Tester" }
+        });
+    } catch (error) {
+        res.status(500).send("Error rendering dev preview");
+    }
+};
+
 module.exports = {
     loadCheckout,
     placeOrder,
     orderSuccess,
+    downloadInvoice,
+    devInvoicePreview
 };

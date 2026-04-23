@@ -15,13 +15,26 @@ const getCheckoutData = async (userId) => {
     const userAddress = await Address.findOne({ userId });
     const addresses = userAddress ? userAddress.address : [];
 
-    // 3. Prepare Cart Items (Filter out non-existent products just in case)
-    const cartItems = cart.items.filter(item => item.productId);
+    // 3. Prepare Cart Items with flattened product details for the view
+    const cartItems = cart.items
+        .filter(item => item.productId)
+        .map(item => ({
+            _id: item._id,
+            productId: item.productId._id,
+            productName: item.productId.productName,
+            productImage: item.productId.productImage[0] || "",
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+            price: item.productId.salePrice,
+            regularPrice: item.productId.regularPrice,
+            itemTotal: item.productId.salePrice * item.quantity
+        }));
 
     // 4. Calculate Summary
-    const subtotal = cartItems.reduce((acc, item) => acc + (item.productId.salePrice * item.quantity), 0);
-    const shippingCharge = 0; // Flat 0 for now as per RARO tech stack
-    const discount = 0; // Coupons logic not yet implemented
+    const subtotal = cartItems.reduce((acc, item) => acc + item.itemTotal, 0);
+    const shippingCharge = 0; 
+    const discount = 0; 
     const finalAmount = subtotal + shippingCharge - discount;
     const itemsCount = cartItems.length;
 
@@ -43,54 +56,71 @@ const placeOrder = async (userId, addressId) => {
         throw new Error("Cart is empty.");
     }
 
-    // 2. Check Stock for all items
+    // 2. Check Stock for all items (variant-specific)
     for (const item of cart.items) {
         if (!item.productId) throw new Error("Some products in your cart are no longer available.");
-        if (item.productId.quantity < item.quantity) {
-            throw new Error(`Insufficient stock for product: ${item.productId.productName}`);
+        
+        const variant = item.productId.variants.find(v => v.color === item.color && v.size === item.size);
+        if (!variant || variant.stock < item.quantity) {
+            throw new Error(`Insufficient stock for ${item.productId.productName} (${item.color}, ${item.size}). Available: ${variant ? variant.stock : 0}`);
         }
     }
 
     // 3. Find selected address
     const userAddress = await Address.findOne({ userId });
+    if (!userAddress) throw new Error("User address record not found.");
+    
     const selectedAddress = userAddress.address.find(addr => addr._id.toString() === addressId);
     if (!selectedAddress) throw new Error("Selected address not found.");
 
-    // 4. Prepare Order Items (Snapshots)
+    // 4. Prepare Order Items (Snapshots matching Order schema)
     const orderItems = cart.items.map(item => ({
-        product: item.productId._id,
+        productId: item.productId._id,
+        productName: item.productId.productName,
+        productImage: item.productId.productImage[0] || "",
+        size: item.size,
+        color: item.color,
         quantity: item.quantity,
         price: item.productId.salePrice,
-        name: item.productId.productName,
-        productImage: item.productId.productImage[0]
+        itemTotal: item.productId.salePrice * item.quantity
     }));
 
     // 5. Calculate totals
-    const subtotal = orderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const subtotal = orderItems.reduce((acc, item) => acc + item.itemTotal, 0);
     const finalAmount = subtotal; // No discount/tax for now
 
-    // 6. Create Order document
+    // 6. Create Order document matching schema
     const newOrder = new Order({
         orderId: `ORD-${uuidv4().substring(0, 8).toUpperCase()}`,
         userId: userId,
         orderedItems: orderItems,
-        totalPrice: subtotal,
-        discount: 0,
-        finalAmount: finalAmount,
-        address: selectedAddress,
-        status: 'Pending',
-        paymentMethod: 'COD', // Defaulting to COD for this stage
+        shippingAddress: {
+            addressType: selectedAddress.addressType || "Home",
+            name: selectedAddress.name,
+            phone: selectedAddress.phone,
+            landMark: selectedAddress.landMark || "",
+            city: selectedAddress.city,
+            state: selectedAddress.state,
+            pincode: selectedAddress.pincode
+        },
+        paymentMethod: "Cash on Delivery",
         paymentStatus: 'Pending',
+        orderStatus: 'Placed',
+        subtotal: subtotal,
+        discount: 0,
+        shippingCharge: 0,
+        finalAmount: finalAmount,
         createdOn: new Date()
     });
 
     await newOrder.save();
 
-    // 7. Deduct Stock
+    // 7. Deduct Stock from specific variant
     for (const item of cart.items) {
-        await Product.findByIdAndUpdate(item.productId._id, {
-            $inc: { quantity: -item.quantity }
-        });
+        await Product.updateOne(
+            { _id: item.productId._id, "variants.color": item.color, "variants.size": item.size },
+            { $inc: { "variants.$.stock": -item.quantity } }
+        );
     }
 
     // 8. Clear Cart
@@ -100,7 +130,7 @@ const placeOrder = async (userId, addressId) => {
 };
 
 const getOrderById = async (orderId) => {
-    return await Order.findById(orderId).populate("orderedItems.product");
+    return await Order.findById(orderId).populate("orderedItems.productId");
 };
 
 module.exports = {

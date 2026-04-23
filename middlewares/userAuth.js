@@ -3,6 +3,9 @@ const User = require("../models/userSchema");
 const checkSession = async (req,res,next)=>{
       try {
         if (!req.session.user) {
+            if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                return res.status(401).json({ success: false, message: "Please login to proceed" });
+            }
             return res.redirect("/signin");
         }
 

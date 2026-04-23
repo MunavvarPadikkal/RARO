@@ -14,13 +14,13 @@ const loadCart = async (req, res) => {
 const addToCart = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { productId, size, quantity } = req.body;
+        const { productId, size, color, quantity } = req.body;
 
-        if (!productId || !size || !quantity) {
+        if (!productId || !size || !color || !quantity) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        await cartService.addToCart(userId, productId, size, quantity);
+        await cartService.addToCart(userId, productId, size, color, quantity);
         res.json({ success: true, message: "Added to cart successfully" });
 
     } catch (error) {
@@ -32,13 +32,13 @@ const addToCart = async (req, res) => {
 const updateQuantity = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { productId, size, quantity } = req.body;
+        const { productId, size, color, quantity } = req.body;
 
-        if (!productId || !size || !quantity) {
+        if (!productId || !size || !color || !quantity) {
              return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        await cartService.updateQuantity(userId, productId, size, quantity);
+        await cartService.updateQuantity(userId, productId, size, color, quantity);
         res.json({ success: true, message: "Quantity updated" });
 
     } catch (error) {
@@ -50,13 +50,13 @@ const updateQuantity = async (req, res) => {
 const removeFromCart = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { productId, size } = req.body;
+        const { productId, size, color } = req.body;
 
-        if (!productId || !size) {
+        if (!productId || !size || !color) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        await cartService.removeFromCart(userId, productId, size);
+        await cartService.removeFromCart(userId, productId, size, color);
         res.json({ success: true, message: "Removed from cart" });
 
     } catch (error) {
