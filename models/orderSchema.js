@@ -53,6 +53,27 @@ const orderSchema = new Schema(
                     type: Number,
                     required: true,
                 },
+                // Per-item lifecycle status
+                itemStatus: {
+                    type: String,
+                    enum: [
+                        "Active",
+                        "Cancelled",
+                        "Return Requested",
+                        "Return Approved",
+                        "Return Rejected",
+                        "Returned",
+                    ],
+                    default: "Active",
+                },
+                cancellationReason: {
+                    type: String,
+                    default: null,
+                },
+                returnReason: {
+                    type: String,
+                    default: null,
+                },
             },
         ],
 
@@ -82,9 +103,30 @@ const orderSchema = new Schema(
 
         orderStatus: {
             type: String,
-            enum: ["Placed", "Processing", "Shipped", "Delivered", "Cancelled"],
+            enum: [
+                "Placed",
+                "Pending",
+                "Shipped",
+                "Out for Delivery",
+                "Delivered",
+                "Cancelled",
+                "Return Requested",
+                "Return Approved",
+                "Return Rejected",
+                "Returned",
+            ],
             default: "Placed",
             required: true,
+        },
+
+        // Order-level cancellation/return reasons
+        cancellationReason: {
+            type: String,
+            default: null,
+        },
+        returnReason: {
+            type: String,
+            default: null,
         },
 
         subtotal: {
@@ -120,6 +162,22 @@ const orderSchema = new Schema(
             type: String,
             default: null,
         },
+
+        // Auto-generated invoice number (INV-100001)
+        invoiceNumber: {
+            type: String,
+            unique: true,
+            sparse: true,
+        },
+
+        // Timeline of status changes for visual tracking
+        statusHistory: [
+            {
+                status: { type: String, required: true },
+                date: { type: Date, default: Date.now },
+                note: { type: String, default: "" },
+            },
+        ],
 
         createdOn: {
             type: Date,

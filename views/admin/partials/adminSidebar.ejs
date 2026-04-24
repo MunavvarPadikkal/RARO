@@ -2,7 +2,7 @@
 <aside class="w-[260px] bg-brand-sidebar text-gray-400 flex flex-col min-h-screen sticky top-0 shrink-0">
   <!-- Brand Area -->
   <div class="px-6 py-8">
-    <img src="\assets\images\RARO logo white.png" alt="RARO Logo" class ="w-24">
+    <img src="\assets\images\RARO logo white.png" alt="RARO Logo" class="w-24">
   </div>
 
   <!-- User Profile block (matching screenshot) -->
@@ -10,8 +10,7 @@
     <div class="flex items-center gap-3">
       <div
         class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-medium overflow-hidden">
-        <img src="\assets\Photo_closeup.jpg" alt="Admin"
-          class="w-full h-full object-cover" />
+        <img src="\assets\Photo_closeup.jpg" alt="Admin" class="w-full h-full object-cover" />
       </div>
       <div>
         <div class="text-white font-medium text-sm">Admin</div>
@@ -46,6 +45,11 @@
       class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= (path === '/admin/categories' || path === '/admin/editCategory') ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-solid fa-layer-group w-5 text-center"></i>
       <span class="font-medium">Categories</span>
+    </a>
+    <a href="/admin/inventory"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/inventory' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
+      <i class="fa-solid fa-warehouse w-5 text-center"></i>
+      <span class="font-medium">Inventory</span>
     </a>
     <a href="/admin/return-requests"
       class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/return-requests' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">

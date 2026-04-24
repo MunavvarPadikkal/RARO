@@ -1,0 +1,412 @@
+<%-include("../../views/partials/user/header.ejs")%>
+
+    <main class="main">
+        <div class="page-header text-center" style="background-image: url('/assets/images/page-header-bg.jpg')">
+            <div class="container">
+                <h1 class="page-title">My Account<span>Order Details</span></h1>
+            </div>
+        </div>
+        <nav aria-label="breadcrumb" class="breadcrumb-nav mb-3">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/orders">My Orders</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">#<%= order.orderId %></li>
+                </ol>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="dashboard">
+                <div class="container">
+                    <div class="row">
+                        <%- include("../../views/partials/user/profileSidebar.ejs", { activeTab: "orders" }) %>
+                        
+                        <div class="col-md-8 col-lg-9">
+                            <!-- Order Header -->
+                            <div class="card shadow-sm border-0 mb-3" style="border-radius: 16px; overflow: hidden;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap" style="gap: 12px;">
+                                        <div>
+                                            <h5 style="font-weight: 800; color: #222; margin-bottom: 4px; font-size: 1.8rem;">Order #<%= order.orderId %></h5>
+                                            <p style="color: #888; font-size: 13px; margin: 0;">
+                                                Placed on <%= new Date(order.createdOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                                            </p>
+                                        </div>
+                                        <div class="d-flex" style="gap: 10px; flex-wrap: wrap;">
+                                            <% if (order.invoiceNumber || order.orderStatus === 'Delivered') { %>
+                                                <a href="/orders/<%= order._id %>/invoice" target="_blank" class="btn btn-sm" style="background: #43a047; color: #fff; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 600;">
+                                                    📄 Download Invoice
+                                                </a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Status Timeline -->
+                            <div class="card shadow-sm border-0 mb-3" style="border-radius: 16px; overflow: hidden;">
+                                <div class="card-body p-4">
+                                    <h6 style="font-weight: 700; margin-bottom: 20px; font-size: 1.5rem;">Order Status</h6>
+                                    <%
+                                        const isCancelled = order.orderStatus === 'Cancelled';
+                                        const isReturn = order.orderStatus.includes('Return') || order.orderStatus === 'Returned';
+                                        let timelineSteps = [];
+                                        if (isCancelled) {
+                                            timelineSteps = ['Placed', 'Cancelled'];
+                                        } else if (isReturn) {
+                                            timelineSteps = ['Placed', 'Pending', 'Shipped', 'Out for Delivery', 'Delivered', order.orderStatus];
+                                        } else {
+                                            timelineSteps = ['Placed', 'Pending', 'Shipped', 'Out for Delivery', 'Delivered'];
+                                        }
+                                        const allStatuses = ['Placed', 'Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Return Approved', 'Return Rejected', 'Returned'];
+                                        const currentIdx = allStatuses.indexOf(order.orderStatus);
+                                    %>
+                                    <div class="order-timeline" style="display: flex; align-items: flex-start; gap: 0; overflow-x: auto; padding: 10px 0;">
+                                        <% timelineSteps.forEach((step, idx) => {
+                                            const stepIdx = allStatuses.indexOf(step);
+                                            const isActive = order.orderStatus === step;
+                                            const isPast = allStatuses.indexOf(order.orderStatus) >= stepIdx && !isCancelled || (isCancelled && idx === 0);
+                                            let dotColor = '#ddd';
+                                            if (isActive && step === 'Cancelled') dotColor = '#c62828';
+                                            else if (isActive && step.includes('Return')) dotColor = '#e65100';
+                                            else if (isActive) dotColor = '#2e7d32';
+                                            else if (isPast) dotColor = '#c96';
+                                        %>
+                                            <div style="flex: 1; text-align: center; min-width: 90px;">
+                                                <div style="width: 28px; height: 28px; border-radius: 50%; background: <%= isPast || isActive ? dotColor : '#eee' %>; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;">
+                                                    <% if (isPast || isActive) { %>
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                    <% } %>
+                                                </div>
+                                                <div style="font-size: 11px; font-weight: <%= isActive ? '700' : '500' %>; color: <%= isActive ? '#222' : '#999' %>;"><%= step %></div>
+                                            </div>
+                                            <% if (idx < timelineSteps.length - 1) { %>
+                                                <div style="flex: 0.5; height: 2px; background: <%= isPast ? '#c96' : '#eee' %>; margin-top: 14px;"></div>
+                                            <% } %>
+                                        <% }) %>
+                                    </div>
+
+                                    <!-- Status History -->
+                                    <% if (order.statusHistory && order.statusHistory.length > 0) { %>
+                                        <div style="margin-top: 20px; border-top: 1px solid #f0f0f0; padding-top: 16px;">
+                                            <div style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 10px;">Timeline</div>
+                                            <% order.statusHistory.slice().reverse().forEach(sh => { %>
+                                                <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px;">
+                                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #c96; margin-top: 6px; flex-shrink: 0;"></div>
+                                                    <div>
+                                                        <div style="font-size: 13px; font-weight: 600; color: #333;"><%= sh.status %></div>
+                                                        <div style="font-size: 11px; color: #999;"><%= new Date(sh.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></div>
+                                                        <% if (sh.note) { %>
+                                                            <div style="font-size: 12px; color: #777; margin-top: 2px;"><%= sh.note %></div>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            <% }) %>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <!-- Ordered Items -->
+                            <div class="card shadow-sm border-0 mb-3" style="border-radius: 16px; overflow: hidden;">
+                                <div class="card-body p-4">
+                                    <h6 style="font-weight: 700; margin-bottom: 16px; font-size: 1.5rem;">Items Ordered</h6>
+                                    <% order.orderedItems.forEach(item => { %>
+                                        <div class="d-flex align-items-center" style="gap: 14px; padding: 14px; border: 1px solid #f0f0f0; border-radius: 10px; margin-bottom: 10px; background: #fafafa;">
+                                            <div style="width: 70px; height: 70px; border-radius: 10px; overflow: hidden; border: 1px solid #eee; flex-shrink: 0;">
+                                                <% if (item.productImage) { %>
+                                                    <img src="/uploads/productImages/<%= item.productImage %>" alt="<%= item.productName %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <% } else { %>
+                                                    <div style="width: 100%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 24px;">📦</div>
+                                                <% } %>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 14px; font-weight: 600; color: #222; margin-bottom: 3px;"><%= item.productName %></div>
+                                                <div style="font-size: 12px; color: #777;">
+                                                    Size: <strong><%= item.size %></strong>
+                                                    <% if (item.color) { %> · Color: <strong><%= item.color %></strong><% } %>
+                                                    · Qty: <strong><%= item.quantity %></strong>
+                                                </div>
+                                                <div style="font-size: 12px; color: #999; margin-top: 2px;">₹<%= item.price %> × <%= item.quantity %></div>
+                                                <% if (item.itemStatus !== 'Active') { %>
+                                                    <%
+                                                        let itemBadgeColor = '#888';
+                                                        if (item.itemStatus === 'Cancelled') itemBadgeColor = '#c62828';
+                                                        else if (item.itemStatus.includes('Return')) itemBadgeColor = '#e65100';
+                                                        else if (item.itemStatus === 'Returned') itemBadgeColor = '#6a1b9a';
+                                                    %>
+                                                    <span style="display: inline-block; background: <%= itemBadgeColor %>15; color: <%= itemBadgeColor %>; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-top: 4px;"><%= item.itemStatus %></span>
+                                                    <% if (item.cancellationReason) { %>
+                                                        <div style="font-size: 11px; color: #999; margin-top: 2px;">Reason: <%= item.cancellationReason %></div>
+                                                    <% } %>
+                                                    <% if (item.returnReason) { %>
+                                                        <div style="font-size: 11px; color: #999; margin-top: 2px;">Reason: <%= item.returnReason %></div>
+                                                    <% } %>
+                                                <% } %>
+                                            </div>
+                                            <div style="text-align: right; min-width: 100px;">
+                                                <div style="font-size: 15px; font-weight: 700; color: #c96;">₹<%= item.itemTotal %></div>
+                                                <!-- Per-item actions -->
+                                                <% if (item.itemStatus === 'Active' && ['Placed', 'Pending'].includes(order.orderStatus) && order.orderedItems.filter(i => i.itemStatus === 'Active').length > 1) { %>
+                                                    <button class="btn btn-sm mt-1" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', '<%= item.productName %>')" style="background: none; color: #c62828; font-size: 11px; padding: 4px 8px; border: 1px solid #c62828; border-radius: 6px;">Cancel</button>
+                                                <% } %>
+                                                <% if (item.itemStatus === 'Active' && order.orderStatus === 'Delivered' && order.orderedItems.filter(i => i.itemStatus === 'Active').length > 1) { %>
+                                                    <button class="btn btn-sm mt-1" onclick="returnItem('<%= order._id %>', '<%= item._id %>', '<%= item.productName %>')" style="background: none; color: #e65100; font-size: 11px; padding: 4px 8px; border: 1px solid #e65100; border-radius: 6px;">Return</button>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+
+                            <!-- Price Summary & Address -->
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="card shadow-sm border-0 mb-3" style="border-radius: 16px; overflow: hidden;">
+                                        <div class="card-body p-4">
+                                            <h6 style="font-weight: 700; margin-bottom: 16px; font-size: 1.5rem;">Price Breakdown</h6>
+                                            <table style="width: 100%; font-size: 14px;">
+                                                <tr>
+                                                    <td style="padding: 8px 0; color: #666;">Subtotal</td>
+                                                    <td style="padding: 8px 0; text-align: right; font-weight: 600;">₹<%= (order.subtotal + order.discount).toLocaleString() %></td>
+                                                </tr>
+                                                <% if (order.discount > 0) { %>
+                                                <tr>
+                                                    <td style="padding: 8px 0; color: #2e7d32;">Discount</td>
+                                                    <td style="padding: 8px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= order.discount.toLocaleString() %></td>
+                                                </tr>
+                                                <% } %>
+                                                <tr>
+                                                    <td style="padding: 8px 0; color: #666;">Shipping</td>
+                                                    <td style="padding: 8px 0; text-align: right;"><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge %></td>
+                                                </tr>
+                                                <tr style="border-top: 2px solid #c96;">
+                                                    <td style="padding: 14px 0; font-weight: 800; font-size: 16px; color: #222;">Grand Total</td>
+                                                    <td style="padding: 14px 0; text-align: right; font-weight: 800; font-size: 16px; color: #c96;">₹<%= order.finalAmount.toLocaleString() %></td>
+                                                </tr>
+                                            </table>
+                                            <div style="margin-top: 12px; font-size: 13px;">
+                                                <span style="color: #666;">Payment:</span> <strong><%= order.paymentMethod %></strong>
+                                                <span style="margin-left: 10px; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: <%= order.paymentStatus === 'Paid' ? '#e8f5e9' : '#fff3e0' %>; color: <%= order.paymentStatus === 'Paid' ? '#2e7d32' : '#e65100' %>;"><%= order.paymentStatus %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="card shadow-sm border-0 mb-3" style="border-radius: 16px; overflow: hidden;">
+                                        <div class="card-body p-4">
+                                            <h6 style="font-weight: 700; margin-bottom: 16px; font-size: 1.5rem;">Delivery Address</h6>
+                                            <div style="background: #f9f9f9; border-left: 4px solid #c96; border-radius: 8px; padding: 14px 18px;">
+                                                <span style="background: #c96; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;"><%= order.shippingAddress.addressType %></span>
+                                                <div style="font-size: 15px; font-weight: 700; color: #222; margin: 8px 0 4px;"><%= order.shippingAddress.name %></div>
+                                                <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                                                    <%= order.shippingAddress.landMark ? order.shippingAddress.landMark + ', ' : '' %>
+                                                    <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> — <%= order.shippingAddress.pincode %>
+                                                </div>
+                                                <div style="font-size: 13px; color: #777; margin-top: 4px;">📞 <%= order.shippingAddress.phone %></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order Actions -->
+                            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px; overflow: hidden;">
+                                <div class="card-body p-4 d-flex flex-wrap" style="gap: 12px;">
+                                    <a href="/orders" class="btn btn-outline-dark btn-sm" style="border-radius: 8px; padding: 10px 24px; font-size: 13px;">← Back to Orders</a>
+                                    
+                                    <% if (['Placed', 'Pending'].includes(order.orderStatus)) { %>
+                                        <button id="cancelOrderBtn" class="btn btn-sm" onclick="cancelFullOrder('<%= order._id %>')" style="background: #c62828; color: #fff; border-radius: 8px; padding: 10px 24px; font-size: 13px;">
+                                            Cancel Order
+                                        </button>
+                                    <% } %>
+
+                                    <% if (order.orderStatus === 'Delivered') { %>
+                                        <button id="returnOrderBtn" class="btn btn-sm" onclick="returnFullOrder('<%= order._id %>')" style="background: #e65100; color: #fff; border-radius: 8px; padding: 10px 24px; font-size: 13px;">
+                                            Return Order
+                                        </button>
+                                    <% } %>
+
+                                    <% if (order.cancellationReason) { %>
+                                        <div style="width: 100%; background: #ffebee; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #c62828;">
+                                            <strong>Cancellation Reason:</strong> <%= order.cancellationReason %>
+                                        </div>
+                                    <% } %>
+                                    <% if (order.returnReason) { %>
+                                        <div style="width: 100%; background: #fff3e0; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #e65100;">
+                                            <strong>Return Reason:</strong> <%= order.returnReason %>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                        </div><!-- End .col-lg-9 -->
+                    </div><!-- End .row -->
+                </div><!-- End .container -->
+            </div><!-- End .dashboard -->
+        </div><!-- End .page-content -->
+    </main>
+
+    <button id="scroll-top" title="Back to Top"><i class="icon-arrow-up"></i></button>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.hoverIntent.min.js"></script>
+    <script src="/assets/js/jquery.waypoints.min.js"></script>
+    <script src="/assets/js/superfish.min.js"></script>
+    <script src="/assets/js/owl.carousel.min.js"></script>
+    <script src="/assets/js/jquery.magnific-popup.min.js"></script>
+    <script src="/assets/js/main.js"></script>
+
+    <script>
+        // Cancel full order
+        function cancelFullOrder(orderId) {
+            Swal.fire({
+                title: 'Cancel Order?',
+                text: 'Are you sure you want to cancel this entire order?',
+                icon: 'warning',
+                input: 'textarea',
+                inputLabel: 'Reason (optional)',
+                inputPlaceholder: 'Why are you cancelling this order?',
+                showCancelButton: true,
+                confirmButtonColor: '#c62828',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Yes, Cancel Order',
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const res = await fetch(`/orders/${orderId}/cancel`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reason: result.value || '' })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Cancelled!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Something went wrong', 'error');
+                    }
+                }
+            });
+        }
+
+        // Cancel single item
+        function cancelItem(orderId, itemId, itemName) {
+            Swal.fire({
+                title: `Cancel "${itemName}"?`,
+                text: 'This item will be cancelled from your order.',
+                icon: 'warning',
+                input: 'textarea',
+                inputLabel: 'Reason (optional)',
+                inputPlaceholder: 'Why are you cancelling this item?',
+                showCancelButton: true,
+                confirmButtonColor: '#c62828',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Yes, Cancel Item',
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const res = await fetch(`/orders/${orderId}/items/${itemId}/cancel`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reason: result.value || '' })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Cancelled!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Something went wrong', 'error');
+                    }
+                }
+            });
+        }
+
+        // Return full order
+        function returnFullOrder(orderId) {
+            Swal.fire({
+                title: 'Return Order?',
+                text: 'Submit a return request for this entire order.',
+                icon: 'question',
+                input: 'textarea',
+                inputLabel: 'Reason (required)',
+                inputPlaceholder: 'Why do you want to return this order?',
+                inputValidator: (value) => {
+                    if (!value || !value.trim()) return 'Return reason is required!';
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#e65100',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Submit Return Request',
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const res = await fetch(`/orders/${orderId}/return`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reason: result.value })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Submitted!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Something went wrong', 'error');
+                    }
+                }
+            });
+        }
+
+        // Return single item
+        function returnItem(orderId, itemId, itemName) {
+            Swal.fire({
+                title: `Return "${itemName}"?`,
+                text: 'Submit a return request for this item.',
+                icon: 'question',
+                input: 'textarea',
+                inputLabel: 'Reason (required)',
+                inputPlaceholder: 'Why do you want to return this item?',
+                inputValidator: (value) => {
+                    if (!value || !value.trim()) return 'Return reason is required!';
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#e65100',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Submit Return',
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const res = await fetch(`/orders/${orderId}/items/${itemId}/return`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reason: result.value })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Submitted!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Something went wrong', 'error');
+                    }
+                }
+            });
+        }
+    </script>
+
+<%-include("../../views/partials/user/mobileView.ejs")%>
+<%-include("../../views/partials/user/footer.ejs")%>

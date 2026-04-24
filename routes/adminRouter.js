@@ -5,6 +5,7 @@ const adminAuth = require("../middlewares/adminAuth");
 const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
+const adminOrderController = require("../controllers/admin/adminOrderController");
 const { productUpload } = require("../middlewares/multer");
 
 
@@ -44,6 +45,22 @@ router.post("/restoreProduct", adminAuth.isLogin, productController.restoreProdu
 router.post("/blockProduct", adminAuth.isLogin, productController.blockProduct);
 router.post("/unblockProduct", adminAuth.isLogin, productController.unblockProduct);
 router.post("/deleteProductImage", adminAuth.isLogin, productController.deleteProductImage);
+
+// Order Management
+router.get("/orders", adminAuth.isLogin, adminOrderController.loadOrders);
+router.get("/orders/:orderId", adminAuth.isLogin, adminOrderController.loadOrderDetail);
+router.post("/orders/:orderId/status", adminAuth.isLogin, adminOrderController.updateOrderStatus);
+
+// Return Management
+router.get("/return-requests", adminAuth.isLogin, adminOrderController.loadReturnRequests);
+router.post("/returns/:orderId/approve", adminAuth.isLogin, adminOrderController.approveReturn);
+router.post("/returns/:orderId/reject", adminAuth.isLogin, adminOrderController.rejectReturn);
+router.post("/returns/:orderId/items/:itemId/approve", adminAuth.isLogin, adminOrderController.approveItemReturn);
+router.post("/returns/:orderId/items/:itemId/reject", adminAuth.isLogin, adminOrderController.rejectItemReturn);
+
+// Inventory / Stock Management
+router.get("/inventory", adminAuth.isLogin, adminOrderController.loadInventory);
+router.post("/inventory/update-stock", adminAuth.isLogin, adminOrderController.updateStock);
 
 
 module.exports = router;

@@ -1,0 +1,313 @@
+<%- include("./partials/adminHeader") %>
+<%- include("./partials/adminSidebar") %>
+
+<div class="admin-main flex-1 overflow-x-hidden overflow-y-auto">
+  <%- include("./partials/adminTopbar") %>
+  <main class="px-8 pb-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Inventory Management</h2>
+        <p class="text-sm text-gray-500 mt-1">Monitor and manage stock levels across all product variants.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold"><%= totalProducts %> Products</span>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" action="/admin/inventory" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+      <div class="flex gap-4 items-end flex-wrap">
+        <div class="flex-1 min-w-[250px]">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Search Product</label>
+          <div class="relative">
+            <input type="text" name="search" value="<%= search %>" placeholder="Search by name or SKU..." class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <% if (search) { %>
+              <a href="/admin/inventory" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+              </a>
+            <% } %>
+          </div>
+        </div>
+        <div class="min-w-[180px]">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Stock Level</label>
+          <select name="stockFilter" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <option value="">All Levels</option>
+            <option value="lowStock" <%= stockFilter === 'lowStock' ? 'selected' : '' %>>Low Stock (≤5)</option>
+            <option value="outOfStock" <%= stockFilter === 'outOfStock' ? 'selected' : '' %>>Out of Stock (0)</option>
+          </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800">
+          <i class="fa-solid fa-search mr-1"></i> Filter
+        </button>
+        <a href="/admin/inventory" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">Clear</a>
+      </div>
+    </form>
+
+    <!-- Products Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <% if (products && products.length > 0) { %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50/50 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
+                <th class="px-6 py-4 text-left w-16">#</th>
+                <th class="px-6 py-4 text-left">Product</th>
+                <th class="px-6 py-4 text-left">Category</th>
+                <th class="px-4 py-4 text-center">Variants</th>
+                <th class="px-4 py-4 text-center">Total Stock</th>
+                <th class="px-6 py-4 text-center">Status</th>
+                <th class="px-6 py-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <% products.forEach((product, idx) => { %>
+                <% 
+                  let totalStock = 0;
+                  let lowStockCount = 0;
+                  let outOfStockCount = 0;
+                  product.variants.forEach(v => {
+                    totalStock += v.stock;
+                    if (v.stock === 0) outOfStockCount++;
+                    else if (v.stock <= 5) lowStockCount++;
+                  });
+
+                  let statusBadge = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                  let statusText = 'In Stock';
+                  if (outOfStockCount > 0 && outOfStockCount === product.variants.length) {
+                    statusBadge = 'bg-rose-50 text-rose-600 border-rose-100';
+                    statusText = 'Out of Stock';
+                  } else if (outOfStockCount > 0 || lowStockCount > 0) {
+                    statusBadge = 'bg-amber-50 text-amber-600 border-amber-100';
+                    statusText = lowStockCount + outOfStockCount + ' Low/Out';
+                  }
+                %>
+                <tr class="hover:bg-gray-50/50 transition-colors group cursor-pointer" onclick="toggleVariants('<%= product._id %>')">
+                  <td class="px-6 py-3 text-gray-400 font-medium"><%= (currentPage - 1) * 15 + idx + 1 %></td>
+                  <td class="px-6 py-3">
+                    <div class="flex items-center gap-4">
+                      <div class="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-50">
+                        <% if (product.productImage && product.productImage[0]) { %>
+                          <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="w-full h-full object-cover">
+                        <% } else { %>
+                          <div class="w-full h-full flex items-center justify-center text-gray-300"><i class="fa-solid fa-image"></i></div>
+                        <% } %>
+                      </div>
+                      <div class="font-medium text-gray-900 group-hover:text-orange-500 transition-colors"><%= product.productName %></div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-3">
+                    <span class="px-2.5 py-0.5 bg-gray-50 text-gray-600 rounded-lg text-[11px] font-medium border border-gray-100 uppercase tracking-tight">
+                      <%= product.category ? product.category.name : 'Uncategorized' %>
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <span class="font-medium text-gray-700"><%= product.variants.length %></span>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <div class="font-medium text-gray-900 text-sm"><%= totalStock %></div>
+                  </td>
+                  <td class="px-6 py-3 text-center">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border <%= statusBadge %>">
+                      <%= statusText %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-3 text-right">
+                    <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition-all flex items-center justify-center ml-auto border border-transparent hover:border-orange-100" title="View Variants">
+                      <i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="icon-<%= product._id %>"></i>
+                    </button>
+                  </td>
+                </tr>
+                
+                <!-- Expanded Variants Row -->
+                <tr id="variants-<%= product._id %>" class="hidden bg-gray-50/30">
+                  <td colspan="7" class="px-6 py-0">
+                    <div class="py-4 px-8 border-l-4 border-orange-500 bg-white shadow-inner my-1 rounded-xl">
+                      <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Stock Control</h4>
+                        <span class="text-[10px] text-gray-400 font-medium italic">Adjust and click tick to save</span>
+                      </div>
+                      
+                      <!-- Group by color -->
+                      <% 
+                        const colors = [...new Set(product.variants.map(v => v.color))];
+                      %>
+                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <% colors.forEach(color => { %>
+                          <div class="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
+                            <div class="flex items-center gap-2 mb-3 pb-1.5 border-b border-gray-200/50">
+                              <div class="w-2.5 h-2.5 rounded-full shadow-sm" style="background-color: <%= color.toLowerCase() %>; border: 1px solid #ddd;"></div>
+                              <span class="text-xs font-bold text-gray-700 uppercase tracking-wider"><%= color %></span>
+                            </div>
+                            <div class="space-y-2">
+                              <% product.variants.filter(v => v.color === color).forEach(v => { %>
+                                <div class="flex items-center justify-between group/v">
+                                  <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded bg-white border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500"><%= v.size %></span>
+                                    <span class="text-[10px] font-mono text-gray-300"><%= v.sku %></span>
+                                  </div>
+                                  <div class="flex items-center gap-1.5">
+                                    <div class="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                                      <button onclick="stepStock('<%= product._id %>-<%= v._id %>', -1)" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-orange-500 transition-colors">
+                                        <i class="fa-solid fa-minus text-[10px]"></i>
+                                      </button>
+                                      <input type="number" 
+                                             id="stock-<%= product._id %>-<%= v._id %>" 
+                                             value="<%= v.stock %>" 
+                                             min="0"
+                                             class="w-10 h-7 text-center text-xs font-medium text-gray-700 focus:outline-none border-x border-gray-100">
+                                      <button onclick="stepStock('<%= product._id %>-<%= v._id %>', 1)" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:bg-gray-50 hover:text-orange-500 transition-colors">
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                      </button>
+                                    </div>
+                                    <button onclick="updateStock('<%= product._id %>', '<%= v._id %>')" class="w-7 h-7 rounded-lg bg-gray-900 text-white hover:bg-emerald-500 transition-all flex items-center justify-center shadow-sm" title="Confirm Update">
+                                      <i class="fa-solid fa-check text-[10px]"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              <% }) %>
+                            </div>
+                          </div>
+                        <% }) %>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <% if (totalPages > 1) { %>
+          <div class="flex justify-center items-center gap-3 p-6 border-t border-gray-100">
+            <% if (currentPage > 1) { %>
+              <a href="/admin/inventory?page=<%= currentPage - 1 %>&search=<%= search %>&stockFilter=<%= stockFilter %>" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all border border-gray-200">
+                <i class="fa-solid fa-chevron-left"></i>
+              </a>
+            <% } %>
+            
+            <div class="flex items-center gap-1.5">
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <a href="/admin/inventory?page=<%= i %>&search=<%= search %>&stockFilter=<%= stockFilter %>" 
+                   class="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all border <%= i === currentPage ? 'bg-gray-900 text-white border-gray-900 shadow-lg shadow-gray-900/20' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50' %>">
+                  <%= i %>
+                </a>
+              <% } %>
+            </div>
+
+            <% if (currentPage < totalPages) { %>
+              <a href="/admin/inventory?page=<%= currentPage + 1 %>&search=<%= search %>&stockFilter=<%= stockFilter %>" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all border border-gray-200">
+                <i class="fa-solid fa-chevron-right"></i>
+              </a>
+            <% } %>
+          </div>
+        <% } %>
+      <% } else { %>
+        <div class="text-center py-24">
+          <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-100">
+            <i class="fa-solid fa-box-open text-4xl text-gray-200"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Inventory is Empty</h3>
+          <p class="text-gray-400 max-w-xs mx-auto text-sm leading-relaxed">
+            No products match your search or filter criteria. Try adjusting your search term.
+          </p>
+          <a href="/admin/inventory" class="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-all">
+            View All Stock
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function toggleVariants(productId) {
+    const row = document.getElementById(`variants-${productId}`);
+    const icon = document.getElementById(`icon-${productId}`);
+    
+    if (row.classList.contains('hidden')) {
+      row.classList.remove('hidden');
+      icon.style.transform = 'rotate(180deg)';
+      icon.classList.add('text-orange-500');
+    } else {
+      row.classList.add('hidden');
+      icon.style.transform = '';
+      icon.classList.remove('text-orange-500');
+    }
+  }
+
+  function stepStock(id, step) {
+    const input = document.getElementById(`stock-${id}`);
+    const newVal = parseInt(input.value) + step;
+    if (newVal >= 0) {
+      input.value = newVal;
+    }
+  }
+
+  async function updateStock(productId, variantId) {
+    const input = document.getElementById(`stock-${productId}-${variantId}`);
+    const newStock = parseInt(input.value);
+
+    if (isNaN(newStock) || newStock < 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Please enter a valid stock value (0 or above)',
+        background: '#fff',
+        confirmButtonColor: '#111827'
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch('/admin/inventory/update-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, variantId, newStock })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Visual feedback for input
+        input.style.borderColor = '#10b981';
+        setTimeout(() => { input.style.borderColor = ''; }, 2000);
+        
+        // Show subtle toast instead of big alert
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+          customClass: {
+            title: 'text-xs font-bold',
+            popup: 'rounded-xl p-2'
+          },
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+          }
+        });
+
+        Toast.fire({
+          icon: 'success',
+          title: 'Stock level updated'
+        });
+      } else {
+        Swal.fire('Error', data.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Something went wrong', 'error');
+    }
+  }
+</script>
+
+<style>
+  input[type=number]::-webkit-inner-spin-button, 
+  input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+  }
+</style>
+
+<%- include("./partials/adminFooter") %>

@@ -4,6 +4,7 @@ const userController = require("../controllers/user/userController");
 const profileController = require("../controllers/user/profileController");
 const cartController = require("../controllers/user/cartController");
 const checkoutController = require("../controllers/user/checkoutController");
+const orderController = require("../controllers/user/orderController");
 const wishlistController = require("../controllers/user/wishlistController");
 const passport = require("passport");
 const userAuth = require("../middlewares/userAuth");
@@ -55,14 +56,19 @@ router.post("/cart/add", userAuth.checkSession, cartController.addToCart);
 router.patch("/cart/update-quantity", userAuth.checkSession, cartController.updateQuantity);
 router.delete("/cart/remove", userAuth.checkSession, cartController.removeFromCart);
 
-// Checkout & Orders
+// Checkout
 router.get("/checkout", userAuth.checkSession, checkoutController.loadCheckout);
 router.post("/checkout/place-order", userAuth.checkSession, checkoutController.placeOrder);
 router.get("/order-success/:orderId", userAuth.checkSession, checkoutController.orderSuccess);
-router.get("/download-invoice/:orderId", userAuth.checkSession, checkoutController.downloadInvoice);
 
-// Development Only: Preview Invoice with dummy data
-router.get("/dev/invoice-preview", checkoutController.devInvoicePreview);
+// Dynamic Order Management
+router.get("/orders", userAuth.checkSession, orderController.loadOrders);
+router.get("/orders/:orderId", userAuth.checkSession, orderController.loadOrderDetail);
+router.post("/orders/:orderId/cancel", userAuth.checkSession, orderController.cancelOrder);
+router.post("/orders/:orderId/items/:itemId/cancel", userAuth.checkSession, orderController.cancelOrderItem);
+router.post("/orders/:orderId/return", userAuth.checkSession, orderController.requestReturn);
+router.post("/orders/:orderId/items/:itemId/return", userAuth.checkSession, orderController.requestItemReturn);
+router.get("/orders/:orderId/invoice", userAuth.checkSession, orderController.downloadInvoice);
 
 // Wishlist Management
 router.get("/wishlist", userAuth.checkSession, wishlistController.loadWishlist);

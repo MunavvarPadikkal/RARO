@@ -39,7 +39,8 @@
                             <div class="order-meta-item">
                                 <span class="meta-label">Order ID</span>
                                 <span class="meta-value order-id-value" title="<%= order.orderId %>">
-                                    #<%= order.orderId.substring(0, 8).toUpperCase() %>...
+                                    #<%= order.orderId %>
+                                </span>
                                 </span>
                             </div>
                             <div class="order-meta-item">
@@ -130,7 +131,6 @@
                         </div>
 
                         <!-- ── Action Buttons ── -->
-                        <div class="success-actions">
                             <a href="/orders" class="btn btn-outline-primary-2">
                                 <i class="icon-list"></i> View My Orders
                             </a>
@@ -566,7 +566,7 @@
         
         const options = {
             margin:       0,
-            filename:     'Invoice_<%= order.orderId.substring(0,8).toUpperCase() %>.pdf',
+            filename:     'Invoice_<%= order.invoiceNumber || order.orderId %>.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }

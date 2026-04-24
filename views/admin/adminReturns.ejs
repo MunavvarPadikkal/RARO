@@ -1,0 +1,212 @@
+<%- include("./partials/adminHeader") %>
+<%- include("./partials/adminSidebar") %>
+
+<div class="admin-main flex-1 overflow-x-hidden overflow-y-auto">
+  <%- include("./partials/adminTopbar") %>
+  <main class="px-8 pb-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">Return Requests</h2>
+      <span class="text-sm text-gray-500"><%= totalOrders %> return request(s)</span>
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" action="/admin/return-requests" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+      <div class="flex gap-4 items-end flex-wrap">
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+          <div class="relative">
+            <input type="text" name="search" value="<%= search %>" placeholder="Order ID or customer name..." class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <% if (search) { %>
+              <a href="/admin/return-requests" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+              </a>
+            <% } %>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+          <select name="returnStatus" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <option value="">All</option>
+            <option value="Return Requested" <%= returnStatus === 'Return Requested' ? 'selected' : '' %>>Pending</option>
+            <option value="Return Approved" <%= returnStatus === 'Return Approved' ? 'selected' : '' %>>Approved</option>
+            <option value="Return Rejected" <%= returnStatus === 'Return Rejected' ? 'selected' : '' %>>Rejected</option>
+            <option value="Returned" <%= returnStatus === 'Returned' ? 'selected' : '' %>>Returned</option>
+          </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800">
+          <i class="fa-solid fa-search mr-1"></i> Filter
+        </button>
+        <a href="/admin/return-requests" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">Clear</a>
+      </div>
+    </form>
+
+    <!-- Return Requests Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <% if (orders && orders.length > 0) { %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                <th class="px-4 py-3 text-left">#</th>
+                <th class="px-4 py-3 text-left">Order ID</th>
+                <th class="px-4 py-3 text-left">Customer</th>
+                <th class="px-4 py-3 text-left">Reason</th>
+                <th class="px-4 py-3 text-left">Date</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <% orders.forEach((order, idx) => { %>
+                <%
+                  let retBadge = 'bg-yellow-100 text-yellow-700';
+                  if (order.orderStatus === 'Return Approved') retBadge = 'bg-green-100 text-green-700';
+                  else if (order.orderStatus === 'Return Rejected') retBadge = 'bg-red-100 text-red-700';
+                  else if (order.orderStatus === 'Returned') retBadge = 'bg-purple-100 text-purple-700';
+                %>
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-4 py-3 text-gray-500"><%= (currentPage - 1) * 10 + idx + 1 %></td>
+                  <td class="px-4 py-3 font-mono font-semibold text-orange-600 text-xs">
+                    <a href="/admin/orders/<%= order._id %>" class="hover:underline"><%= order.orderId %></a>
+                  </td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium text-gray-900"><%= order.userId ? order.userId.name : 'N/A' %></div>
+                    <div class="text-xs text-gray-400"><%= order.userId ? order.userId.email : '' %></div>
+                  </td>
+                  <td class="px-4 py-3 text-gray-600 max-w-[200px] truncate" title="<%= order.returnReason || '' %>">
+                    <%= order.returnReason || 'N/A' %>
+                  </td>
+                  <td class="px-4 py-3 text-gray-600 text-xs"><%= new Date(order.updatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                  <td class="px-4 py-3 text-center">
+                    <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold <%= retBadge %>"><%= order.orderStatus %></span>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <div class="flex gap-2 justify-center">
+                      <% if (order.orderStatus === 'Return Requested') { %>
+                        <button onclick="approveReturn('<%= order._id %>')" class="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-medium hover:bg-green-600 transition-colors" title="Approve">
+                          <i class="fa-solid fa-check"></i> Approve
+                        </button>
+                        <button onclick="rejectReturn('<%= order._id %>')" class="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-colors" title="Reject">
+                          <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                      <% } else { %>
+                        <a href="/admin/orders/<%= order._id %>" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors">View</a>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Per-item return details (expandable) -->
+                <% const returnItems = order.orderedItems.filter(i => ['Return Requested', 'Return Approved', 'Return Rejected', 'Returned'].includes(i.itemStatus)); %>
+                <% if (returnItems.length > 0) { %>
+                  <tr>
+                    <td colspan="7" class="px-8 py-2 bg-gray-50">
+                      <div class="text-xs text-gray-500 mb-2 font-semibold">Item-level returns:</div>
+                      <% returnItems.forEach(item => { %>
+                        <%
+                          let iBadge = 'bg-yellow-100 text-yellow-700';
+                          if (item.itemStatus === 'Return Approved') iBadge = 'bg-green-100 text-green-700';
+                          else if (item.itemStatus === 'Return Rejected') iBadge = 'bg-red-100 text-red-700';
+                        %>
+                        <div class="flex items-center gap-3 mb-2 text-xs">
+                          <span class="font-medium text-gray-700"><%= item.productName %></span>
+                          <span class="text-gray-400">(<%= item.size %><%= item.color ? ', ' + item.color : '' %>)</span>
+                          <span class="px-2 py-0.5 rounded-full font-semibold <%= iBadge %>"><%= item.itemStatus %></span>
+                          <span class="text-gray-400 truncate max-w-[150px]" title="<%= item.returnReason || '' %>"><%= item.returnReason || '' %></span>
+                          <% if (item.itemStatus === 'Return Requested') { %>
+                            <button onclick="approveItemReturn('<%= order._id %>', '<%= item._id %>')" class="px-2 py-0.5 bg-green-500 text-white rounded text-xs hover:bg-green-600">✓</button>
+                            <button onclick="rejectItemReturn('<%= order._id %>', '<%= item._id %>')" class="px-2 py-0.5 bg-red-500 text-white rounded text-xs hover:bg-red-600">✗</button>
+                          <% } %>
+                        </div>
+                      <% }) %>
+                    </td>
+                  </tr>
+                <% } %>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <% if (totalPages > 1) { %>
+          <div class="flex justify-center items-center gap-2 p-4 border-t border-gray-100">
+            <% if (currentPage > 1) { %>
+              <a href="/admin/return-requests?page=<%= currentPage - 1 %>&search=<%= search %>&returnStatus=<%= returnStatus %>" class="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-600 hover:bg-gray-200">‹ Prev</a>
+            <% } %>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <a href="/admin/return-requests?page=<%= i %>&search=<%= search %>&returnStatus=<%= returnStatus %>" class="px-3 py-1.5 rounded-lg text-sm font-medium <%= i === currentPage ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' %>"><%= i %></a>
+            <% } %>
+            <% if (currentPage < totalPages) { %>
+              <a href="/admin/return-requests?page=<%= currentPage + 1 %>&search=<%= search %>&returnStatus=<%= returnStatus %>" class="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-600 hover:bg-gray-200">Next ›</a>
+            <% } %>
+          </div>
+        <% } %>
+      <% } else { %>
+        <div class="text-center py-16">
+          <i class="fa-solid fa-rotate-left text-5xl text-gray-300 mb-4"></i>
+          <h3 class="text-lg font-semibold text-gray-500 mb-2">No return requests</h3>
+          <p class="text-sm text-gray-400">
+            <% if (search || returnStatus) { %>
+              Try adjusting your filters or <a href="/admin/return-requests" class="text-orange-500 underline">clear all filters</a>
+            <% } else { %>
+              No return requests have been submitted yet.
+            <% } %>
+          </p>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  async function approveReturn(orderId) {
+    const result = await Swal.fire({ title: 'Approve Return?', text: 'Stock will be restored.', icon: 'question', showCancelButton: true, confirmButtonColor: '#22c55e', confirmButtonText: 'Approve', reverseButtons: true });
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/admin/returns/${orderId}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) Swal.fire('Approved!', data.message, 'success').then(() => location.reload());
+        else Swal.fire('Error', data.message, 'error');
+      } catch (err) { Swal.fire('Error', 'Something went wrong', 'error'); }
+    }
+  }
+
+  async function rejectReturn(orderId) {
+    const result = await Swal.fire({ title: 'Reject Return?', text: 'The return request will be rejected.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Reject', reverseButtons: true });
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/admin/returns/${orderId}/reject`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) Swal.fire('Rejected', data.message, 'success').then(() => location.reload());
+        else Swal.fire('Error', data.message, 'error');
+      } catch (err) { Swal.fire('Error', 'Something went wrong', 'error'); }
+    }
+  }
+
+  async function approveItemReturn(orderId, itemId) {
+    const result = await Swal.fire({ title: 'Approve Item Return?', icon: 'question', showCancelButton: true, confirmButtonColor: '#22c55e', confirmButtonText: 'Approve', reverseButtons: true });
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/admin/returns/${orderId}/items/${itemId}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) Swal.fire('Approved!', data.message, 'success').then(() => location.reload());
+        else Swal.fire('Error', data.message, 'error');
+      } catch (err) { Swal.fire('Error', 'Something went wrong', 'error'); }
+    }
+  }
+
+  async function rejectItemReturn(orderId, itemId) {
+    const result = await Swal.fire({ title: 'Reject Item Return?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Reject', reverseButtons: true });
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/admin/returns/${orderId}/items/${itemId}/reject`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) Swal.fire('Rejected', data.message, 'success').then(() => location.reload());
+        else Swal.fire('Error', data.message, 'error');
+      } catch (err) { Swal.fire('Error', 'Something went wrong', 'error'); }
+    }
+  }
+</script>
+
+<%- include("./partials/adminFooter") %>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #INV-<%= order.orderId.substring(0, 8).toUpperCase() %></title>
+    <title>Invoice #<%= order.invoiceNumber || 'INV-DRAFT' %></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
@@ -148,13 +148,13 @@
             align-items: flex-start;
         }
         .invoice-text-logo {
-    font-size: 33px;
-    font-weight: 733;
-    color: #222;
-    letter-spacing: -1.5px;
-    line-height: 1;
-    margin-bottom: 1px;
-    text-transform: uppercase;
+        font-size: 33px;
+        font-weight: 733;
+        color: #222;
+        letter-spacing: -1.5px;
+        line-height: 1;
+        margin-bottom: 1px;
+        text-transform: uppercase;
         }
         .tagline {
             margin: 0;
@@ -177,7 +177,7 @@
 
     <div class="preview-actions">
         <div class="container flex-between">
-            <a href="/order-success/<%= order._id %>" class="btn btn-back">
+            <a href="/orders/<%= order._id %>" class="btn btn-back">
                 &lsaquo; Back to Order
             </a>
             <button onclick="window.print()" class="btn btn-print">
@@ -196,7 +196,7 @@
                 </div>
                 <div style="text-align: right;">
                     <div class="pdf-title" style="color: #c96; font-size: 32px; font-weight: 800; letter-spacing: 1px;">INVOICE</div>
-                    <p style="margin: 5px 0 2px 0; font-weight: 700; color: #000; font-size: 16px;">#INV-<%= order.orderId ? order.orderId.toUpperCase() : 'DEV-MOCK-FULL' %></p>
+                    <p style="margin: 5px 0 2px 0; font-weight: 700; color: #000; font-size: 16px;">#<%= order.invoiceNumber || 'INV-DRAFT' %></p>
                     <p style="margin: 0; color: #888; font-size: 14px; font-weight: 400;"><%= order.createdOn ? new Date(order.createdOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '23 April 2026' %></p>
                 </div>
             </div>

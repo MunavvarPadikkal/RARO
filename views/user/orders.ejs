@@ -20,63 +20,150 @@
             <div class="dashboard">
                 <div class="container">
                     <div class="row">
-                        <% var activeTab = 'orders'; %>
-                        <%- include("../../views/partials/user/profileSidebar.ejs", { activeTab: activeTab }) %>
+                        <%- include("../../views/partials/user/profileSidebar.ejs", { activeTab: "orders" }) %>
                         
                         <div class="col-md-8 col-lg-9">
                             <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px; overflow: hidden; background: #ffffff;">
                                 <div class="card-body p-4">
-                                    <h5 style="font-weight: 600; color: #333; margin-bottom: 20px;">Order History</h5>
+                                    <h5 style="font-weight: 700; color: #222; margin-bottom: 20px; font-size: 1.8rem;">Order History</h5>
                                     
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead class="thead-light">
-                                                <tr>
-                                                    <th>Order ID</th>
-                                                    <th>Date</th>
-                                                    <th>Status</th>
-                                                    <th>Total</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <% if (orders && orders.length > 0) { %>
-                                                    <% orders.forEach(order => { %>
-                                                        <tr>
-                                                            <td style="font-weight: 600;">#<%= order.orderId %></td>
-                                                            <td><%= new Date(order.createdOn).toLocaleDateString() %></td>
-                                                            <td>
-                                                                <span class="badge badge-<%= 
-                                                                    order.status === 'Cancelled' ? 'danger' : 
-                                                                    order.status === 'Delivered' ? 'success' : 
-                                                                    order.status === 'Processing' ? 'info' : 'warning' 
-                                                                %>" style="padding: 6px 12px; border-radius: 20px; font-weight: 500;">
-                                                                    <%= order.status %>
-                                                                </span>
-                                                            </td>
-                                                            <td style="font-weight: 600;">₹<%= order.finalAmount.toLocaleString() %></td>
-                                                            <td>
-                                                                <div class="d-flex gap-2">
-                                                                    <a href="/order-details/<%= order._id %>" class="btn btn-outline-dark btn-sm" style="border-radius: 6px;">View</a>
-                                                                    <a href="/download-invoice/<%= order._id %>" target="_blank" class="btn btn-outline-success btn-sm" style="border-radius: 6px;">
-                                                                        <i class="icon-download"></i> Invoice
-                                                                    </a>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    <% }) %>
+                                    <!-- Search & Filters -->
+                                    <form id="orderFilterForm" method="GET" action="/orders" class="mb-4">
+                                        <div class="row" style="gap: 10px 0;">
+                                            <div class="col-md-4 mb-2">
+                                                <div style="position: relative;">
+                                                    <input type="text" name="search" class="form-control" placeholder="Search by Order ID or Product..." value="<%= search %>" style="border-radius: 8px; border: 1px solid #ddd; padding: 10px 35px 10px 14px; font-size: 13px;">
+                                                    <% if (search) { %>
+                                                        <a href="/orders" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; cursor: pointer;" title="Clear Search">
+                                                            <i class="icon-close"></i>
+                                                        </a>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-2">
+                                                <div style="position: relative;">
+                                                    <select name="status" class="form-control" style="border-radius: 8px; border: 1px solid #ddd; padding: 10px 30px 10px 14px; font-size: 13px; appearance: none; -webkit-appearance: none; background-color: #fff;">
+                                                        <option value="">All Statuses</option>
+                                                        <% const statuses = ["Placed","Pending","Shipped","Out for Delivery","Delivered","Cancelled","Return Requested","Return Approved","Return Rejected","Returned"]; %>
+                                                        <% statuses.forEach(s => { %>
+                                                            <option value="<%= s %>" <%= status === s ? 'selected' : '' %>><%= s %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                    <i class="icon-angle-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #999; font-size: 12px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 mb-2">
+                                                <input type="date" name="dateFrom" class="form-control" value="<%= dateFrom %>" style="border-radius: 8px; border: 1px solid #ddd; padding: 10px 14px; font-size: 13px;" title="From Date">
+                                            </div>
+                                            <div class="col-md-2 mb-2">
+                                                <input type="date" name="dateTo" class="form-control" value="<%= dateTo %>" style="border-radius: 8px; border: 1px solid #ddd; padding: 10px 14px; font-size: 13px;" title="To Date">
+                                            </div>
+                                            <div class="col-md-1 mb-2 d-flex" style="gap: 6px;">
+                                                <button type="submit" class="btn btn-dark btn-sm" style="border-radius: 8px; font-size: 17px;">
+                                                    <i class="icon-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <% if (search || status || dateFrom || dateTo) { %>
+                                            <div class="mt-2">
+                                                <a href="/orders" style="font-size: 12px; color: #c96; text-decoration: underline;">Clear all filters</a>
+                                                <span style="font-size: 12px; color: #999; margin-left: 10px;"><%= totalOrders %> order(s) found</span>
+                                            </div>
+                                        <% } %>
+                                    </form>
+
+                                    <!-- Orders List -->
+                                    <% if (orders && orders.length > 0) { %>
+                                        <div class="orders-list">
+                                            <% orders.forEach(order => { %>
+                                                <div class="order-card" style="border: 1px solid #f0f0f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #fafafa; transition: all 0.2s;">
+                                                    <div class="d-flex justify-content-between align-items-start flex-wrap" style="gap: 12px;">
+                                                        <div>
+                                                            <div style="font-size: 14px; font-weight: 700; color: #c96; font-family: monospace; margin-bottom: 4px;">
+                                                                #<%= order.orderId %>
+                                                            </div>
+                                                            <div style="font-size: 12px; color: #888; margin-bottom: 8px;">
+                                                                Placed on <%= new Date(order.createdOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                                                            </div>
+                                                            <div style="font-size: 13px; color: #555;">
+                                                                <span style="font-weight: 600;"><%= order.orderedItems.length %></span> item(s) · 
+                                                                <span style="font-weight: 600;"><%= order.paymentMethod %></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-right" style="text-align: right;">
+                                                            <%
+                                                                let badgeColor = '#888';
+                                                                if (order.orderStatus === 'Delivered') badgeColor = '#2e7d32';
+                                                                else if (order.orderStatus === 'Cancelled') badgeColor = '#c62828';
+                                                                else if (order.orderStatus === 'Shipped' || order.orderStatus === 'Out for Delivery') badgeColor = '#1565c0';
+                                                                else if (order.orderStatus === 'Pending') badgeColor = '#f57c00';
+                                                                else if (order.orderStatus === 'Placed') badgeColor = '#6a1b9a';
+                                                                else if (order.orderStatus.includes('Return')) badgeColor = '#e65100';
+                                                            %>
+                                                            <span style="display: inline-block; background: <%= badgeColor %>15; color: <%= badgeColor %>; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 8px;">
+                                                                <%= order.orderStatus %>
+                                                            </span>
+                                                            <div style="font-size: 18px; font-weight: 800; color: #222;">₹<%= order.finalAmount.toLocaleString() %></div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Item Thumbnails -->
+                                                    <div class="d-flex mt-3" style="gap: 8px; flex-wrap: wrap; align-items: center;">
+                                                        <% order.orderedItems.slice(0, 3).forEach(item => { %>
+                                                            <div style="width: 44px; height: 44px; border-radius: 8px; overflow: hidden; border: 1px solid #eee; flex-shrink: 0;">
+                                                                <% if (item.productImage) { %>
+                                                                    <img src="/uploads/productImages/<%= item.productImage %>" alt="<%= item.productName %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                                                <% } else { %>
+                                                                    <div style="width: 100%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 16px;">📦</div>
+                                                                <% } %>
+                                                            </div>
+                                                        <% }) %>
+                                                        <% if (order.orderedItems.length > 3) { %>
+                                                            <div style="font-size: 12px; color: #999;">+<%= order.orderedItems.length - 3 %> more</div>
+                                                        <% } %>
+                                                        <div style="flex: 1;"></div>
+                                                        <a href="/orders/<%= order._id %>" class="btn btn-outline-dark btn-sm" style="border-radius: 8px; font-size: 12px; padding: 6px 18px;">View Details</a>
+                                                    </div>
+                                                </div>
+                                            <% }) %>
+                                        </div>
+
+                                        <!-- Pagination -->
+                                        <% if (totalPages > 1) { %>
+                                            <nav class="mt-4">
+                                                <ul class="pagination justify-content-center" style="gap: 4px;">
+                                                    <% if (currentPage > 1) { %>
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="/orders?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>" style="border-radius: 8px; font-size: 13px;">‹ Prev</a>
+                                                        </li>
+                                                    <% } %>
+                                                    <% for (let i = 1; i <= totalPages; i++) { %>
+                                                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                                            <a class="page-link" href="/orders?page=<%= i %>&search=<%= search %>&status=<%= status %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>" style="border-radius: 8px; font-size: 13px; <%= i === currentPage ? 'background: #c96; border-color: #c96;' : '' %>"><%= i %></a>
+                                                        </li>
+                                                    <% } %>
+                                                    <% if (currentPage < totalPages) { %>
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="/orders?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>" style="border-radius: 8px; font-size: 13px;">Next ›</a>
+                                                        </li>
+                                                    <% } %>
+                                                </ul>
+                                            </nav>
+                                        <% } %>
+
+                                    <% } else { %>
+                                        <div class="text-center py-5">
+                                            <div style="font-size: 60px; margin-bottom: 16px;">📦</div>
+                                            <h5 style="color: #555; font-weight: 600; margin-bottom: 8px;">No orders found</h5>
+                                            <p style="color: #999; font-size: 14px; margin-bottom: 20px;">
+                                                <% if (search || status || dateFrom || dateTo) { %>
+                                                    Try adjusting your filters or <a href="/orders" style="color: #c96;">clear all filters</a>
                                                 <% } else { %>
-                                                    <tr>
-                                                        <td colspan="5" class="text-center py-5">
-                                                            <div style="font-size: 50px; margin-bottom: 10px;">📦</div>
-                                                            <h5 style="color: #666;">No orders found yet.</h5>
-                                                            <a href="/shop" class="btn btn-dark mt-3" style="border-radius: 8px;">Go Shopping</a>
-                                                        </td>
-                                                    </tr>
+                                                    You haven't placed any orders yet
                                                 <% } %>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                            </p>
+                                            <a href="/shop" class="btn btn-dark" style="border-radius: 8px; padding: 10px 30px;">Start Shopping</a>
+                                        </div>
+                                    <% } %>
                                 </div>
                             </div>
                         </div><!-- End .col-lg-9 -->
@@ -90,15 +177,14 @@
         <i class="icon-arrow-up"></i>
     </button>
 
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/jquery.hoverIntent.min.js"></script>
-    <script src="assets/js/jquery.waypoints.min.js"></script>
-    <script src="assets/js/superfish.min.js"></script>
-    <script src="assets/js/owl.carousel.min.js"></script>
-    <script src="assets/js/jquery.magnific-popup.min.js"></script>
-    <!-- Main JS File -->
-    <script src="assets/js/main.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/jquery.hoverIntent.min.js"></script>
+    <script src="/assets/js/jquery.waypoints.min.js"></script>
+    <script src="/assets/js/superfish.min.js"></script>
+    <script src="/assets/js/owl.carousel.min.js"></script>
+    <script src="/assets/js/jquery.magnific-popup.min.js"></script>
+    <script src="/assets/js/main.js"></script>
 
 <%-include("../../views/partials/user/mobileView.ejs")%>
-<%-include("../../views/partials/user/footer.ejs")%>
+<%-include("../../views/partials/user/footer.ejs")%>
