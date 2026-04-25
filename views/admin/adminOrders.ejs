@@ -5,8 +5,13 @@
   <%- include("./partials/adminTopbar") %>
   <main class="px-8 pb-8">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Order Management</h2>
-      <span class="text-sm text-gray-500"><%= totalOrders %> total orders</span>
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Order Management</h2>
+        <p class="text-sm text-gray-500 mt-1">View and manage all customer orders and their statuses.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold"><%= totalOrders %> Total Orders</span>
+      </div>
     </div>
 
     <!-- Filters -->

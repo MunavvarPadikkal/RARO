@@ -57,6 +57,7 @@ router.post("/returns/:orderId/approve", adminAuth.isLogin, adminOrderController
 router.post("/returns/:orderId/reject", adminAuth.isLogin, adminOrderController.rejectReturn);
 router.post("/returns/:orderId/items/:itemId/approve", adminAuth.isLogin, adminOrderController.approveItemReturn);
 router.post("/returns/:orderId/items/:itemId/reject", adminAuth.isLogin, adminOrderController.rejectItemReturn);
+router.post("/returns/:orderId/items/:itemId/complete", adminAuth.isLogin, adminOrderController.completeItemReturn);
 
 // Inventory / Stock Management
 router.get("/inventory", adminAuth.isLogin, adminOrderController.loadInventory);

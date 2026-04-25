@@ -350,7 +350,7 @@ const requestReturn = async (orderId, userId, reason) => {
     if (!order) throw new Error("Order not found.");
     if (order.userId.toString() !== userId.toString())
         throw new Error("Unauthorized access.");
-    if (order.orderStatus !== "Delivered")
+    if (!['Delivered', 'Return Rejected'].includes(order.orderStatus))
         throw new Error("Return is only allowed for delivered orders.");
 
     // Check no duplicate return
@@ -393,7 +393,7 @@ const requestItemReturn = async (orderId, itemId, userId, reason) => {
     if (!order) throw new Error("Order not found.");
     if (order.userId.toString() !== userId.toString())
         throw new Error("Unauthorized access.");
-    if (order.orderStatus !== "Delivered")
+    if (!['Delivered', 'Return Rejected'].includes(order.orderStatus))
         throw new Error("Return is only allowed for delivered orders.");
 
     const item = order.orderedItems.id(itemId);
@@ -699,6 +699,49 @@ const adminRejectItemReturn = async (orderId, itemId) => {
     return order;
 };
 
+// ─── Admin: Mark single-item as Returned ───────────────────────────────────────
+
+const adminCompleteItemReturn = async (orderId, itemId) => {
+    const order = await Order.findById(orderId);
+    if (!order) throw new Error("Order not found.");
+
+    const item = order.orderedItems.id(itemId);
+    if (!item) throw new Error("Item not found in order.");
+    if (item.itemStatus !== "Return Approved")
+        throw new Error("Item return must be approved before marking as Returned.");
+
+    item.itemStatus = "Returned";
+
+    // Check if all items that were being returned are now "Returned" or "Return Rejected"
+    const remainingApproved = order.orderedItems.filter(
+        (i) => i.itemStatus === "Return Approved"
+    );
+    
+    if (remainingApproved.length === 0) {
+        const allProcessed = order.orderedItems.every(
+            (i) =>
+                i.itemStatus === "Returned" ||
+                i.itemStatus === "Return Rejected" ||
+                i.itemStatus === "Cancelled" ||
+                i.itemStatus === "Active" // If some items are still active, order status might remain "Delivered" or move to "Returned" depending on business logic. 
+                // But usually, if there were return requests, and all are processed, the order status should reflect that.
+        );
+        // If all items that were requested for return are now processed, 
+        // we check if the entire order should be marked as "Returned"
+        // Actually, if some items are still "Active", the order status should probably stay as "Delivered" (if it was delivered)
+        // or whatever the relevant status is.
+    }
+
+    order.statusHistory.push({
+        status: "Returned",
+        date: new Date(),
+        note: `Item "${item.productName}" marked as Returned`,
+    });
+
+    await order.save();
+    return order;
+};
+
 // ─── Invoice number generation ───────────────────────────────────────────────
 
 const generateInvoiceNumber = async (orderId) => {
@@ -793,6 +836,7 @@ module.exports = {
     adminRejectReturn,
     adminApproveItemReturn,
     adminRejectItemReturn,
+    adminCompleteItemReturn,
     generateInvoiceNumber,
     getInventoryData,
     updateVariantStock,

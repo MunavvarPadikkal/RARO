@@ -134,67 +134,72 @@ const updateOrderStatus = async (req, res) => {
  */
 const loadReturnRequests = async (req, res) => {
     try {
-        const { search, returnStatus, page } = req.query;
+        const { search, returnStatus, page = 1 } = req.query;
+        const limit = 10;
+        const skip = (parseInt(page) - 1) * limit;
 
-        const filter = {};
+        const returnStatuses = ["Return Requested", "Return Approved", "Return Rejected", "Returned"];
+        
+        const filter = {
+            "orderedItems.itemStatus": { $in: returnStatuses }
+        };
 
-        // Filter for orders that have return-related statuses
-        const returnStatuses = [
-            "Return Requested",
-            "Return Approved",
-            "Return Rejected",
-            "Returned",
-        ];
-
-        if (returnStatus && returnStatuses.includes(returnStatus)) {
-            filter.orderStatus = returnStatus;
-        } else {
-            filter.orderStatus = { $in: returnStatuses };
-        }
-
-        if (search) {
-            const cleanSearch = search.trim().replace(/^#/, "");
-            const searchRegex = new RegExp(cleanSearch, "i");
-
-            // Find users matching search term
-            const matchingUsers = await User.find({
-                $or: [
-                    { name: searchRegex },
-                    { email: searchRegex },
-                    { phone: searchRegex }
-                ]
-            }).select('_id');
-            const userIds = matchingUsers.map(u => u._id);
-
-            filter.$or = [
-                { orderId: searchRegex },
-                { "shippingAddress.name": searchRegex },
-                { userId: { $in: userIds } }
-            ];
-        }
-
-        const skip = (parseInt(page || 1) - 1) * 10;
-        const totalOrders = await require("../../models/orderSchema").countDocuments(filter);
-        const totalPages = Math.ceil(totalOrders / 10);
-
-        const orders = await require("../../models/orderSchema")
-            .find(filter)
+        // Fetch orders that have relevant items and populate user details
+        const orders = await Order.find(filter)
             .populate("userId", "name email")
-            .sort({ updatedAt: -1 })
-            .skip(skip)
-            .limit(10);
+            .sort({ updatedAt: -1 });
+
+        // Flatten items manually to show one item per row
+        let allReturnItems = [];
+        orders.forEach(order => {
+            order.orderedItems.forEach(item => {
+                if (returnStatuses.includes(item.itemStatus)) {
+                    // Filter by specific return status if requested
+                    if (!returnStatus || item.itemStatus === returnStatus) {
+                        
+                        // Filter by search term if provided
+                        let matchesSearch = true;
+                        if (search) {
+                            const cleanSearch = search.trim().toLowerCase();
+                            const orderMatch = order.orderId.toLowerCase().includes(cleanSearch);
+                            const productMatch = item.productName.toLowerCase().includes(cleanSearch);
+                            const userMatch = order.userId && (
+                                order.userId.name.toLowerCase().includes(cleanSearch) || 
+                                order.userId.email.toLowerCase().includes(cleanSearch)
+                            );
+                            matchesSearch = orderMatch || productMatch || userMatch;
+                        }
+
+                        if (matchesSearch) {
+                            allReturnItems.push({
+                                _id: order._id,
+                                orderId: order.orderId,
+                                userDetails: order.userId,
+                                orderedItems: item,
+                                updatedAt: order.updatedAt
+                            });
+                        }
+                    }
+                }
+            });
+        });
+
+        // Pagination for the flattened list
+        const totalItems = allReturnItems.length;
+        const totalPages = Math.ceil(totalItems / limit);
+        const returnItems = allReturnItems.slice(skip, skip + limit);
 
         return res.render("adminReturns", {
-            orders,
-            currentPage: parseInt(page || 1),
+            returnItems,
+            currentPage: parseInt(page),
             totalPages,
-            totalOrders,
+            totalItems,
             search: search || "",
             returnStatus: returnStatus || "",
         });
     } catch (error) {
         console.error("Admin loadReturnRequests error:", error);
-        return res.redirect("/admin/dashboard");
+        return res.redirect("/admin/pageError");
     }
 };
 
@@ -268,6 +273,23 @@ const rejectItemReturn = async (req, res) => {
     }
 };
 
+const completeItemReturn = async (req, res) => {
+    try {
+        const { orderId, itemId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ success: false, message: "Invalid order ID." });
+        }
+        await orderService.adminCompleteItemReturn(orderId, itemId);
+        return res.json({ success: true, message: "Item marked as Returned." });
+    } catch (error) {
+        console.error("Admin completeItemReturn error:", error);
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Failed to complete item return.",
+        });
+    }
+};
+
 // ─── Admin: Inventory/Stock Management ───────────────────────────────────────
 
 /**
@@ -335,6 +357,7 @@ module.exports = {
     rejectReturn,
     approveItemReturn,
     rejectItemReturn,
+    completeItemReturn,
     loadInventory,
     updateStock,
 };

@@ -148,10 +148,10 @@
                                             <div style="text-align: right; min-width: 100px;">
                                                 <div style="font-size: 15px; font-weight: 700; color: #c96;">₹<%= item.itemTotal %></div>
                                                 <!-- Per-item actions -->
-                                                <% if (item.itemStatus === 'Active' && ['Placed', 'Pending'].includes(order.orderStatus) && order.orderedItems.filter(i => i.itemStatus === 'Active').length > 1) { %>
+                                                <% if (item.itemStatus === 'Active' && ['Placed', 'Pending'].includes(order.orderStatus)) { %>
                                                     <button class="btn btn-sm mt-1" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', '<%= item.productName %>')" style="background: none; color: #c62828; font-size: 11px; padding: 4px 8px; border: 1px solid #c62828; border-radius: 6px;">Cancel</button>
                                                 <% } %>
-                                                <% if (item.itemStatus === 'Active' && order.orderStatus === 'Delivered' && order.orderedItems.filter(i => i.itemStatus === 'Active').length > 1) { %>
+                                                <% if (item.itemStatus === 'Active' && ['Delivered', 'Return Rejected'].includes(order.orderStatus)) { %>
                                                     <button class="btn btn-sm mt-1" onclick="returnItem('<%= order._id %>', '<%= item._id %>', '<%= item.productName %>')" style="background: none; color: #e65100; font-size: 11px; padding: 4px 8px; border: 1px solid #e65100; border-radius: 6px;">Return</button>
                                                 <% } %>
                                             </div>

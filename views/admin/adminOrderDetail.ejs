@@ -43,7 +43,7 @@
                   <option value="<%= s %>"><%= s %></option>
                 <% }) %>
               </select>
-              <button onclick="updateStatus()" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">
+              <button onclick="updateStatus('<%= order._id %>')" class="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">
                 <i class="fa-solid fa-check mr-1"></i> Update Status
               </button>
             </div>
@@ -56,28 +56,62 @@
           <div class="space-y-3">
             <% order.orderedItems.forEach(item => { %>
               <%
-                let itemBadge = 'bg-green-100 text-green-700';
-                if (item.itemStatus === 'Cancelled') itemBadge = 'bg-red-100 text-red-700';
-                else if (item.itemStatus.includes('Return')) itemBadge = 'bg-orange-100 text-orange-700';
-                else if (item.itemStatus === 'Returned') itemBadge = 'bg-purple-100 text-purple-700';
+                let itemBadge = 'bg-emerald-100 text-emerald-700';
+                if (item.itemStatus === 'Cancelled' || item.itemStatus === 'Return Rejected') itemBadge = 'bg-rose-100 text-rose-700';
+                else if (item.itemStatus === 'Return Requested') itemBadge = 'bg-orange-100 text-orange-700';
+                else if (item.itemStatus === 'Return Approved' || item.itemStatus === 'Returned') itemBadge = 'bg-purple-100 text-purple-700';
+                else if (item.itemStatus === 'Active') itemBadge = 'bg-blue-100 text-blue-700';
               %>
-              <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
-                <div class="w-14 h-14 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                  <% if (item.productImage) { %>
-                    <img src="/uploads/productImages/<%= item.productImage %>" alt="<%= item.productName %>" class="w-full h-full object-cover">
-                  <% } else { %>
-                    <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>
-                  <% } %>
+              <div class="p-3 bg-gray-50 rounded-xl">
+                <div class="flex items-center gap-4">
+                  <div class="w-14 h-14 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                    <% if (item.productImage) { %>
+                      <img src="/uploads/productImages/<%= item.productImage %>" alt="<%= item.productName %>" class="w-full h-full object-cover">
+                    <% } else { %>
+                      <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>
+                    <% } %>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-medium text-gray-900 text-sm truncate"><%= item.productName %></div>
+                    <div class="text-xs text-gray-500">Size: <%= item.size %> <% if (item.color) { %> · Color: <%= item.color %><% } %> · Qty: <%= item.quantity %></div>
+                    <div class="text-xs text-gray-400 mt-0.5">₹<%= item.price %> × <%= item.quantity %></div>
+                  </div>
+                  <div class="text-right flex-shrink-0">
+                    <div class="font-semibold text-gray-900">₹<%= item.itemTotal.toLocaleString() %></div>
+                    <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold <%= itemBadge %>"><%= item.itemStatus %></span>
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-medium text-gray-900 text-sm truncate"><%= item.productName %></div>
-                  <div class="text-xs text-gray-500">Size: <%= item.size %> <% if (item.color) { %> · Color: <%= item.color %><% } %> · Qty: <%= item.quantity %></div>
-                  <div class="text-xs text-gray-400 mt-0.5">₹<%= item.price %> × <%= item.quantity %></div>
-                </div>
-                <div class="text-right flex-shrink-0">
-                  <div class="font-semibold text-gray-900">₹<%= item.itemTotal.toLocaleString() %></div>
-                  <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold <%= itemBadge %>"><%= item.itemStatus %></span>
-                </div>
+
+                <% if (item.itemStatus === 'Return Requested') { %>
+                  <div class="mt-3 pt-3 border-t border-gray-200">
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-lg flex-1">
+                        <span class="font-bold">Return Reason:</span> <%= item.returnReason || 'No reason provided' %>
+                      </div>
+                      <div class="flex gap-2">
+                        <button onclick="manageItemReturn('<%= order._id %>', '<%= item._id %>', 'approve')" class="px-3 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-600 transition-colors uppercase tracking-wider">
+                          Approve
+                        </button>
+                        <button onclick="manageItemReturn('<%= order._id %>', '<%= item._id %>', 'reject')" class="px-3 py-1 bg-rose-500 text-white rounded-lg text-[10px] font-bold hover:bg-rose-600 transition-colors uppercase tracking-wider">
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                <% } else if (item.itemStatus === 'Return Approved') { %>
+                  <div class="mt-3 pt-3 border-t border-gray-200">
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-lg flex-1">
+                        <span class="font-bold">Status:</span> Return Approved - Awaiting product receipt
+                      </div>
+                      <div class="flex gap-2">
+                        <button onclick="manageItemReturn('<%= order._id %>', '<%= item._id %>', 'complete')" class="px-3 py-1 bg-purple-500 text-white rounded-lg text-[10px] font-bold hover:bg-purple-600 transition-colors uppercase tracking-wider">
+                          Mark as Returned
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                <% } %>
               </div>
             <% }) %>
           </div>
@@ -203,7 +237,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  async function updateStatus() {
+  async function updateStatus(orderId) {
     const newStatus = document.getElementById('newStatusSelect').value;
     if (!newStatus) {
       Swal.fire('Error', 'Please select a status', 'warning');
@@ -222,7 +256,7 @@
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch('/admin/orders/<%= order._id %>/status', {
+        const res = await fetch(`/admin/orders/${orderId}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ newStatus })
@@ -230,6 +264,40 @@
         const data = await res.json();
         if (data.success) {
           Swal.fire('Updated!', data.message, 'success').then(() => location.reload());
+        } else {
+          Swal.fire('Error', data.message, 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', 'Something went wrong', 'error');
+      }
+    }
+  }
+
+  async function manageItemReturn(orderId, itemId, action) {
+    let actionText = 'Process';
+    if (action === 'approve') actionText = 'Approve';
+    else if (action === 'reject') actionText = 'Reject';
+    else if (action === 'complete') actionText = 'Mark as Returned';
+
+    const result = await Swal.fire({
+      title: `${actionText}?`,
+      text: `Are you sure you want to ${action === 'complete' ? 'mark this item as returned' : action + ' the return for this item'}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: action === 'approve' ? '#10b981' : (action === 'complete' ? '#a855f7' : '#f43f5e'),
+      confirmButtonText: `Yes, ${actionText}`,
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/admin/returns/${orderId}/items/${itemId}/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          Swal.fire('Success!', data.message, 'success').then(() => location.reload());
         } else {
           Swal.fire('Error', data.message, 'error');
         }
