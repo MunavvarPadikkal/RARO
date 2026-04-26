@@ -14,14 +14,36 @@ const ALLOWED_TRANSITIONS = {
     "Out for Delivery": ["Delivered"],
     Delivered: [],
     Cancelled: [],
-    "Return Requested": ["Return Approved", "Return Rejected"],
-    "Return Approved": ["Returned"],
-    "Return Rejected": [],
+    "Return Requested": ["Returned", "Delivered"],
+    "Return Approved": ["Returned", "Delivered"],
+    "Return Rejected": ["Delivered"],
     Returned: [],
 };
 
 // Statuses that allow user cancellation
 const CANCELLABLE_STATUSES = ["Placed", "Pending"];
+
+// ─── Status update helper ────────────────────────────────────────────────────
+const _updateTotalOrderStatus = (order) => {
+    const items = order.orderedItems;
+    const allCancelled = items.every(i => i.itemStatus === "Cancelled");
+    const allReturned = items.every(i => i.itemStatus === "Returned");
+    const allReturnRequested = items.every(i => i.itemStatus === "Return Requested");
+
+    if (allCancelled) {
+        order.orderStatus = "Cancelled";
+    } else if (allReturned) {
+        order.orderStatus = "Returned";
+    } else if (allReturnRequested) {
+        order.orderStatus = "Return Requested";
+    } else {
+        // For mixed statuses or rejections, default to Delivered if already past shipping
+        const postDeliveryStatuses = ["Shipped", "Out for Delivery", "Delivered", "Return Requested", "Return Approved", "Return Rejected", "Returned", "Partially Returned", "Partially Cancelled"];
+        if (postDeliveryStatuses.includes(order.orderStatus)) {
+            order.orderStatus = "Delivered";
+        }
+    }
+};
 
 // ─── Checkout helpers (preserved from original) ──────────────────────────────
 
@@ -267,7 +289,7 @@ const cancelOrder = async (orderId, userId, reason = "") => {
         }
     }
 
-    order.orderStatus = "Cancelled";
+    _updateTotalOrderStatus(order);
     order.cancellationReason = reason || "Cancelled by customer";
     order.statusHistory.push({
         status: "Cancelled",
@@ -313,22 +335,14 @@ const cancelOrderItem = async (orderId, itemId, userId, reason = "") => {
         (i) => i.itemStatus === "Active"
     );
 
-    if (activeItems.length === 0) {
-        // All items cancelled → cancel the whole order
-        order.orderStatus = "Cancelled";
-        order.cancellationReason = "All items cancelled";
-        order.statusHistory.push({
-            status: "Cancelled",
-            date: new Date(),
-            note: "All items cancelled individually",
-        });
-    } else {
-        order.statusHistory.push({
-            status: "Item Cancelled",
-            date: new Date(),
-            note: `Item "${item.productName}" cancelled`,
-        });
-    }
+    _updateTotalOrderStatus(order);
+    if (order.orderStatus === "Cancelled") order.cancellationReason = "All items cancelled";
+    
+    order.statusHistory.push({
+        status: "Item Cancelled",
+        date: new Date(),
+        note: `Item "${item.productName}" cancelled`,
+    });
 
     // Recalculate totals from active items
     const newSubtotal = activeItems.reduce((sum, i) => sum + i.itemTotal, 0);
@@ -371,7 +385,7 @@ const requestReturn = async (orderId, userId, reason) => {
         }
     }
 
-    order.orderStatus = "Return Requested";
+    _updateTotalOrderStatus(order);
     order.returnReason = reason.trim();
     order.statusHistory.push({
         status: "Return Requested",
@@ -404,12 +418,7 @@ const requestItemReturn = async (orderId, itemId, userId, reason) => {
     item.itemStatus = "Return Requested";
     item.returnReason = reason.trim();
 
-    // Check if all active items now have return requested
-    const activeItems = order.orderedItems.filter((i) => i.itemStatus === "Active");
-    if (activeItems.length === 0) {
-        order.orderStatus = "Return Requested";
-        order.returnReason = reason.trim();
-    }
+    _updateTotalOrderStatus(order);
 
     order.statusHistory.push({
         status: "Return Requested",
@@ -579,7 +588,7 @@ const adminApproveReturn = async (orderId) => {
         }
     }
 
-    order.orderStatus = "Return Approved";
+    _updateTotalOrderStatus(order);
     order.statusHistory.push({
         status: "Return Approved",
         date: new Date(),
@@ -604,7 +613,7 @@ const adminRejectReturn = async (orderId) => {
         }
     }
 
-    order.orderStatus = "Return Rejected";
+    _updateTotalOrderStatus(order);
     order.statusHistory.push({
         status: "Return Rejected",
         date: new Date(),
@@ -637,21 +646,7 @@ const adminApproveItemReturn = async (orderId, itemId) => {
 
     item.itemStatus = "Return Approved";
 
-    // Check if all return-requested items are now processed
-    const pendingReturns = order.orderedItems.filter(
-        (i) => i.itemStatus === "Return Requested"
-    );
-    if (pendingReturns.length === 0) {
-        const allApproved = order.orderedItems.every(
-            (i) =>
-                i.itemStatus === "Return Approved" ||
-                i.itemStatus === "Returned" ||
-                i.itemStatus === "Cancelled"
-        );
-        if (allApproved) {
-            order.orderStatus = "Return Approved";
-        }
-    }
+    _updateTotalOrderStatus(order);
 
     order.statusHistory.push({
         status: "Return Approved",
@@ -676,18 +671,7 @@ const adminRejectItemReturn = async (orderId, itemId) => {
 
     item.itemStatus = "Return Rejected";
 
-    // Check if all return-requested items are now processed
-    const pendingReturns = order.orderedItems.filter(
-        (i) => i.itemStatus === "Return Requested"
-    );
-    if (pendingReturns.length === 0) {
-        const anyRejected = order.orderedItems.some(
-            (i) => i.itemStatus === "Return Rejected"
-        );
-        if (anyRejected) {
-            order.orderStatus = "Return Rejected";
-        }
-    }
+    _updateTotalOrderStatus(order);
 
     order.statusHistory.push({
         status: "Return Rejected",
@@ -712,25 +696,7 @@ const adminCompleteItemReturn = async (orderId, itemId) => {
 
     item.itemStatus = "Returned";
 
-    // Check if all items that were being returned are now "Returned" or "Return Rejected"
-    const remainingApproved = order.orderedItems.filter(
-        (i) => i.itemStatus === "Return Approved"
-    );
-    
-    if (remainingApproved.length === 0) {
-        const allProcessed = order.orderedItems.every(
-            (i) =>
-                i.itemStatus === "Returned" ||
-                i.itemStatus === "Return Rejected" ||
-                i.itemStatus === "Cancelled" ||
-                i.itemStatus === "Active" // If some items are still active, order status might remain "Delivered" or move to "Returned" depending on business logic. 
-                // But usually, if there were return requests, and all are processed, the order status should reflect that.
-        );
-        // If all items that were requested for return are now processed, 
-        // we check if the entire order should be marked as "Returned"
-        // Actually, if some items are still "Active", the order status should probably stay as "Delivered" (if it was delivered)
-        // or whatever the relevant status is.
-    }
+    _updateTotalOrderStatus(order);
 
     order.statusHistory.push({
         status: "Returned",

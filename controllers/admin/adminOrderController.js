@@ -67,9 +67,9 @@ const loadOrderDetail = async (req, res) => {
             "Out for Delivery": ["Delivered"],
             Delivered: [],
             Cancelled: [],
-            "Return Requested": ["Return Approved", "Return Rejected"],
-            "Return Approved": ["Returned"],
-            "Return Rejected": [],
+            "Return Requested": ["Returned", "Delivered"],
+            "Return Approved": ["Returned", "Delivered"],
+            "Return Rejected": ["Delivered"],
             Returned: [],
         };
 
@@ -182,6 +182,29 @@ const loadReturnRequests = async (req, res) => {
                     }
                 }
             });
+        });
+
+        // Sort the flattened list to ensure "Return Requested" items are at the top,
+        // then sort by updatedAt descending (newest first).
+        allReturnItems.sort((a, b) => {
+            const isRequestedA = a.orderedItems.itemStatus === "Return Requested";
+            const isRequestedB = b.orderedItems.itemStatus === "Return Requested";
+
+            // 1. Primary sort: Prioritize "Return Requested" status
+            if (isRequestedA !== isRequestedB) {
+                return isRequestedA ? -1 : 1;
+            }
+
+            // 2. Secondary sort: Update date (Newest first)
+            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+            
+            if (dateB !== dateA) {
+                return dateB - dateA;
+            }
+
+            // 3. Tertiary sort: Stable sort by Order ID
+            return (b.orderId || "").localeCompare(a.orderId || "");
         });
 
         // Pagination for the flattened list

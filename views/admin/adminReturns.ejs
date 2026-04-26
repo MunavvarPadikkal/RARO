@@ -29,7 +29,7 @@
           <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
           <select name="returnStatus" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-300">
             <option value="">All</option>
-            <option value="Return Requested" <%= returnStatus === 'Return Requested' ? 'selected' : '' %>>Pending</option>
+            <option value="Return Requested" <%= returnStatus === 'Return Requested' ? 'selected' : '' %>>Requested</option>
             <option value="Return Approved" <%= returnStatus === 'Return Approved' ? 'selected' : '' %>>Approved</option>
             <option value="Return Rejected" <%= returnStatus === 'Return Rejected' ? 'selected' : '' %>>Rejected</option>
             <option value="Returned" <%= returnStatus === 'Returned' ? 'selected' : '' %>>Returned</option>
