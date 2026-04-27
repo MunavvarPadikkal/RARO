@@ -13,9 +13,9 @@ const { upload } = require("../middlewares/multer");
 router.get("/pageNotFound", userController.pageNotFound);
 router.get("/", userAuth.checkBlockedStatus,userController.loadHomepage)
 router.get("/signin", userAuth.isSignin, userController.loadSignin);
-router.get("/register", userController.loadRegister);
+router.get("/register", userAuth.isSignin, userController.loadRegister);
 router.post('/register', userController.register);
-router.get('/verify-otp', userController.loadOtp);
+router.get('/verify-otp', userAuth.isSignin, userController.loadOtp);
 router.post('/verify-otp', userController.verifyOtp);
 router.post('/resend-otp', userController.resendOtp);
 router.post('/signin', userController.signin);

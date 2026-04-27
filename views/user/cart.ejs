@@ -40,7 +40,8 @@
                                         <% 
                                             // Handle cases where product was deleted/blocked after adding to cart
                                             const product = item.productId;
-                                            if (!product || product.isDeleted || product.isBlocked) { return; } 
+                                            if (!product) { return; } 
+                                            const isBlockedOrDeleted = product.isDeleted || product.isBlocked;
                                             
                                             // Determine effective price 
                                             const effectivePrice = product.salePrice < product.regularPrice ? product.salePrice : product.regularPrice;
@@ -65,7 +66,9 @@
 
                                                     <h3 class="product-title">
                                                         <a href="/product/<%= product._id %>"><%= product.productName %></a>
-                                                        <% if (isOutOfStock) { %>
+                                                        <% if (isBlockedOrDeleted) { %>
+                                                            <br><span class="text-danger" style="font-size: 1.2rem;">Product Not Available</span>
+                                                        <% } else if (isOutOfStock) { %>
                                                             <br><span class="text-danger" style="font-size: 1.2rem;">Out of Stock</span>
                                                         <% } else if (item.quantity > availableStock) { %>
                                                             <br><span class="text-warning" style="font-size: 1.2rem;">Only <%= availableStock %> left in stock</span>
@@ -81,7 +84,7 @@
                                                     <input type="number" class="form-control qty-input" 
                                                            value="<%= item.quantity %>" min="1" 
                                                            data-max="<%= maxAllowed > 0 ? maxAllowed : 1 %>"
-                                                           step="1" data-decimals="0" required <%= isOutOfStock ? 'disabled' : '' %>>
+                                                           step="1" data-decimals="0" required <%= (isOutOfStock || isBlockedOrDeleted) ? 'disabled' : '' %>>
                                                 </div><!-- End .cart-product-quantity -->
                                             </td>
                                             <td class="total-col item-total-price">₹<%= effectivePrice * item.quantity %></td>
