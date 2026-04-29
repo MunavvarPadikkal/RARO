@@ -88,7 +88,7 @@ const getCheckoutData = async (userId) => {
     };
 };
 
-const placeOrder = async (userId, addressId) => {
+const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery", paymentStatus = null, paymentDetails = null) => {
     const cart = await Cart.findOne({ userId }).populate("items.productId");
     if (!cart || cart.items.length === 0) {
         throw new Error("Cart is empty.");
@@ -141,7 +141,6 @@ const placeOrder = async (userId, addressId) => {
     const invoiceSeq = await Counter.getNextSequence("invoiceNumber");
     const invoiceNumber = `INV-${invoiceSeq}`;
 
-    // Create order document
     const newOrder = new Order({
         orderId: `ORD-${uuidv4().substring(0, 8).toUpperCase()}`,
         userId: userId,
@@ -155,29 +154,33 @@ const placeOrder = async (userId, addressId) => {
             state: selectedAddress.state,
             pincode: selectedAddress.pincode,
         },
-        paymentMethod: "Cash on Delivery",
-        paymentStatus: "Pending",
-        orderStatus: "Placed",
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentStatus ? paymentStatus : (paymentMethod === "Razorpay" ? "Paid" : "Pending"),
+        razorpayOrderId: paymentDetails?.razorpayOrderId || null,
+        razorpayPaymentId: paymentDetails?.razorpayPaymentId || null,
+        orderStatus: paymentStatus === "Failed" ? "Payment Failed" : "Placed",
         subtotal: subtotal,
         discount: 0,
         shippingCharge: 0,
         finalAmount: finalAmount,
         invoiceNumber: invoiceNumber,
-        statusHistory: [{ status: "Placed", date: new Date(), note: "Order placed successfully" }],
+        statusHistory: [{ status: paymentStatus === "Failed" ? "Payment Failed" : "Placed", date: new Date(), note: paymentStatus === "Failed" ? "Payment failed during checkout" : "Order placed successfully" }],
         createdOn: new Date(),
     });
 
     await newOrder.save();
 
-    // Deduct stock from specific variant
-    for (const item of cart.items) {
-        await Product.updateOne(
-            {
-                _id: item.productId._id,
-                variants: { $elemMatch: { color: item.color, size: item.size } }
-            },
-            { $inc: { "variants.$.stock": -item.quantity } }
-        );
+    // Deduct stock only if payment has not failed
+    if (paymentStatus !== "Failed") {
+        for (const item of cart.items) {
+            await Product.updateOne(
+                {
+                    _id: item.productId._id,
+                    variants: { $elemMatch: { color: item.color, size: item.size } }
+                },
+                { $inc: { "variants.$.stock": -item.quantity } }
+            );
+        }
     }
 
     // Clear cart
@@ -188,6 +191,41 @@ const placeOrder = async (userId, addressId) => {
 
 const getOrderById = async (orderId) => {
     return await Order.findById(orderId).populate("orderedItems.productId");
+};
+
+// Check if all items in an order are in stock
+const checkStockForOrder = async (order) => {
+    for (const item of order.orderedItems) {
+        if (!item.productId) throw new Error("Some products are no longer available.");
+
+        // Wait, order.orderedItems.productId is an object if populated, but if not populated we must fetch it.
+        // Let's assume order is already populated.
+        const product = item.productId;
+        const variant = product.variants.find(
+            (v) => v.color === item.color && v.size === item.size
+        );
+
+        if (!variant || variant.stock < item.quantity) {
+            throw new Error(`Insufficient stock for ${product.productName} (${item.color}, ${item.size}). Available: ${variant ? variant.stock : 0}`);
+        }
+    }
+    return true;
+};
+
+// Deduct stock for all items in an order
+const deductStockForOrder = async (order) => {
+    for (const item of order.orderedItems) {
+        // item.productId could be populated or just an ID
+        const productId = item.productId._id || item.productId;
+        await Product.updateOne(
+            {
+                _id: productId,
+                variants: { $elemMatch: { color: item.color, size: item.size } }
+            },
+            { $inc: { "variants.$.stock": -item.quantity } }
+        );
+    }
+    return true;
 };
 
 // ─── User: Order listing with search/filter/pagination ───────────────────────
@@ -806,4 +844,6 @@ module.exports = {
     generateInvoiceNumber,
     getInventoryData,
     updateVariantStock,
+    checkStockForOrder,
+    deductStockForOrder
 };

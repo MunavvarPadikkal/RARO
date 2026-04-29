@@ -1,4 +1,6 @@
 const orderService = require("../../services/orderService");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
 
 /**
  * GET /checkout
@@ -28,6 +30,7 @@ const loadCheckout = async (req, res) => {
             shippingCharge,
             finalAmount,
             itemsCount,
+            razorpayKeyId: process.env.RAZORPAY_KEY_ID
         });
     } catch (error) {
         if (error.message === "CART_EMPTY") {
@@ -46,7 +49,7 @@ const loadCheckout = async (req, res) => {
 const placeOrder = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { addressId } = req.body;
+        const { addressId, paymentMethod, paymentStatus, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
 
         if (!addressId) {
             return res.status(400).json({
@@ -55,7 +58,22 @@ const placeOrder = async (req, res) => {
             });
         }
 
-        const order = await orderService.placeOrder(userId, addressId);
+        if (paymentMethod === "Razorpay" && paymentStatus !== "Failed") {
+            const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+            hmac.update(razorpayOrderId + "|" + razorpayPaymentId);
+            const generatedSignature = hmac.digest("hex");
+
+            if (generatedSignature !== razorpaySignature) {
+                return res.status(400).json({ success: false, message: "Payment verification failed." });
+            }
+        }
+
+        const paymentDetails = {
+            razorpayOrderId,
+            razorpayPaymentId
+        };
+
+        const order = await orderService.placeOrder(userId, addressId, paymentMethod, paymentStatus, paymentDetails);
 
         return res.json({
             success: true,
@@ -68,6 +86,39 @@ const placeOrder = async (req, res) => {
             success: false,
             message: error.message || "Failed to place order. Please try again.",
         });
+    }
+};
+
+/**
+ * POST /checkout/create-razorpay-order
+ * Create a new order in Razorpay for checkout.
+ */
+const createRazorpayOrder = async (req, res) => {
+    try {
+        const userId = req.session.user._id;
+        const checkoutData = await orderService.getCheckoutData(userId);
+
+        const instance = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+
+        const options = {
+            amount: Math.round(checkoutData.finalAmount * 100), // convert to paise
+            currency: "INR",
+            receipt: "receipt_order_" + Date.now(),
+        };
+
+        const order = await instance.orders.create(options);
+
+        if (!order) {
+            return res.status(500).json({ success: false, message: "Error creating Razorpay order" });
+        }
+
+        return res.json({ success: true, razorpayOrder: order });
+    } catch (error) {
+        console.error("Error creating razorpay order:", error);
+        return res.status(500).json({ success: false, message: "Server error creating payment" });
     }
 };
 
@@ -176,10 +227,121 @@ const devInvoicePreview = async (req, res) => {
     }
 };
 
+/**
+ * GET /payment-failed/:orderId
+ * Render the payment failure page.
+ */
+const paymentFailed = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const order = await orderService.getOrderById(orderId);
+
+        if (!order) {
+            return res.redirect("/");
+        }
+
+        if (order.userId.toString() !== req.session.user._id.toString()) {
+            return res.redirect("/");
+        }
+
+        return res.render("payment-failed", {
+            user: req.session.user,
+            order,
+        });
+    } catch (error) {
+        console.error("Error loading payment failure page:", error);
+        return res.redirect("/");
+    }
+};
+
+/**
+ * POST /checkout/retry-payment/:orderId
+ * Reopen Razorpay for a failed order.
+ */
+const retryPayment = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const userId = req.session.user._id;
+
+        const order = await orderService.getOrderById(orderId);
+        
+        if (!order || order.userId.toString() !== userId.toString()) {
+            return res.status(400).json({ success: false, message: "Order not found" });
+        }
+        
+        if (order.paymentStatus !== "Failed") {
+            return res.status(400).json({ success: false, message: "Order is not in Failed status" });
+        }
+
+        try {
+            await orderService.checkStockForOrder(order);
+        } catch (stockError) {
+            return res.status(400).json({ success: false, message: stockError.message });
+        }
+
+        return res.json({ 
+            success: true, 
+            razorpayOrderId: order.razorpayOrderId,
+            amount: order.finalAmount,
+            key: process.env.RAZORPAY_KEY_ID
+        });
+    } catch (error) {
+        console.error("Error initiating retry payment:", error);
+        return res.status(500).json({ success: false, message: "Server error initiating payment retry" });
+    }
+};
+
+/**
+ * POST /checkout/verify-retry
+ * Verify Razorpay signature after a retry.
+ */
+const verifyRetryPayment = async (req, res) => {
+    try {
+        const userId = req.session.user._id;
+        const { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+
+        const order = await orderService.getOrderById(orderId);
+        if (!order || order.userId.toString() !== userId.toString()) {
+            return res.status(400).json({ success: false, message: "Order not found" });
+        }
+
+        // Verify signature
+        const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+        hmac.update(razorpayOrderId + "|" + razorpayPaymentId);
+        const generatedSignature = hmac.digest("hex");
+
+        if (generatedSignature !== razorpaySignature) {
+            return res.status(400).json({ success: false, message: "Payment verification failed." });
+        }
+
+        // Update order status and deduct stock
+        order.paymentStatus = "Paid";
+        order.orderStatus = "Placed";
+        order.razorpayPaymentId = razorpayPaymentId;
+        order.statusHistory.push({ status: "Placed", date: new Date(), note: "Payment retried successfully" });
+        
+        await orderService.deductStockForOrder(order);
+        await order.save();
+
+        return res.json({
+            success: true,
+            message: "Payment successful!",
+            orderId: order._id,
+        });
+    } catch (error) {
+        console.error("Error verifying retry payment:", error);
+        return res.status(500).json({ success: false, message: "Server error verifying payment" });
+    }
+};
+
 module.exports = {
     loadCheckout,
     placeOrder,
+    createRazorpayOrder,
     orderSuccess,
     downloadInvoice,
-    devInvoicePreview
+    devInvoicePreview,
+    paymentFailed,
+    retryPayment,
+    verifyRetryPayment
 };

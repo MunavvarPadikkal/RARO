@@ -58,7 +58,11 @@ router.delete("/cart/remove", userAuth.checkSession, cartController.removeFromCa
 
 // Checkout
 router.get("/checkout", userAuth.checkSession, checkoutController.loadCheckout);
+router.post("/checkout/create-razorpay-order", userAuth.checkSession, checkoutController.createRazorpayOrder);
 router.post("/checkout/place-order", userAuth.checkSession, checkoutController.placeOrder);
+router.get("/payment-failed/:orderId", userAuth.checkSession, checkoutController.paymentFailed);
+router.post("/checkout/retry-payment/:orderId", userAuth.checkSession, checkoutController.retryPayment);
+router.post("/checkout/verify-retry", userAuth.checkSession, checkoutController.verifyRetryPayment);
 router.get("/order-success/:orderId", userAuth.checkSession, checkoutController.orderSuccess);
 
 // Dynamic Order Management

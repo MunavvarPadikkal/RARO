@@ -174,16 +174,29 @@
                             <!-- ── Payment Method ── -->
                             <div class="checkout-payment-section mt-3">
                                 <h5 class="checkout-payment-title">Payment Method</h5>
-                                <div class="checkout-payment-card selected-payment">
+                                
+                                <div class="checkout-payment-card selected-payment mb-2" onclick="selectPayment('Cash on Delivery', this)">
                                     <div class="d-flex align-items-center">
                                         <input type="radio" name="paymentMethod" id="cod-radio"
-                                               value="Cash on Delivery" checked class="mr-2">
-                                        <label for="cod-radio" class="mb-0">
+                                               value="Cash on Delivery" checked class="mr-2 payment-radio">
+                                        <label for="cod-radio" class="mb-0" style="cursor: pointer;">
                                             <i class="icon-money" style="font-size: 1.8rem; margin-right: 8px;"></i>
                                             Cash on Delivery
                                         </label>
                                     </div>
                                     <p class="cod-note">Pay when your order arrives at your doorstep.</p>
+                                </div>
+
+                                <div class="checkout-payment-card" onclick="selectPayment('Razorpay', this)">
+                                    <div class="d-flex align-items-center">
+                                        <input type="radio" name="paymentMethod" id="razorpay-radio"
+                                               value="Razorpay" class="mr-2 payment-radio">
+                                        <label for="razorpay-radio" class="mb-0" style="cursor: pointer;">
+                                            <i class="icon-credit-card" style="font-size: 1.8rem; margin-right: 8px;"></i>
+                                            Online Payment (Razorpay)
+                                        </label>
+                                    </div>
+                                    <p class="cod-note">Pay securely via Credit/Debit Card, UPI, or Netbanking.</p>
                                 </div>
                             </div>
 
@@ -401,6 +414,7 @@
 <script src="/assets/js/jquery.magnific-popup.min.js"></script>
 <script src="/assets/js/main.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
     // Track which address is selected
@@ -428,6 +442,56 @@
         selectedAddressId = addressId;
     }
 
+    let selectedPaymentMethod = 'Cash on Delivery';
+
+    function selectPayment(method, cardEl) {
+        document.querySelectorAll('.checkout-payment-card').forEach(c => c.classList.remove('selected-payment'));
+        cardEl.classList.add('selected-payment');
+        const radio = cardEl.querySelector('.payment-radio');
+        if (radio) radio.checked = true;
+        selectedPaymentMethod = method;
+    }
+
+    async function placeActualOrder(paymentDetails = {}) {
+        const btn = document.getElementById('place-order-btn');
+        try {
+            const bodyData = { 
+                addressId: selectedAddressId,
+                paymentMethod: selectedPaymentMethod,
+                ...paymentDetails
+            };
+
+            const response = await fetch('/checkout/place-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                if (paymentDetails.paymentStatus === 'Failed') {
+                    window.location.href = '/payment-failed/' + data.orderId;
+                } else {
+                    window.location.href = '/order-success/' + data.orderId;
+                }
+            } else {
+                throw new Error(data.message || 'Could not place order.');
+            }
+        } catch (error) {
+            console.error('Order placement error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Failed',
+                text: error.message || 'Something went wrong. Please check your connection and try again.'
+            }).then(() => {
+                btn.disabled = false;
+                btn.classList.remove('processing');
+                btn.querySelector('.btn-text').textContent = 'Place Order';
+            });
+        }
+    }
+
     async function submitOrder() {
         if (!selectedAddressId) {
             Swal.fire({
@@ -439,46 +503,82 @@
         }
 
         const btn = document.getElementById('place-order-btn');
-
-        // Disable button to prevent double submission
         btn.disabled = true;
         btn.classList.add('processing');
-        btn.querySelector('.btn-text').textContent = 'Placing Order...';
+        btn.querySelector('.btn-text').textContent = 'Processing...';
 
-        try {
-            const response = await fetch('/checkout/place-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ addressId: selectedAddressId })
-            });
+        if (selectedPaymentMethod === 'Razorpay') {
+            try {
+                // 1. Create Razorpay Order
+                const createRes = await fetch('/checkout/create-razorpay-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const createData = await createRes.json();
+                if (!createRes.ok || !createData.success) {
+                    throw new Error(createData.message || "Failed to initiate payment");
+                }
 
-            const data = await response.json();
+                // 2. Open Razorpay Modal
+                const options = {
+                    key: "<%= razorpayKeyId %>", 
+                    amount: createData.razorpayOrder.amount,
+                    currency: "INR",
+                    name: "RARO Shop",
+                    description: "Order Payment",
+                    order_id: createData.razorpayOrder.id,
+                    handler: function (response) {
+                        // Payment Successful
+                        placeActualOrder({
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpaySignature: response.razorpay_signature
+                        });
+                    },
+                    prefill: {
+                        name: "<%= user.name %>",
+                        email: "<%= user.email %>",
+                        contact: "<%= user.phone || '' %>"
+                    },
+                    theme: {
+                        color: "#cc9966"
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            // User closed the modal
+                            btn.disabled = false;
+                            btn.classList.remove('processing');
+                            btn.querySelector('.btn-text').textContent = 'Place Order';
+                        }
+                    }
+                };
 
-            if (response.ok && data.success) {
-                window.location.href = '/order-success/' + data.orderId;
-            } else {
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    // Create a Failed order
+                    placeActualOrder({
+                        paymentStatus: 'Failed',
+                        razorpayPaymentId: response.error.metadata ? response.error.metadata.payment_id : null,
+                        razorpayOrderId: response.error.metadata ? response.error.metadata.order_id : createData.razorpayOrder.id
+                    });
+                });
+                rzp.open();
+
+            } catch (error) {
+                console.error("Razorpay error:", error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Order Failed',
-                    text: data.message || 'Could not place order. Please try again.'
-                }).then(() => {
-                    // Re-enable button so user can retry
-                    btn.disabled = false;
-                    btn.classList.remove('processing');
-                    btn.querySelector('.btn-text').textContent = 'Place Order';
+                    title: 'Payment Error',
+                    text: error.message || 'Could not initiate Razorpay. Please try again later.'
                 });
-            }
-        } catch (error) {
-            console.error('Order placement error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Network Error',
-                text: 'Something went wrong. Please check your connection and try again.'
-            }).then(() => {
                 btn.disabled = false;
                 btn.classList.remove('processing');
                 btn.querySelector('.btn-text').textContent = 'Place Order';
-            });
+            }
+        } else {
+            // Cash on Delivery
+            placeActualOrder();
         }
     }
 </script>

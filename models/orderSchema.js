@@ -90,9 +90,19 @@ const orderSchema = new Schema(
 
         paymentMethod: {
             type: String,
-            enum: ["Cash on Delivery"],
+            enum: ["Cash on Delivery", "Razorpay"],
             default: "Cash on Delivery",
             required: true,
+        },
+
+        razorpayOrderId: {
+            type: String,
+            default: null,
+        },
+
+        razorpayPaymentId: {
+            type: String,
+            default: null,
         },
 
         paymentStatus: {
@@ -106,6 +116,7 @@ const orderSchema = new Schema(
             enum: [
                 "Placed",
                 "Pending",
+                "Payment Failed",
                 "Shipped",
                 "Out for Delivery",
                 "Delivered",
