@@ -5,6 +5,7 @@ const Address = require("../models/addressSchema");
 const Counter = require("../models/counterSchema");
 const User = require("../models/userSchema");
 const Coupon = require("../models/couponSchema");
+const refundService = require("./refundService");
 const { v4: uuidv4 } = require("uuid");
 
 const getProductPrice = (product) => {
@@ -129,7 +130,7 @@ const getCheckoutData = async (userId) => {
     };
 };
 
-const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery", paymentStatus = null, paymentDetails = null) => {
+const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery", paymentStatus = null, paymentDetails = null, walletAmountUsed = 0) => {
     const cart = await Cart.findOne({ userId }).populate("items.productId").populate("appliedCoupon");
     if (!cart || cart.items.length === 0) {
         throw new Error("Cart is empty.");
@@ -237,6 +238,7 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
             pincode: selectedAddress.pincode,
         },
         paymentMethod: paymentMethod,
+        walletAmountUsed: walletAmountUsed,
         paymentStatus: paymentStatus ? paymentStatus : (paymentMethod === "Razorpay" ? "Paid" : "Pending"),
         razorpayOrderId: paymentDetails?.razorpayOrderId || null,
         razorpayPaymentId: paymentDetails?.razorpayPaymentId || null,
@@ -441,6 +443,12 @@ const cancelOrder = async (orderId, userId, reason = "") => {
     });
 
     await order.save();
+
+    // Trigger Refund if order was paid
+    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
+        await refundService.createRefundRequest(order, null, "cancel", reason || "Order cancelled");
+    }
+
     return order;
 };
 
@@ -494,6 +502,12 @@ const cancelOrderItem = async (orderId, itemId, userId, reason = "") => {
     if (order.finalAmount < 0) order.finalAmount = 0;
 
     await order.save();
+
+    // Trigger Refund if order was paid
+    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
+        await refundService.createRefundRequest(order, itemId, "cancel", reason || "Item cancelled");
+    }
+
     return order;
 };
 
@@ -739,6 +753,12 @@ const adminApproveReturn = async (orderId) => {
     });
 
     await order.save();
+
+    // Trigger Refund for return
+    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
+        await refundService.createRefundRequest(order, null, "return", "Full order return approved");
+    }
+
     return order;
 };
 
@@ -798,6 +818,12 @@ const adminApproveItemReturn = async (orderId, itemId) => {
     });
 
     await order.save();
+
+    // Trigger Refund for return
+    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
+        await refundService.createRefundRequest(order, itemId, "return", "Item return approved");
+    }
+
     return order;
 };
 

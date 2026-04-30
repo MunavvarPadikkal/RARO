@@ -1,6 +1,7 @@
 const profileService = require("../../services/profileService");
 const bcrypt = require("bcrypt");
 const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils");
+const walletService = require("../../services/walletService");
 
 const loadProfile = async (req, res) => {
     try {
@@ -332,6 +333,21 @@ const changeEmailResendOtp = async (req, res) => {
     }
 };
 
+const loadWallet = async (req, res) => {
+    try {
+        const userId = req.session.user._id;
+        const wallet = await walletService.getWallet(userId);
+
+        res.render("wallet", {
+            user: req.session.user,
+            wallet: wallet
+        });
+    } catch (error) {
+        console.error("Error loading wallet:", error);
+        res.redirect("/profile");
+    }
+};
+
 
 module.exports = {
     loadProfile,
@@ -346,4 +362,5 @@ module.exports = {
     changeEmailRequest,
     changeEmailVerifyOtp,
     changeEmailResendOtp,
-}
+    loadWallet
+};

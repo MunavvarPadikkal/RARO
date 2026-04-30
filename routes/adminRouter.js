@@ -74,5 +74,8 @@ router.post("/editCoupon", adminAuth.isLogin, couponController.editCoupon);
 router.post("/toggleCouponStatus", adminAuth.isLogin, couponController.toggleStatus);
 router.post("/deleteCoupon", adminAuth.isLogin, couponController.deleteCoupon);
 
+// Refund Management
+router.get("/refunds", adminAuth.isLogin, adminController.loadRefunds);
+router.post("/refunds/:refundId/approve", adminAuth.isLogin, adminController.approveRefund);
 
 module.exports = router;

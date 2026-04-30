@@ -178,6 +178,10 @@ const orderSchema = new Schema(
             ref: "Coupon",
             default: null,
         },
+        walletAmountUsed: {
+            type: Number,
+            default: 0,
+        },
 
         // Auto-generated invoice number (INV-100001)
         invoiceNumber: {

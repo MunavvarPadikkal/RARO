@@ -87,7 +87,14 @@
                                                             </div>
                                                             <div style="font-size: 13px; color: #555;">
                                                                 <span style="font-weight: 600;"><%= order.orderedItems.length %></span> item(s) · 
-                                                                <span style="font-weight: 600;"><%= order.paymentMethod %></span>
+                                                                <span style="font-weight: 600;">
+                                                                    <% if (order.walletAmountUsed >= order.finalAmount) { %>
+                                                                        Wallet
+                                                                    <% } else { %>
+                                                                        <%= order.walletAmountUsed > 0 ? 'Wallet + ' : '' %>
+                                                                        <%= order.paymentMethod %>
+                                                                    <% } %>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                         <div class="text-right" style="text-align: right;">
@@ -109,6 +116,9 @@
                                                                 <%= displayStatus %>
                                                             </span>
                                                             <div style="font-size: 18px; font-weight: 800; color: #222;">₹<%= order.finalAmount.toLocaleString() %></div>
+                                                            <% if (order.walletAmountUsed > 0) { %>
+                                                                <div style="font-size: 11px; color: #a67c52; font-weight: 600;">(₹<%= (order.finalAmount - order.walletAmountUsed).toLocaleString() %> <%= order.paymentStatus === 'Paid' ? 'Paid' : 'to pay' %>)</div>
+                                                            <% } %>
                                                         </div>
                                                     </div>
                                                     <!-- Item Thumbnails -->

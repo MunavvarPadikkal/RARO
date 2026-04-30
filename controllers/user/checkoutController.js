@@ -1,6 +1,7 @@
 const orderService = require("../../services/orderService");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
+const walletService = require("../../services/walletService");
 
 /**
  * GET /checkout
@@ -21,6 +22,8 @@ const loadCheckout = async (req, res) => {
             itemsCount,
         } = await orderService.getCheckoutData(userId);
 
+        const wallet = await walletService.getWallet(userId);
+
         return res.render("checkout", {
             user: req.session.user,
             cartItems,
@@ -30,6 +33,7 @@ const loadCheckout = async (req, res) => {
             shippingCharge,
             finalAmount,
             itemsCount,
+            walletBalance: wallet.balance,
             razorpayKeyId: process.env.RAZORPAY_KEY_ID
         });
     } catch (error) {
@@ -49,7 +53,7 @@ const loadCheckout = async (req, res) => {
 const placeOrder = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { addressId, paymentMethod, paymentStatus, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+        const { addressId, paymentMethod, paymentStatus, razorpayPaymentId, razorpayOrderId, razorpaySignature, walletAmountUsed = 0 } = req.body;
 
         if (!addressId) {
             return res.status(400).json({
@@ -73,7 +77,12 @@ const placeOrder = async (req, res) => {
             razorpayPaymentId
         };
 
-        const order = await orderService.placeOrder(userId, addressId, paymentMethod, paymentStatus, paymentDetails);
+        const order = await orderService.placeOrder(userId, addressId, paymentMethod, paymentStatus, paymentDetails, walletAmountUsed);
+
+        // If wallet was used, deduct it now (after order is successfully created in DB)
+        if (walletAmountUsed > 0 && paymentStatus !== "Failed") {
+            await walletService.debitWallet(userId, walletAmountUsed, `Payment for Order #${order.orderId}`, order.orderId);
+        }
 
         return res.json({
             success: true,
@@ -96,6 +105,7 @@ const placeOrder = async (req, res) => {
 const createRazorpayOrder = async (req, res) => {
     try {
         const userId = req.session.user._id;
+        const { walletAmountUsed = 0 } = req.body;
         const checkoutData = await orderService.getCheckoutData(userId);
 
         const instance = new Razorpay({
@@ -103,8 +113,13 @@ const createRazorpayOrder = async (req, res) => {
             key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
 
+        const amountToPay = checkoutData.finalAmount - walletAmountUsed;
+        if (amountToPay < 0) {
+             return res.status(400).json({ success: false, message: "Wallet amount exceeds total" });
+        }
+
         const options = {
-            amount: Math.round(checkoutData.finalAmount * 100), // convert to paise
+            amount: Math.round(amountToPay * 100), // convert to paise
             currency: "INR",
             receipt: "receipt_order_" + Date.now(),
         };

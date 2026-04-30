@@ -1,6 +1,8 @@
 const adminService = require("../../services/adminService");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const Refund = require("../../models/refundSchema");
+const refundService = require("../../services/refundService");
 
 
 
@@ -70,10 +72,55 @@ const logout = async (req, res) => {
     }
 }
 
+const loadRefunds = async (req, res) => {
+    try {
+        const { search = "", status = "", page = 1, limit = 10 } = req.query;
+        const filter = {};
+        
+        if (status) filter.status = status;
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        const refunds = await Refund.find(filter)
+            .populate("userId", "name email")
+            .populate("orderId", "orderId")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const totalRefunds = await Refund.countDocuments(filter);
+        const totalPages = Math.ceil(totalRefunds / limit);
+
+        res.render("refunds", {
+            refunds,
+            search,
+            status,
+            currentPage: parseInt(page),
+            totalPages
+        });
+    } catch (error) {
+        console.error("Error loading refunds:", error);
+        res.redirect("/admin/dashboard");
+    }
+};
+
+const approveRefund = async (req, res) => {
+    try {
+        const { refundId } = req.params;
+        await refundService.executeRefund(refundId);
+        res.json({ success: true, message: "Refund credited to wallet successfully." });
+    } catch (error) {
+        console.error("Error approving refund:", error);
+        res.status(500).json({ success: false, message: error.message || "Failed to process refund." });
+    }
+};
+
 module.exports = {
     loadLogin,
     login,
     loadDashboard,
     pageError,
-    logout
-}
+    logout,
+    loadRefunds,
+    approveRefund
+};

@@ -146,6 +146,14 @@
                             </form>
                         </div><!-- End .header-search -->
 
+                        <% if (user) { %>
+                            <div class="dropdown cart-dropdown mr-3">
+                                <a href="/wallet" title="My Wallet">
+                                    <i class="icon-wallet" style="font-size: 2.4rem;"></i>
+                                </a>
+                            </div>
+                        <% } %>
+
                         <div class="dropdown cart-dropdown">
                             <a href="/cart" class="dropdown-toggle" role="button">
                                 <i class="icon-shopping-cart"></i>

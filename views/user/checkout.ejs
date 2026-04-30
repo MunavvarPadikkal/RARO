@@ -180,6 +180,30 @@
                             <div class="checkout-payment-section mt-3">
                                 <h5 class="checkout-payment-title">Payment Method</h5>
                                 
+                                <!-- ── Wallet Payment (Inside Payment Section) ── -->
+                                <div class="checkout-wallet-section mb-3 p-3 bg-white border rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0"><i class="icon-wallet mr-2"></i>RARO Wallet</h6>
+                                            <p class="text-muted small mb-0">Available Balance: ₹<%= walletBalance || 0 %></p>
+                                        </div>
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="use-wallet-cb" 
+                                                   onchange="toggleWalletUsage()" 
+                                                   <%= (walletBalance && walletBalance > 0) ? '' : 'disabled' %>>
+                                            <label class="custom-control-label" for="use-wallet-cb" style="cursor: <%= (walletBalance && walletBalance > 0) ? 'pointer' : 'not-allowed' %>">Use Wallet</label>
+                                        </div>
+                                    </div>
+                                    <% if (!walletBalance || walletBalance <= 0) { %>
+                                        <div class="mt-2 small text-muted">
+                                            <i class="icon-info-circle mr-1"></i> Your wallet is empty.
+                                        </div>
+                                    <% } %>
+                                    <div id="wallet-usage-info" class="mt-2 small text-brand-orange" style="display: none;">
+                                        − ₹<span id="applied-wallet-amount">0</span> will be deducted from your wallet.
+                                    </div>
+                                </div>
+                                
                                 <div class="checkout-payment-card selected-payment mb-2" onclick="selectPayment('Cash on Delivery', this)">
                                     <div class="d-flex align-items-center">
                                         <input type="radio" name="paymentMethod" id="cod-radio"
@@ -448,6 +472,24 @@
     }
 
     let selectedPaymentMethod = 'Cash on Delivery';
+    let walletBalance = <%= walletBalance || 0 %>;
+    let finalAmount = <%= finalAmount %>;
+    let appliedWalletAmount = 0;
+
+    function toggleWalletUsage() {
+        const checkbox = document.getElementById('use-wallet-cb');
+        const infoDiv = document.getElementById('wallet-usage-info');
+        const amountSpan = document.getElementById('applied-wallet-amount');
+        
+        if (checkbox && checkbox.checked) {
+            appliedWalletAmount = Math.min(walletBalance, finalAmount);
+            amountSpan.textContent = appliedWalletAmount;
+            infoDiv.style.display = 'block';
+        } else {
+            appliedWalletAmount = 0;
+            infoDiv.style.display = 'none';
+        }
+    }
 
     function selectPayment(method, cardEl) {
         document.querySelectorAll('.checkout-payment-card').forEach(c => c.classList.remove('selected-payment'));
@@ -463,6 +505,7 @@
             const bodyData = { 
                 addressId: selectedAddressId,
                 paymentMethod: selectedPaymentMethod,
+                walletAmountUsed: appliedWalletAmount,
                 ...paymentDetails
             };
 
@@ -512,12 +555,20 @@
         btn.classList.add('processing');
         btn.querySelector('.btn-text').textContent = 'Processing...';
 
+        // 0. Full Wallet Payment Case
+        // Use a small epsilon or round to avoid floating point precision issues
+        if (Math.round(appliedWalletAmount) >= Math.round(finalAmount)) {
+            selectedPaymentMethod = 'Wallet';
+            return placeActualOrder({ paymentStatus: 'Paid' });
+        }
+
         if (selectedPaymentMethod === 'Razorpay') {
             try {
                 // 1. Create Razorpay Order
                 const createRes = await fetch('/checkout/create-razorpay-order', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ walletAmountUsed: appliedWalletAmount })
                 });
                 
                 const createData = await createRes.json();

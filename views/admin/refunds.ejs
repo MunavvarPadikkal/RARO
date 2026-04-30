@@ -1,0 +1,168 @@
+<%- include("./partials/adminHeader") %>
+<%- include("./partials/adminSidebar") %>
+
+<div class="flex-1 overflow-x-hidden overflow-y-auto">
+  <%- include("./partials/adminTopbar") %>
+
+  <main class="px-8 pb-8">
+    <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-6">
+
+      <!-- Card Header & Actions -->
+      <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <h2 class="text-xl font-semibold text-gray-900">Refund <span class="text-sm font-normal text-gray-400 ml-2">Management</span></h2>
+        
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <!-- Search -->
+          <form action="/admin/refunds" method="get" class="relative flex items-center">
+            <div class="relative flex items-center">
+              <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" name="search" placeholder="Search Order ID..." value="<%= search %>" 
+                     class="w-full md:w-56 pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+            </div>
+            
+            <select name="status" onchange="this.form.submit()" class="ml-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all">
+                <option value="">All Status</option>
+                <option value="Pending" <%= status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                <option value="Completed" <%= status === 'Completed' ? 'selected' : '' %>>Completed</option>
+                <option value="Rejected" <%= status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+                <option value="Not Eligible" <%= status === 'Not Eligible' ? 'selected' : '' %>>Not Eligible</option>
+            </select>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50/50 border-b border-gray-100">
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">User</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Order ID</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Type</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Amount</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Reason</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500 text-center">Status</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% if(refunds && refunds.length > 0) { %>
+              <% refunds.forEach((refund) => { %>
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                  <td class="py-4 px-4">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium text-gray-900"><%= refund.userId.name %></span>
+                      <span class="text-xs text-gray-400"><%= refund.userId.email %></span>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-900 font-medium">
+                    #<%= refund.orderId.orderId %>
+                  </td>
+                  <td class="py-4 px-4">
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider <%= refund.type === 'cancel' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600' %>">
+                      <%= refund.type %>
+                    </span>
+                  </td>
+                  <td class="py-4 px-4 text-sm font-bold text-gray-900">
+                    ₹<%= refund.amount.toLocaleString() %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-500 max-w-[200px] truncate">
+                    <%= refund.reason || 'No reason provided' %>
+                  </td>
+                  <td class="py-4 px-4 text-center">
+                    <% if(refund.status === 'Completed') { %>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium">
+                        <i class="fa-solid fa-circle-check text-[10px]"></i> Completed
+                      </span>
+                    <% } else if(refund.status === 'Pending') { %>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium animate-pulse">
+                        <i class="fa-solid fa-clock text-[10px]"></i> Pending
+                      </span>
+                    <% } else if(refund.status === 'Not Eligible') { %>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                        <i class="fa-solid fa-circle-exclamation text-[10px]"></i> Not Eligible
+                      </span>
+                    <% } else { %>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 rounded-full text-xs font-medium">
+                        <i class="fa-solid fa-circle-xmark text-[10px]"></i> Rejected
+                      </span>
+                    <% } %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-right">
+                    <% if(refund.status === 'Pending') { %>
+                      <button onclick="processRefund('<%= refund._id %>')" class="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-all">
+                        Approve Refund
+                      </button>
+                    <% } else { %>
+                      <span class="text-gray-400 text-xs italic">Processed</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="py-20 text-center text-gray-400">
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-money-bill-transfer text-4xl opacity-20"></i>
+                    <p>No refund requests found.</p>
+                  </div>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <% if(totalPages > 1) { %>
+        <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
+          <p class="text-sm text-gray-500">Showing page <%= currentPage %> of <%= totalPages %></p>
+          <div class="flex gap-2">
+            <% if(currentPage > 1) { %>
+              <a href="/admin/refunds?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>" class="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">Previous</a>
+            <% } %>
+            <% if(currentPage < totalPages) { %>
+              <a href="/admin/refunds?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>" class="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">Next</a>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    async function processRefund(refundId) {
+        const result = await Swal.fire({
+            title: 'Approve Refund?',
+            text: "This will credit the user's wallet immediately.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, Approve',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`/admin/refunds/${refundId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire('Success', 'Refund credited to wallet successfully.', 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to process refund', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Network error occurred', 'error');
+            }
+        }
+    }
+</script>
+
+<%- include("./partials/adminFooter") %>

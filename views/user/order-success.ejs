@@ -108,9 +108,19 @@
                                     <td><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge %></td>
                                 </tr>
                                 <tr class="total-row">
-                                    <td><strong>Total Paid</strong></td>
-                                    <td><strong>₹<%= order.finalAmount %></strong></td>
+                                    <td>Total Order Value</td>
+                                    <td>₹<%= order.finalAmount %></td>
                                 </tr>
+                                <% if (order.walletAmountUsed > 0) { %>
+                                    <tr>
+                                        <td style="color: #a67c52;">Wallet Used</td>
+                                        <td style="color: #a67c52;">− ₹<%= order.walletAmountUsed %></td>
+                                    </tr>
+                                    <tr class="total-row" style="border-top: 2px solid #c96; margin-top: 5px;">
+                                        <td><strong><%= order.paymentStatus === 'Paid' ? 'Paid Amount' : 'Balance to Pay' %></strong></td>
+                                        <td><strong>₹<%= order.finalAmount - order.walletAmountUsed %></strong></td>
+                                    </tr>
+                                <% } %>
                             </table>
                         </div>
 
