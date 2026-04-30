@@ -6,6 +6,7 @@ const cartController = require("../controllers/user/cartController");
 const checkoutController = require("../controllers/user/checkoutController");
 const orderController = require("../controllers/user/orderController");
 const wishlistController = require("../controllers/user/wishlistController");
+const couponController = require("../controllers/user/couponController");
 const passport = require("passport");
 const userAuth = require("../middlewares/userAuth");
 const { upload } = require("../middlewares/multer");
@@ -55,6 +56,8 @@ router.get("/cart", userAuth.checkSession, cartController.loadCart);
 router.post("/cart/add", userAuth.checkSession, cartController.addToCart);
 router.patch("/cart/update-quantity", userAuth.checkSession, cartController.updateQuantity);
 router.delete("/cart/remove", userAuth.checkSession, cartController.removeFromCart);
+router.post("/cart/apply-coupon", userAuth.checkSession, couponController.applyCoupon);
+router.post("/cart/remove-coupon", userAuth.checkSession, couponController.removeCoupon);
 
 // Checkout
 router.get("/checkout", userAuth.checkSession, checkoutController.loadCheckout);

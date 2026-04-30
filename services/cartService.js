@@ -7,12 +7,14 @@ const getProductPrice = (product) => {
 };
 
 const getCart = async (userId) => {
-    const cart = await Cart.findOne({ userId }).populate({
-        path: 'items.productId',
-        populate: { path: 'category' }
-    });
+    const cart = await Cart.findOne({ userId })
+        .populate({
+            path: 'items.productId',
+            populate: { path: 'category' }
+        })
+        .populate('appliedCoupon');
 
-    if (!cart) return { cart: null, subtotal: 0, itemsCount: 0 };
+    if (!cart) return { cart: null, subtotal: 0, itemsCount: 0, discount: 0, finalAmount: 0 };
 
     let subtotal = 0;
     let itemsCount = 0;
@@ -25,10 +27,43 @@ const getCart = async (userId) => {
         }
     }
 
+    let discount = 0;
+    if (cart.appliedCoupon) {
+        const coupon = cart.appliedCoupon;
+        
+        // Re-validate coupon in service to ensure it's still valid
+        const now = new Date();
+        const isValid = !coupon.isDeleted && 
+                        coupon.isActive && 
+                        now >= coupon.startDate && 
+                        now <= coupon.expiryDate && 
+                        subtotal >= coupon.minPurchase &&
+                        coupon.usageCount < coupon.totalUsageLimit;
+
+        if (isValid) {
+            if (coupon.discountType === 'percentage') {
+                discount = (subtotal * coupon.discountValue) / 100;
+                if (coupon.maxDiscount > 0 && discount > coupon.maxDiscount) {
+                    discount = coupon.maxDiscount;
+                }
+            } else {
+                discount = coupon.discountValue;
+            }
+        } else {
+            // Auto remove invalid coupon
+            cart.appliedCoupon = null;
+            await cart.save();
+        }
+    }
+
+    const finalAmount = subtotal - discount;
+
     return {
         cart,
         subtotal,
-        itemsCount
+        itemsCount,
+        discount,
+        finalAmount
     };
 };
 

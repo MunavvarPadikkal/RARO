@@ -4,7 +4,12 @@ const Product = require("../models/productSchema");
 const Address = require("../models/addressSchema");
 const Counter = require("../models/counterSchema");
 const User = require("../models/userSchema");
+const Coupon = require("../models/couponSchema");
 const { v4: uuidv4 } = require("uuid");
+
+const getProductPrice = (product) => {
+    return product.salePrice < product.regularPrice ? product.salePrice : product.regularPrice;
+};
 
 // ─── Allowed status transitions (admin) ──────────────────────────────────────
 const ALLOWED_TRANSITIONS = {
@@ -48,7 +53,7 @@ const _updateTotalOrderStatus = (order) => {
 // ─── Checkout helpers (preserved from original) ──────────────────────────────
 
 const getCheckoutData = async (userId) => {
-    const cart = await Cart.findOne({ userId }).populate("items.productId");
+    const cart = await Cart.findOne({ userId }).populate("items.productId").populate("appliedCoupon");
     if (!cart || cart.items.length === 0) {
         throw new Error("CART_EMPTY");
     }
@@ -58,22 +63,57 @@ const getCheckoutData = async (userId) => {
 
     const cartItems = cart.items
         .filter((item) => item.productId)
-        .map((item) => ({
-            _id: item._id,
-            productId: item.productId._id,
-            productName: item.productId.productName,
-            productImage: item.productId.productImage[0] || "",
-            size: item.size,
-            color: item.color,
-            quantity: item.quantity,
-            price: item.productId.salePrice,
-            regularPrice: item.productId.regularPrice,
-            itemTotal: item.productId.salePrice * item.quantity,
-        }));
+        .map((item) => {
+            const currentPrice = getProductPrice(item.productId);
+            return {
+                _id: item._id,
+                productId: item.productId._id,
+                productName: item.productId.productName,
+                productImage: item.productId.productImage[0] || "",
+                size: item.size,
+                color: item.color,
+                quantity: item.quantity,
+                price: currentPrice,
+                regularPrice: item.productId.regularPrice,
+                itemTotal: currentPrice * item.quantity,
+            };
+        });
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.itemTotal, 0);
     const shippingCharge = 0;
-    const discount = 0;
+    
+    let discount = 0;
+    let appliedCoupon = null;
+
+    if (cart.appliedCoupon) {
+        const coupon = cart.appliedCoupon;
+        const now = new Date();
+        
+        // Re-validate coupon
+        const isValid = !coupon.isDeleted && 
+                        coupon.isActive && 
+                        now >= coupon.startDate && 
+                        now <= coupon.expiryDate && 
+                        subtotal >= coupon.minPurchase &&
+                        coupon.usageCount < coupon.totalUsageLimit;
+
+        if (isValid) {
+            if (coupon.discountType === 'percentage') {
+                discount = (subtotal * coupon.discountValue) / 100;
+                if (coupon.maxDiscount > 0 && discount > coupon.maxDiscount) {
+                    discount = coupon.maxDiscount;
+                }
+            } else {
+                discount = coupon.discountValue;
+            }
+            appliedCoupon = coupon;
+        } else {
+            // Auto remove invalid coupon from cart
+            cart.appliedCoupon = null;
+            await cart.save();
+        }
+    }
+
     const finalAmount = subtotal + shippingCharge - discount;
     const itemsCount = cartItems.length;
 
@@ -85,11 +125,12 @@ const getCheckoutData = async (userId) => {
         shippingCharge,
         finalAmount,
         itemsCount,
+        appliedCoupon
     };
 };
 
 const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery", paymentStatus = null, paymentDetails = null) => {
-    const cart = await Cart.findOne({ userId }).populate("items.productId");
+    const cart = await Cart.findOne({ userId }).populate("items.productId").populate("appliedCoupon");
     if (!cart || cart.items.length === 0) {
         throw new Error("Cart is empty.");
     }
@@ -121,21 +162,62 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
     if (!selectedAddress) throw new Error("Selected address not found.");
 
     // Prepare order items (snapshots)
-    const orderItems = cart.items.map((item) => ({
-        productId: item.productId._id,
-        productName: item.productId.productName,
-        productImage: item.productId.productImage[0] || "",
-        size: item.size,
-        color: item.color,
-        quantity: item.quantity,
-        price: item.productId.salePrice,
-        itemTotal: item.productId.salePrice * item.quantity,
-        itemStatus: "Active",
-    }));
+    const orderItems = cart.items.map((item) => {
+        const currentPrice = getProductPrice(item.productId);
+        return {
+            productId: item.productId._id,
+            productName: item.productId.productName,
+            productImage: item.productId.productImage[0] || "",
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+            price: currentPrice,
+            itemTotal: currentPrice * item.quantity,
+            itemStatus: "Active",
+        };
+    });
 
     // Calculate totals
     const subtotal = orderItems.reduce((acc, item) => acc + item.itemTotal, 0);
-    const finalAmount = subtotal;
+    const shippingCharge = 0;
+    
+    // Coupon Logic
+    let discount = 0;
+    let couponCode = null;
+    let appliedCouponId = null;
+
+    if (cart.appliedCoupon) {
+        const coupon = cart.appliedCoupon;
+        const now = new Date();
+        
+        // Re-validate coupon
+        const isValid = !coupon.isDeleted && 
+                        coupon.isActive && 
+                        now >= coupon.startDate && 
+                        now <= coupon.expiryDate && 
+                        subtotal >= coupon.minPurchase &&
+                        coupon.usageCount < coupon.totalUsageLimit;
+
+        if (isValid) {
+            if (coupon.discountType === 'percentage') {
+                discount = (subtotal * coupon.discountValue) / 100;
+                if (coupon.maxDiscount > 0 && discount > coupon.maxDiscount) {
+                    discount = coupon.maxDiscount;
+                }
+            } else {
+                discount = coupon.discountValue;
+            }
+            couponCode = coupon.code;
+            appliedCouponId = coupon._id;
+        } else {
+            // If invalid at placement, block the order and notify user
+            cart.appliedCoupon = null;
+            await cart.save();
+            throw new Error("Applied coupon is no longer valid. Please review checkout.");
+        }
+    }
+
+    const finalAmount = subtotal + shippingCharge - discount;
 
     // Generate invoice number
     const invoiceSeq = await Counter.getNextSequence("invoiceNumber");
@@ -160,9 +242,12 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
         razorpayPaymentId: paymentDetails?.razorpayPaymentId || null,
         orderStatus: paymentStatus === "Failed" ? "Payment Failed" : "Placed",
         subtotal: subtotal,
-        discount: 0,
-        shippingCharge: 0,
+        discount: discount,
+        shippingCharge: shippingCharge,
         finalAmount: finalAmount,
+        couponApplied: !!couponCode,
+        couponCode: couponCode,
+        couponId: appliedCouponId,
         invoiceNumber: invoiceNumber,
         statusHistory: [{ status: paymentStatus === "Failed" ? "Payment Failed" : "Placed", date: new Date(), note: paymentStatus === "Failed" ? "Payment failed during checkout" : "Order placed successfully" }],
         createdOn: new Date(),
@@ -170,8 +255,12 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
 
     await newOrder.save();
 
-    // Deduct stock only if payment has not failed
+    // If order successful (not failed payment), update coupon usage and deduct stock
     if (paymentStatus !== "Failed") {
+        // Update Coupon Usage
+        await incrementCouponUsage(appliedCouponId, userId);
+
+        // Deduct Stock
         for (const item of cart.items) {
             await Product.updateOne(
                 {
@@ -226,6 +315,22 @@ const deductStockForOrder = async (order) => {
         );
     }
     return true;
+};
+
+// Increment usage count for a coupon
+const incrementCouponUsage = async (couponId, userId) => {
+    if (!couponId) return;
+    const coupon = await Coupon.findById(couponId);
+    if (coupon) {
+        coupon.usageCount += 1;
+        const userIndex = coupon.usersUsed.findIndex(u => u.userId.toString() === userId.toString());
+        if (userIndex > -1) {
+            coupon.usersUsed[userIndex].count += 1;
+        } else {
+            coupon.usersUsed.push({ userId: userId, count: 1 });
+        }
+        await coupon.save();
+    }
 };
 
 // ─── User: Order listing with search/filter/pagination ───────────────────────
@@ -845,5 +950,6 @@ module.exports = {
     getInventoryData,
     updateVariantStock,
     checkStockForOrder,
-    deductStockForOrder
+    deductStockForOrder,
+    incrementCouponUsage
 };

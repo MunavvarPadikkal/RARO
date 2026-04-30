@@ -173,6 +173,11 @@ const orderSchema = new Schema(
             type: String,
             default: null,
         },
+        couponId: {
+            type: Schema.Types.ObjectId,
+            ref: "Coupon",
+            default: null,
+        },
 
         // Auto-generated invoice number (INV-100001)
         invoiceNumber: {

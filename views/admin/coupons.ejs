@@ -1,18 +1,222 @@
 <%- include("./partials/adminHeader") %>
 <%- include("./partials/adminSidebar") %>
 
-<div class="admin-main">
+<div class="flex-1 overflow-x-hidden overflow-y-auto">
   <%- include("./partials/adminTopbar") %>
-  <main class="admin-content">
-    <div class="rar-card">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="h6 mb-0">Coupons</div>
-        <button class="btn btn-sm btn-rar" type="button" disabled>Create coupon</button>
+
+  <main class="px-8 pb-8">
+    <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-6">
+
+      <!-- Card Header & Actions -->
+      <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <h2 class="text-xl font-semibold text-gray-900">Coupons <span class="text-sm font-normal text-gray-400 ml-2">Management</span></h2>
+        
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <!-- Search -->
+          <form action="/admin/coupons" method="get" class="relative flex items-center">
+            <div class="relative flex items-center">
+              <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" name="search" placeholder="Search code..." value="<%= search %>" 
+                     class="w-full md:w-56 pl-10 <%= search ? 'pr-10' : 'pr-4' %> py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+              
+              <% if (search) { %>
+                <a href="/admin/coupons?status=<%= status %>" 
+                   class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                   title="Clear search">
+                  <i class="fa-solid fa-circle-xmark"></i>
+                </a>
+              <% } %>
+            </div>
+            
+            <select name="status" onchange="this.form.submit()" class="ml-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all">
+                <option value="">All Status</option>
+                <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+                <option value="expired" <%= status === 'expired' ? 'selected' : '' %>>Expired</option>
+                <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            </select>
+          </form>
+          
+          <!-- Add Coupon Button -->
+          <a href="/admin/addCoupon" class="px-5 py-2 bg-brand-orange text-white rounded-full text-sm font-medium hover:bg-opacity-90 transition-all flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-plus text-xs"></i>
+            Create Coupon
+          </a>
+        </div>
       </div>
-      <div class="mt-2 text-muted">Coupon CRUD, min cart, expiry, and usage limits will go here.</div>
+
+      <!-- Table Section -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50/50 border-b border-gray-100">
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Code</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Discount</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Min Purchase</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Usage (Total/User)</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500">Expiry</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500 text-center">Used</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500 text-center">Status</th>
+              <th scope="col" class="py-4 px-4 text-sm font-medium text-gray-500 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% if(coupons && coupons.length > 0) { %>
+              <% coupons.forEach((coupon) => { %>
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                  <td class="py-4 px-4 text-sm font-bold text-gray-900 uppercase">
+                    <%= coupon.code %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-800 font-medium">
+                    <% if(coupon.discountType === 'percentage') { %>
+                        <%= coupon.discountValue %>%
+                        <span class="text-xs text-gray-400 block">Max: ₹<%= coupon.maxDiscount %></span>
+                    <% } else { %>
+                        ₹<%= coupon.discountValue %>
+                    <% } %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-500">₹<%= coupon.minPurchase %></td>
+                  <td class="py-4 px-4 text-sm text-gray-500">
+                    <%= coupon.totalUsageLimit %> / <%= coupon.perUserLimit %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-gray-500">
+                    <%= new Date(coupon.expiryDate).toLocaleDateString('en-IN') %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-center font-semibold text-brand-orange">
+                    <%= coupon.usageCount %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-center">
+                    <% 
+                       const now = new Date();
+                       const isExpired = new Date(coupon.expiryDate) < now;
+                    %>
+                    <% if(isExpired) { %>
+                      <span class="inline-block px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">Expired</span>
+                    <% } else if(coupon.isActive) { %>
+                      <span class="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-medium">Active</span>
+                    <% } else { %>
+                      <span class="inline-block px-3 py-1 bg-red-50 text-red-500 rounded-full text-xs font-medium">Inactive</span>
+                    <% } %>
+                  </td>
+                  <td class="py-4 px-4 text-sm text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <a href="/admin/editCoupon?id=<%= coupon._id %>" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                        <i class="fa-solid fa-pen"></i>
+                      </a>
+                      
+                      <% if(coupon.isActive) { %>
+                        <button onclick="confirmToggleStatus('<%= coupon._id %>', false)" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Disable">
+                          <i class="fa-solid fa-ban"></i>
+                        </button>
+                      <% } else { %>
+                        <button onclick="confirmToggleStatus('<%= coupon._id %>', true)" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Enable">
+                          <i class="fa-solid fa-check"></i>
+                        </button>
+                      <% } %>
+
+                      <button onclick="confirmDelete('<%= coupon._id %>')" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="8" class="py-12 text-center text-sm text-gray-500">
+                  <div class="flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-ticket text-5xl text-gray-100 mb-4"></i>
+                    <p class="text-lg font-medium text-gray-400">No coupons found</p>
+                    <p class="text-gray-300">Try adjusting your search or filters</p>
+                  </div>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Section -->
+      <% if(totalPages > 1) { %>
+        <div class="mt-8 flex justify-center">
+          <nav aria-label="Page navigation" class="flex items-center gap-2">
+            <% for(let i = 1; i <= totalPages; i++) { %>
+              <a href="?page=<%= i %><%= search ? '&search=' + search : '' %><%= status ? '&status=' + status : '' %>" 
+                 class="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium transition-all
+                        <%= (i === parseInt(currentPage)) ? 'bg-brand-orange text-white shadow-md shadow-brand-orange/20' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' %>">
+                <%= i %>
+              </a>
+            <% } %>
+          </nav>
+        </div>
+      <% } %>
+
     </div>
   </main>
 </div>
 
-<%- include("./partials/adminFooter") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    async function confirmToggleStatus(id, enable) {
+        const result = await Swal.fire({
+            title: enable ? 'Enable Coupon?' : 'Disable Coupon?',
+            text: enable ? "Users will be able to apply this coupon." : "Users won't be able to apply this coupon.",
+            icon: enable ? 'question' : 'warning',
+            showCancelButton: true,
+            confirmButtonColor: enable ? '#10b981' : '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: enable ? 'Yes, Enable' : 'Yes, Disable'
+        });
 
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch('/admin/toggleCouponStatus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Updated!', text: data.message, showConfirmButton: false, timer: 1500 })
+                    .then(() => window.location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                }
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong' });
+            }
+        }
+    }
+
+    async function confirmDelete(id) {
+        const result = await Swal.fire({
+            title: 'Delete Coupon?',
+            text: "This action cannot be undone. Coupon will be permanently removed.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, Delete it'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch('/admin/deleteCoupon', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Deleted!', text: data.message, showConfirmButton: false, timer: 1500 })
+                    .then(() => window.location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                }
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong' });
+            }
+        }
+    }
+</script>
+
+<%- include("./partials/adminFooter") %>

@@ -321,6 +321,23 @@ const verifyRetryPayment = async (req, res) => {
         order.statusHistory.push({ status: "Placed", date: new Date(), note: "Payment retried successfully" });
         
         await orderService.deductStockForOrder(order);
+        
+        // If order has a coupon, increment its usage
+        if (order.couponApplied) {
+            let couponIdToUse = order.couponId;
+            
+            // Fallback for older orders that only have the code
+            if (!couponIdToUse && order.couponCode) {
+                const Coupon = require("../../models/couponSchema");
+                const coupon = await Coupon.findOne({ code: order.couponCode });
+                if (coupon) couponIdToUse = coupon._id;
+            }
+            
+            if (couponIdToUse) {
+                await orderService.incrementCouponUsage(couponIdToUse, userId);
+            }
+        }
+        
         await order.save();
 
         return res.json({

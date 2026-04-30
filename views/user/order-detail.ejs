@@ -177,11 +177,11 @@
                                             <table style="width: 100%; font-size: 14px;">
                                                 <tr>
                                                     <td style="padding: 8px 0; color: #666;">Subtotal</td>
-                                                    <td style="padding: 8px 0; text-align: right; font-weight: 600;">₹<%= (order.subtotal + order.discount).toLocaleString() %></td>
+                                                    <td style="padding: 8px 0; text-align: right; font-weight: 600;">₹<%= order.subtotal.toLocaleString() %></td>
                                                 </tr>
                                                 <% if (order.discount > 0) { %>
                                                 <tr>
-                                                    <td style="padding: 8px 0; color: #2e7d32;">Discount</td>
+                                                    <td style="padding: 8px 0; color: #2e7d32;">Coupon Discount</td>
                                                     <td style="padding: 8px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= order.discount.toLocaleString() %></td>
                                                 </tr>
                                                 <% } %>

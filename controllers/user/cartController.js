@@ -3,8 +3,8 @@ const cartService = require("../../services/cartService");
 const loadCart = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { cart, subtotal, itemsCount } = await cartService.getCart(userId);
-        res.render("cart", { cart, subtotal, itemsCount, user: req.session.user });
+        const { cart, subtotal, itemsCount, discount, finalAmount } = await cartService.getCart(userId);
+        res.render("cart", { cart, subtotal, itemsCount, discount, finalAmount, user: req.session.user });
     } catch (error) {
         console.error("Error loading cart:", error);
         res.redirect("/pageNotFound");

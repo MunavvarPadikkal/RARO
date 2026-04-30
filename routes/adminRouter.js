@@ -6,6 +6,7 @@ const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
 const adminOrderController = require("../controllers/admin/adminOrderController");
+const couponController = require("../controllers/admin/couponController");
 const { productUpload } = require("../middlewares/multer");
 
 
@@ -62,6 +63,16 @@ router.post("/returns/:orderId/items/:itemId/complete", adminAuth.isLogin, admin
 // Inventory / Stock Management
 router.get("/inventory", adminAuth.isLogin, adminOrderController.loadInventory);
 router.post("/inventory/update-stock", adminAuth.isLogin, adminOrderController.updateStock);
+
+
+// Coupon Management
+router.get("/coupons", adminAuth.isLogin, couponController.loadCoupons);
+router.get("/addCoupon", adminAuth.isLogin, couponController.getAddCoupon);
+router.post("/addCoupon", adminAuth.isLogin, couponController.addCoupon);
+router.get("/editCoupon", adminAuth.isLogin, couponController.getEditCoupon);
+router.post("/editCoupon", adminAuth.isLogin, couponController.editCoupon);
+router.post("/toggleCouponStatus", adminAuth.isLogin, couponController.toggleStatus);
+router.post("/deleteCoupon", adminAuth.isLogin, couponController.deleteCoupon);
 
 
 module.exports = router;

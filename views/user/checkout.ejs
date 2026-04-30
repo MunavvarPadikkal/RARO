@@ -137,12 +137,17 @@
                                 <tbody>
                                     <tr class="summary-subtotal">
                                         <td>Price (<%= itemsCount %> item<%= itemsCount > 1 ? 's' : '' %>):</td>
-                                        <td>₹<%= subtotal + discount %></td>
+                                        <td>₹<%= subtotal %></td>
                                     </tr>
 
                                     <% if (discount > 0) { %>
                                         <tr>
-                                            <td class="text-success">Discount:</td>
+                                            <td class="text-success">
+                                                Coupon Discount 
+                                                <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
+                                                    <span class="font-weight-bold" style="color: #d38c64;">(<%= appliedCoupon.code %>)</span>
+                                                <% } %>:
+                                            </td>
                                             <td class="text-success">− ₹<%= discount %></td>
                                         </tr>
                                     <% } %>

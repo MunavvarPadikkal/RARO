@@ -249,11 +249,11 @@
                 <table style="width: 300px; font-size: 15px; border-collapse: collapse;">
                     <tr>
                         <td style="padding: 10px 0; color: #888;">Subtotal</td>
-                        <td style="padding: 10px 0; text-align: right; color: #333;">₹<%= order.subtotal + order.discount %></td>
+                        <td style="padding: 10px 0; text-align: right; color: #333;">₹<%= order.subtotal %></td>
                     </tr>
                     <% if (order.discount > 0) { %>
                     <tr>
-                        <td style="padding: 10px 0; color: #2e7d32;">Discount</td>
+                        <td style="padding: 10px 0; color: #2e7d32;">Coupon Discount</td>
                         <td style="padding: 10px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= order.discount %></td>
                     </tr>
                     <% } %>

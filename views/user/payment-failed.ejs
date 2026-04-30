@@ -88,11 +88,11 @@
                             <table class="failure-price-table">
                                 <tr>
                                     <td>Subtotal</td>
-                                    <td>₹<%= order.subtotal + order.discount %></td>
+                                    <td>₹<%= order.subtotal %></td>
                                 </tr>
                                 <% if (order.discount > 0) { %>
                                     <tr class="discount-row">
-                                        <td>Discount</td>
+                                        <td>Coupon Discount</td>
                                         <td>− ₹<%= order.discount %></td>
                                     </tr>
                                 <% } %>

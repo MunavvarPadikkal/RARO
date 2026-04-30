@@ -1,38 +1,77 @@
 const mongoose = require("mongoose");
-const {Schema} = mongoose;
+const { Schema } = mongoose;
 
 const couponSchema = new Schema({
-    name:{
-        type:String,
-        required:true,
-        unique:true
+    code: {
+        type: String,
+        required: true,
+        unique: true,
+        uppercase: true,
+        trim: true
     },
-    cretedOn:{
-        type:Date,
-        default:Date.now,
-        required:true
+    discountType: {
+        type: String,
+        enum: ["percentage", "fixed"],
+        required: true
     },
-    expireOn:{
-        type:Date,
-        required:true
+    discountValue: {
+        type: Number,
+        required: true,
+        min: 0
     },
-    offerPrice:{
-        type:Number,
-        required:true
+    minPurchase: {
+        type: Number,
+        required: true,
+        min: 0
     },
-    minimumPrice:{
-        type:Number,
-        required:true
+    maxDiscount: {
+        type: Number,
+        default: 0, // Used only for percentage type
+        min: 0
     },
-    isList:{
-        type:Boolean,
-        default:true
+    startDate: {
+        type: Date,
+        required: true,
+        default: Date.now
     },
-    userId:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
-    }]
-})
+    expiryDate: {
+        type: Date,
+        required: true
+    },
+    totalUsageLimit: {
+        type: Number,
+        required: true,
+        min: 1
+    },
+    perUserLimit: {
+        type: Number,
+        required: true,
+        min: 1,
+        default: 1
+    },
+    usageCount: {
+        type: Number,
+        default: 0
+    },
+    usersUsed: [{
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        },
+        count: {
+            type: Number,
+            default: 0
+        }
+    }],
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    }
+}, { timestamps: true });
 
-const Coupon = mongoose.model("Coupon",couponSchema);
-module.exports = Coupon;
+const Coupon = mongoose.model("Coupon", couponSchema);
+module.exports = Coupon;

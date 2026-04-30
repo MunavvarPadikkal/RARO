@@ -107,14 +107,24 @@
                         <% if (cart && cart.items && cart.items.length > 0) { %>
                         <div class="cart-bottom">
                             <div class="cart-discount">
-                                <form action="#">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="coupon code">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-primary-2" type="submit" disabled title="Coupons are not implemented yet"><i class="icon-long-arrow-right"></i></button>
-                                        </div><!-- .End .input-group-append -->
-                                    </div><!-- End .input-group -->
-                                </form>
+                                <% if (cart.appliedCoupon) { %>
+                                    <div class="applied-coupon-info">
+                                        <div class="d-flex align-items-center bg-light p-3 rounded">
+                                            <i class="icon-tag mr-2 text-primary"></i>
+                                            <span class="mr-3 font-weight-bold">Coupon Applied: <span class="text-primary"><%= cart.appliedCoupon.code %></span></span>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeCoupon()">Remove</button>
+                                        </div>
+                                    </div>
+                                <% } else { %>
+                                    <form id="coupon-form">
+                                        <div class="input-group">
+                                            <input type="text" id="coupon-code" class="form-control" placeholder="Enter coupon code" required>
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-primary-2" type="submit"><i class="icon-long-arrow-right"></i></button>
+                                            </div><!-- .End .input-group-append -->
+                                        </div><!-- End .input-group -->
+                                    </form>
+                                <% } %>
                             </div><!-- End .cart-discount -->
 
                             <a href="/cart" class="btn btn-outline-dark-2"><span>UPDATE CART</span><i class="icon-refresh"></i></a>
@@ -132,6 +142,18 @@
                                         <td>Subtotal (<%= itemsCount %> items):</td>
                                         <td id="cart-subtotal">₹<%= subtotal %></td>
                                     </tr><!-- End .summary-subtotal -->
+
+                                    <% if (discount > 0) { %>
+                                    <tr class="summary-discount text-success">
+                                        <td>
+                                            Coupon Discount
+                                            <% if (cart && cart.appliedCoupon) { %>
+                                                <span class="font-weight-bold" style="color: #d38c64;">(<%= cart.appliedCoupon.code %>)</span>
+                                            <% } %>:
+                                        </td>
+                                        <td>- ₹<%= discount %></td>
+                                    </tr>
+                                    <% } %>
                                     
                                     <tr class="summary-shipping">
                                         <td>Shipping:</td>
@@ -150,7 +172,7 @@
 
                                     <tr class="summary-total">
                                         <td>Total:</td>
-                                        <td id="cart-total">₹<%= subtotal %></td>
+                                        <td id="cart-total">₹<%= finalAmount %></td>
                                     </tr><!-- End .summary-total -->
                                 </tbody>
                             </table><!-- End .table table-summary -->
@@ -330,7 +352,61 @@
                 }
             }
         });
+
+        // ── Coupon Logic ──
+        $('#coupon-form').on('submit', async function(e) {
+            e.preventDefault();
+            const code = $('#coupon-code').val().trim();
+            if (!code) return;
+
+            try {
+                const res = await fetch('/cart/apply-coupon', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Applied!',
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => window.location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+                }
+            } catch (err) {
+                console.error("Coupon apply error:", err);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong.' });
+            }
+        });
     });
+
+    async function removeCoupon() {
+        try {
+            const res = await fetch('/cart/remove-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Removed!',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => window.location.reload());
+            } else {
+                Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+            }
+        } catch (err) {
+            console.error("Coupon remove error:", err);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong.' });
+        }
+    }
 </script>
 
 <%-include("../../views/partials/user/mobileView.ejs")%>

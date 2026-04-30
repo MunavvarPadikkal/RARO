@@ -37,7 +37,12 @@ const cartSchema = new Schema({
             type:Date,
             default:Date.now
         }
-    }]
+    }],
+    appliedCoupon: {
+        type: Schema.Types.ObjectId,
+        ref: "Coupon",
+        default: null
+    }
 }, {timestamps: true})
 
 const Cart = mongoose.model("Cart",cartSchema);

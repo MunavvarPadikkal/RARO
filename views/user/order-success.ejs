@@ -95,11 +95,11 @@
                             <table class="success-price-table">
                                 <tr>
                                     <td>Subtotal</td>
-                                    <td>₹<%= order.subtotal + order.discount %></td>
+                                    <td>₹<%= order.subtotal %></td>
                                 </tr>
                                 <% if (order.discount > 0) { %>
                                     <tr class="discount-row">
-                                        <td>Discount</td>
+                                        <td>Coupon Discount</td>
                                         <td>− ₹<%= order.discount %></td>
                                     </tr>
                                 <% } %>
@@ -528,11 +528,11 @@
             <table style="width: 250px; font-size: 14px; border-collapse: collapse;">
                 <tr>
                     <td style="padding: 8px 0; color: #666;">Subtotal</td>
-                    <td style="padding: 8px 0; text-align: right;">₹<%= order.subtotal + order.discount %></td>
+                    <td style="padding: 8px 0; text-align: right;">₹<%= order.subtotal %></td>
                 </tr>
                 <% if (order.discount > 0) { %>
                 <tr>
-                    <td style="padding: 8px 0; color: #2e7d32;">Discount</td>
+                    <td style="padding: 8px 0; color: #2e7d32;">Coupon Discount</td>
                     <td style="padding: 8px 0; text-align: right; color: #2e7d32;">− ₹<%= order.discount %></td>
                 </tr>
                 <% } %>
