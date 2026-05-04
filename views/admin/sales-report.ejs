@@ -1,15 +1,124 @@
 <%- include("./partials/adminHeader") %>
 <%- include("./partials/adminSidebar") %>
 
-<div class="admin-main">
+<div class="flex-1 overflow-x-hidden overflow-y-auto">
   <%- include("./partials/adminTopbar") %>
-  <main class="admin-content">
-    <div class="rar-card">
-      <div class="h6 mb-2">Sales Report</div>
-      <div class="text-muted">Filters (day/week/month), export, and charts will go here.</div>
+
+  <main class="px-8 pb-8">
+    <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8">
+      
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h2 class="text-2xl font-semibold text-gray-900">Sales Report</h2>
+          <p class="text-sm text-gray-500 mt-1">Analyze your store's financial performance.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/admin/sales-report/download/pdf?startDate=<%= startDate %>&endDate=<%= endDate %>" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf"></i> PDF
+          </a>
+          <a href="/admin/sales-report/download/excel?startDate=<%= startDate %>&endDate=<%= endDate %>" class="px-4 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-file-excel"></i> Excel
+          </a>
+        </div>
+      </div>
+
+      <!-- Filters Row -->
+      <div class="bg-gray-50 rounded-xl p-6 mb-8">
+        <form action="/admin/sales-report" method="GET" id="reportFilterForm" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+          <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Quick Filter</label>
+            <select name="filter" id="quickFilter" onchange="this.form.submit()" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all">
+              <option value="" <%= !filter ? 'selected' : '' %>>Custom Range</option>
+              <option value="today" <%= filter === 'today' ? 'selected' : '' %>>Today</option>
+              <option value="week" <%= filter === 'week' ? 'selected' : '' %>>This Week</option>
+              <option value="month" <%= filter === 'month' ? 'selected' : '' %>>This Month</option>
+              <option value="year" <%= filter === 'year' ? 'selected' : '' %>>This Year</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Start Date</label>
+            <input type="date" name="startDate" id="startDate" value="<%= startDate %>" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">End Date</label>
+            <input type="date" name="endDate" id="endDate" value="<%= endDate %>" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all">
+          </div>
+          <button type="submit" class="bg-black text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors h-[38px]">
+            Apply Filter
+          </button>
+        </form>
+      </div>
+
+      <script>
+        document.getElementById('startDate').addEventListener('change', function() {
+          document.getElementById('quickFilter').value = "";
+        });
+        document.getElementById('endDate').addEventListener('change', function() {
+          document.getElementById('quickFilter').value = "";
+        });
+      </script>
+
+      <!-- Report Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100">
+              <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+              <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Orders</th>
+              <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Gross Sales</th>
+              <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Offer Disc</th>
+              <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Coupon Disc</th>
+              <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Net Revenue</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            <% reportData.forEach(row => { %>
+              <tr class="hover:bg-gray-50/50 transition-colors">
+                <td class="py-4 px-4 text-sm font-medium text-gray-900"><%= row._id %></td>
+                <td class="py-4 px-4 text-sm text-gray-600 text-center"><%= row.orderCount %></td>
+                <td class="py-4 px-4 text-sm text-gray-700">₹<%= row.totalSales.toLocaleString() %></td>
+                <td class="py-4 px-4 text-sm text-red-500">-₹<%= row.offerDiscount.toLocaleString() %></td>
+                <td class="py-4 px-4 text-sm text-red-500">-₹<%= row.couponDiscount.toLocaleString() %></td>
+                <td class="py-4 px-4 text-sm font-bold text-gray-900 text-right">₹<%= row.finalAmount.toLocaleString() %></td>
+              </tr>
+            <% }) %>
+            <% if (reportData.length === 0) { %>
+              <tr>
+                <td colspan="6" class="py-20 text-center text-gray-400">
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-folder-open text-4xl opacity-20"></i>
+                    <p>No sales found for this period</p>
+                  </div>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+          <% if (reportData.length > 0) { 
+              const totals = reportData.reduce((acc, r) => {
+                acc.orders += r.orderCount;
+                acc.sales += r.totalSales;
+                acc.offer += r.offerDiscount;
+                acc.coupon += r.couponDiscount;
+                acc.final += r.finalAmount;
+                return acc;
+              }, { orders: 0, sales: 0, offer: 0, coupon: 0, final: 0 });
+          %>
+            <tfoot>
+              <tr class="bg-gray-50 font-bold">
+                <td class="py-4 px-4 text-sm text-gray-900">TOTAL</td>
+                <td class="py-4 px-4 text-sm text-gray-900 text-center"><%= totals.orders %></td>
+                <td class="py-4 px-4 text-sm text-gray-900">₹<%= totals.sales.toLocaleString() %></td>
+                <td class="py-4 px-4 text-sm text-red-600">-₹<%= totals.offer.toLocaleString() %></td>
+                <td class="py-4 px-4 text-sm text-red-600">-₹<%= totals.coupon.toLocaleString() %></td>
+                <td class="py-4 px-4 text-sm text-gray-900 text-right">₹<%= totals.final.toLocaleString() %></td>
+              </tr>
+            </tfoot>
+          <% } %>
+        </table>
+      </div>
+
     </div>
   </main>
 </div>
 
 <%- include("./partials/adminFooter") %>
-

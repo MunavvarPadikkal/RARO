@@ -14,9 +14,16 @@ const { productUpload } = require("../middlewares/multer");
 router.get("/pageError", adminController.pageError);
 router.get("/login", adminController.loadLogin);
 router.post("/login", adminController.login);
-router.get("/", adminAuth.isLogin,adminController.loadDashboard);
-router.get("/dashboard", adminAuth.isLogin,adminController.loadDashboard);
-router.get("/logout",adminController.logout);
+router.get("/", adminAuth.isLogin, adminController.loadDashboard);
+router.get("/dashboard", adminAuth.isLogin, adminController.loadDashboard);
+router.get("/dashboard/chart-data", adminAuth.isLogin, adminController.getChartData);
+router.get("/logout", adminController.logout);
+
+// Sales Report
+const salesReportController = require("../controllers/admin/salesReportController");
+router.get("/sales-report", adminAuth.isLogin, salesReportController.loadSalesReport);
+router.get("/sales-report/download/pdf", adminAuth.isLogin, salesReportController.downloadPdf);
+router.get("/sales-report/download/excel", adminAuth.isLogin, salesReportController.downloadExcel);
 
 
 router.get("/customers",adminAuth.isLogin,customerController.customerInfo);

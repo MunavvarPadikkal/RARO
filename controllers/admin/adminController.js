@@ -1,3 +1,4 @@
+const dashboardService = require("../../services/dashboardService");
 const adminService = require("../../services/adminService");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
@@ -45,13 +46,32 @@ const login = async (req, res) => {
 
 const loadDashboard = async (req, res) => {
     try {
-        if (req.session.admin) {
-            res.render("dashboard");
-        }else{
+        if (!req.session.admin) {
             return res.redirect("/admin/login");
         }
+        
+        const metrics = await dashboardService.getDashboardMetrics();
+        const { topProducts, topCategories } = await dashboardService.getBestSellingMetrics();
+        
+        res.render("dashboard", {
+            metrics,
+            topProducts,
+            topCategories
+        });
     } catch (error) {
-        res.redirect("/pageError");
+        console.error("Dashboard load error:", error);
+        res.redirect("/admin/pageError");
+    }
+}
+
+const getChartData = async (req, res) => {
+    try {
+        const { filter = "monthly" } = req.query;
+        const chartData = await dashboardService.getSalesChartData(filter);
+        res.json({ success: true, chartData });
+    } catch (error) {
+        console.error("Chart data error:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch chart data" });
     }
 }
 
@@ -128,6 +148,7 @@ module.exports = {
     loadLogin,
     login,
     loadDashboard,
+    getChartData,
     pageError,
     logout,
     loadRefunds,
