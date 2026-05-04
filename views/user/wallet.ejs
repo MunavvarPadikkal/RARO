@@ -37,8 +37,10 @@
                                 <div class="card-header bg-transparent border-0 pt-4 px-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="card-title mb-0" style="font-weight: 700;">Transaction History</h5>
+                                        <!-- Add Font Awesome for the icon -->
+                                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
                                         <button class="btn btn-outline-primary-2 btn-round btn-sm" onclick="downloadStatement()">
-                                            <i class="icon-download"></i> Download Statement
+                                            <i class="fa-solid fa-download mr-1"></i> Download Statement
                                         </button>
                                     </div>
                                 </div>
@@ -55,7 +57,7 @@
                                             </thead>
                                             <tbody>
                                                 <% if (wallet.transactions && wallet.transactions.length > 0) { %>
-                                                    <% wallet.transactions.sort((a,b) => b.date - a.date).forEach(tx => { %>
+                                                    <% wallet.transactions.forEach(tx => { %>
                                                         <tr>
                                                             <td class="px-4 py-3 align-middle">
                                                                 <span class="text-dark font-weight-medium">
@@ -101,6 +103,29 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Pagination -->
+                            <% if (totalPages > 1) { %>
+                                <nav aria-label="Page navigation" class="mt-4">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                                            <a class="page-link page-link-prev" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                                                <span aria-hidden="true"><i class="icon-long-arrow-left"></i></span>Prev
+                                            </a>
+                                        </li>
+                                        <% for(let i = 1; i <= totalPages; i++) { %>
+                                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                                            </li>
+                                        <% } %>
+                                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                                            <a class="page-link page-link-next" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                                                Next <span aria-hidden="true"><i class="icon-long-arrow-right"></i></span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -128,11 +153,46 @@
     }
 </style>
 
+<!-- PDF Generation Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 <script>
-    function downloadStatement() {
-        // We'll use window.print() or a library like jspdf later if needed.
-        // For now, let's open the browser's print dialog formatted for the statement.
-        window.print();
+    async function downloadStatement() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Add Title
+        doc.setFontSize(20);
+        doc.setTextColor(204, 153, 102); // Brand Color
+        doc.text("RARO Wallet Statement", 14, 22);
+
+        // Add User Info / Date
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 14, 30);
+        doc.text(`Wallet Balance: ₹<%= wallet.balance.toLocaleString('en-IN') %>`, 14, 38);
+
+        // Extract table data
+        const table = document.querySelector(".table");
+        
+        doc.autoTable({
+            html: table,
+            startY: 45,
+            theme: 'striped',
+            headStyles: { fillColor: [204, 153, 102], textColor: [255, 255, 255] },
+            alternateRowStyles: { fillColor: [250, 250, 250] },
+            margin: { top: 45 },
+            didDrawPage: function (data) {
+                // Footer
+                doc.setFontSize(10);
+                doc.setTextColor(150);
+                doc.text("Thank you for shopping with RARO!", 14, doc.internal.pageSize.height - 10);
+            }
+        });
+
+        // Save PDF
+        doc.save(`RARO_Wallet_Statement_${new Date().getTime()}.pdf`);
     }
 </script>
 

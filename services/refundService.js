@@ -67,6 +67,12 @@ const executeRefund = async (refundId) => {
     refund.status = "Completed";
     refund.processedAt = new Date();
     await refund.save();
+
+    // Update order with the refund amount
+    if (order) {
+        order.refundAmount = (order.refundAmount || 0) + refund.amount;
+        await order.save();
+    }
     
     return refund;
 };

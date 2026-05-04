@@ -186,36 +186,60 @@
                                     <div class="card shadow-sm border-0 mb-3" style="border-radius: 16px; overflow: hidden;">
                                         <div class="card-body p-4">
                                             <h6 style="font-weight: 700; margin-bottom: 16px; font-size: 1.5rem;">Price Breakdown</h6>
-                                            <table style="width: 100%; font-size: 14px;">
-                                                <tr>
-                                                    <td style="padding: 8px 0; color: #666;">Subtotal</td>
-                                                    <td style="padding: 8px 0; text-align: right; font-weight: 600;">₹<%= order.subtotal.toLocaleString() %></td>
-                                                </tr>
-                                                <% if (order.discount > 0) { %>
-                                                <tr>
-                                                    <td style="padding: 8px 0; color: #2e7d32;">Coupon Discount</td>
-                                                    <td style="padding: 8px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= order.discount.toLocaleString() %></td>
-                                                </tr>
-                                                <% } %>
-                                                <tr>
-                                                    <td style="padding: 8px 0; color: #666;">Shipping</td>
-                                                    <td style="padding: 8px 0; text-align: right;"><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge %></td>
-                                                </tr>
-                                                <tr style="border-top: 2px solid #eee;">
-                                                    <td style="padding: 14px 0; font-weight: 800; font-size: 16px; color: #222;">Total Payable</td>
-                                                    <td style="padding: 14px 0; text-align: right; font-weight: 800; font-size: 16px; color: #333;">₹<%= order.finalAmount.toLocaleString() %></td>
-                                                </tr>
-                                                <% if (order.walletAmountUsed > 0) { %>
-                                                <tr>
-                                                    <td style="padding: 8px 0; color: #a67c52;">Wallet Deduction</td>
-                                                    <td style="padding: 8px 0; text-align: right; color: #a67c52; font-weight: 600;">− ₹<%= order.walletAmountUsed.toLocaleString() %></td>
-                                                </tr>
-                                                <tr style="border-top: 2px solid #c96;">
-                                                    <td style="padding: 14px 0; font-weight: 800; font-size: 16px; color: #222;">Final Amount Paid</td>
-                                                    <td style="padding: 14px 0; text-align: right; font-weight: 800; font-size: 16px; color: #c96;">₹<%= (order.finalAmount - order.walletAmountUsed).toLocaleString() %></td>
-                                                </tr>
-                                                <% } %>
-                                            </table>
+                                            <div class="mb-3">
+                                                <h6 class="text-muted small text-uppercase mb-2" style="letter-spacing: 1px; font-weight: 700;">Order Summary</h6>
+                                                <table style="width: 100%; font-size: 14px;">
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #666;">Subtotal</td>
+                                                        <td style="padding: 4px 0; text-align: right; font-weight: 600;">₹<%= order.subtotal.toLocaleString() %></td>
+                                                    </tr>
+                                                    <% if (order.discount > 0) { %>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #2e7d32;">Coupon Discount</td>
+                                                        <td style="padding: 4px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= order.discount.toLocaleString() %></td>
+                                                    </tr>
+                                                    <% } %>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #666;">Shipping</td>
+                                                        <td style="padding: 4px 0; text-align: right;"><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge.toLocaleString() %></td>
+                                                    </tr>
+                                                    <tr style="border-top: 1px solid #eee;">
+                                                        <td style="padding: 10px 0; font-weight: 700; color: #222;">Total Payable</td>
+                                                        <td style="padding: 10px 0; text-align: right; font-weight: 700; color: #222;">₹<%= order.finalAmount.toLocaleString() %></td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+
+                                            <div class="mb-3 pt-2" style="border-top: 1px dashed #ddd;">
+                                                <h6 class="text-muted small text-uppercase mb-2" style="letter-spacing: 1px; font-weight: 700;">Payment</h6>
+                                                <table style="width: 100%; font-size: 14px;">
+                                                    <% if (order.walletAmountUsed > 0) { %>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #666;">Wallet Used</td>
+                                                        <td style="padding: 4px 0; text-align: right; font-weight: 600;">₹<%= order.walletAmountUsed.toLocaleString() %></td>
+                                                    </tr>
+                                                    <% } %>
+                                                    <tr>
+                                                        <td style="padding: 4px 0; color: #666;">Final Paid</td>
+                                                        <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #c96;">
+                                                            ₹<%= Math.max(0, order.finalAmount - order.walletAmountUsed).toLocaleString() %>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+
+                                            <% if (order.refundAmount > 0) { %>
+                                            <div class="mb-0 pt-2" style="border-top: 1px dashed #ddd;">
+                                                <h6 class="text-muted small text-uppercase mb-2" style="letter-spacing: 1px; font-weight: 700; color: #2e7d32;">Refund</h6>
+                                                <div class="d-flex justify-content-between align-items-center" style="background: #e8f5e9; padding: 10px 14px; border-radius: 8px;">
+                                                    <span style="font-size: 13px; color: #2e7d32; font-weight: 600;">Total Refunded</span>
+                                                    <span style="font-size: 15px; color: #2e7d32; font-weight: 800;">₹<%= order.refundAmount.toLocaleString() %></span>
+                                                </div>
+                                                <div class="text-right mt-1">
+                                                    <small class="text-muted" style="font-style: italic;">Refunded to wallet</small>
+                                                </div>
+                                            </div>
+                                            <% } %>
                                             <div style="margin-top: 12px; font-size: 13px;">
                                                 <span style="color: #666;">Payment:</span> 
                                                 <strong>

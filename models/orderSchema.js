@@ -90,7 +90,7 @@ const orderSchema = new Schema(
 
         paymentMethod: {
             type: String,
-            enum: ["Cash on Delivery", "Razorpay"],
+            enum: ["Cash on Delivery", "Razorpay", "Wallet"],
             default: "Cash on Delivery",
             required: true,
         },
@@ -179,6 +179,10 @@ const orderSchema = new Schema(
             default: null,
         },
         walletAmountUsed: {
+            type: Number,
+            default: 0,
+        },
+        refundAmount: {
             type: Number,
             default: 0,
         },

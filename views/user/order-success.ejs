@@ -95,32 +95,32 @@
                             <table class="success-price-table">
                                 <tr>
                                     <td>Subtotal</td>
-                                    <td>₹<%= order.subtotal %></td>
+                                    <td>₹<%= order.subtotal.toLocaleString() %></td>
                                 </tr>
                                 <% if (order.discount > 0) { %>
                                     <tr class="discount-row">
                                         <td>Coupon Discount</td>
-                                        <td>− ₹<%= order.discount %></td>
+                                        <td>− ₹<%= order.discount.toLocaleString() %></td>
                                     </tr>
                                 <% } %>
                                 <tr>
                                     <td>Shipping</td>
-                                    <td><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge %></td>
+                                    <td><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge.toLocaleString() %></td>
                                 </tr>
                                 <tr class="total-row">
-                                    <td>Total Order Value</td>
-                                    <td>₹<%= order.finalAmount %></td>
+                                    <td>Total Payable</td>
+                                    <td>₹<%= order.finalAmount.toLocaleString() %></td>
                                 </tr>
                                 <% if (order.walletAmountUsed > 0) { %>
                                     <tr>
-                                        <td style="color: #a67c52;">Wallet Used</td>
-                                        <td style="color: #a67c52;">− ₹<%= order.walletAmountUsed %></td>
-                                    </tr>
-                                    <tr class="total-row" style="border-top: 2px solid #c96; margin-top: 5px;">
-                                        <td><strong><%= order.paymentStatus === 'Paid' ? 'Paid Amount' : 'Balance to Pay' %></strong></td>
-                                        <td><strong>₹<%= order.finalAmount - order.walletAmountUsed %></strong></td>
+                                        <td style="color: #666;">Wallet Used</td>
+                                        <td style="color: #666;">₹<%= order.walletAmountUsed.toLocaleString() %></td>
                                     </tr>
                                 <% } %>
+                                <tr class="total-row" style="border-top: 1px dashed #c96; margin-top: 5px;">
+                                    <td><strong style="color: #c96;">Final Paid</strong></td>
+                                    <td><strong style="color: #c96;">₹<%= Math.max(0, order.finalAmount - order.walletAmountUsed).toLocaleString() %></strong></td>
+                                </tr>
                             </table>
                         </div>
 

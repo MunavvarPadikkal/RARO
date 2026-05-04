@@ -79,6 +79,15 @@ const loadRefunds = async (req, res) => {
         
         if (status) filter.status = status;
 
+        if (search) {
+            const Order = require("../../models/orderSchema");
+            const cleanSearch = search.startsWith('#') ? search.substring(1) : search;
+            const matchingOrders = await Order.find({ 
+                orderId: { $regex: cleanSearch, $options: "i" } 
+            }).select("_id");
+            filter.orderId = { $in: matchingOrders.map(o => o._id) };
+        }
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
         const refunds = await Refund.find(filter)

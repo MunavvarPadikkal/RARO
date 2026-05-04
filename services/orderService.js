@@ -481,11 +481,6 @@ const cancelOrderItem = async (orderId, itemId, userId, reason = "") => {
     item.itemStatus = "Cancelled";
     item.cancellationReason = reason || "Cancelled by customer";
 
-    // Recalculate order totals (only active items)
-    const activeItems = order.orderedItems.filter(
-        (i) => i.itemStatus === "Active"
-    );
-
     _updateTotalOrderStatus(order);
     if (order.orderStatus === "Cancelled") order.cancellationReason = "All items cancelled";
     
@@ -495,11 +490,8 @@ const cancelOrderItem = async (orderId, itemId, userId, reason = "") => {
         note: `Item "${item.productName}" cancelled`,
     });
 
-    // Recalculate totals from active items
-    const newSubtotal = activeItems.reduce((sum, i) => sum + i.itemTotal, 0);
-    order.subtotal = newSubtotal;
-    order.finalAmount = newSubtotal + order.shippingCharge - order.discount;
-    if (order.finalAmount < 0) order.finalAmount = 0;
+    // DO NOT recalculate subtotal and finalAmount to preserve original transaction record.
+    // Refund will be handled separately via refundAmount.
 
     await order.save();
 

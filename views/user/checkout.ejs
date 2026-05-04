@@ -480,14 +480,55 @@
         const checkbox = document.getElementById('use-wallet-cb');
         const infoDiv = document.getElementById('wallet-usage-info');
         const amountSpan = document.getElementById('applied-wallet-amount');
+        const paymentCards = document.querySelectorAll('.checkout-payment-card');
         
         if (checkbox && checkbox.checked) {
             appliedWalletAmount = Math.min(walletBalance, finalAmount);
             amountSpan.textContent = appliedWalletAmount;
             infoDiv.style.display = 'block';
+
+            // If wallet covers full amount, disable other options
+            if (Math.round(appliedWalletAmount) >= Math.round(finalAmount)) {
+                paymentCards.forEach(card => {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none';
+                    const radio = card.querySelector('.payment-radio');
+                    if (radio) {
+                        radio.checked = false;
+                        radio.disabled = true;
+                    }
+                    card.classList.remove('selected-payment');
+                });
+                selectedPaymentMethod = 'Wallet';
+            } else {
+                paymentCards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                    const radio = card.querySelector('.payment-radio');
+                    if (radio) radio.disabled = false;
+                });
+                // If it was wallet but now partial, select COD by default
+                if (selectedPaymentMethod === 'Wallet') {
+                    const codCard = document.querySelector('.checkout-payment-card');
+                    if (codCard) selectPayment('Cash on Delivery', codCard);
+                }
+            }
         } else {
             appliedWalletAmount = 0;
             infoDiv.style.display = 'none';
+            
+            // Re-enable other options
+            paymentCards.forEach(card => {
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+                const radio = card.querySelector('.payment-radio');
+                if (radio) radio.disabled = false;
+            });
+            // Reset to default payment method if it was Wallet
+            if (selectedPaymentMethod === 'Wallet') {
+                const codCard = document.querySelector('.checkout-payment-card');
+                if (codCard) selectPayment('Cash on Delivery', codCard);
+            }
         }
     }
 

@@ -336,11 +336,17 @@ const changeEmailResendOtp = async (req, res) => {
 const loadWallet = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const wallet = await walletService.getWallet(userId);
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5;
+        
+        const walletData = await walletService.getPaginatedTransactions(userId, page, limit);
 
         res.render("wallet", {
             user: req.session.user,
-            wallet: wallet
+            wallet: walletData,
+            currentPage: walletData.currentPage,
+            totalPages: walletData.totalPages,
+            totalTransactions: walletData.totalTransactions
         });
     } catch (error) {
         console.error("Error loading wallet:", error);
