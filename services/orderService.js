@@ -65,7 +65,7 @@ const getCheckoutData = async (userId) => {
     const cartItems = cart.items
         .filter((item) => item.productId)
         .map((item) => {
-            const currentPrice = getProductPrice(item.productId);
+            const currentPrice = item.productId.salePrice;
             return {
                 _id: item._id,
                 productId: item.productId._id,
@@ -75,6 +75,8 @@ const getCheckoutData = async (userId) => {
                 color: item.color,
                 quantity: item.quantity,
                 price: currentPrice,
+                originalPrice: item.productId.regularPrice,
+                offerDiscount: item.productId.productOffer || 0,
                 regularPrice: item.productId.regularPrice,
                 itemTotal: currentPrice * item.quantity,
             };
@@ -164,7 +166,7 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
 
     // Prepare order items (snapshots)
     const orderItems = cart.items.map((item) => {
-        const currentPrice = getProductPrice(item.productId);
+        const currentPrice = item.productId.salePrice;
         return {
             productId: item.productId._id,
             productName: item.productId.productName,
@@ -172,6 +174,8 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
             size: item.size,
             color: item.color,
             quantity: item.quantity,
+            originalPrice: item.productId.regularPrice,
+            offerDiscount: item.productId.productOffer || 0,
             price: currentPrice,
             itemTotal: currentPrice * item.quantity,
             itemStatus: "Active",

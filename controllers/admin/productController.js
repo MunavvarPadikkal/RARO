@@ -116,7 +116,11 @@ const addProduct = async (req, res) => {
             status: totalQty > 0 ? "Available" : "Out of stock",
         };
 
-        await productService.addProduct(productData);
+        const addedProduct = await productService.addProduct(productData);
+        
+        const offerService = require("../../services/offerService");
+        await offerService.syncProductPrices(addedProduct._id);
+
         return res.json({ success: true, message: "Product added successfully" });
     } catch (error) {
         console.error("Error adding product:", error);
@@ -238,6 +242,10 @@ const editProduct = async (req, res) => {
         }
 
         await productService.updateProduct(id, updateData);
+        
+        const offerService = require("../../services/offerService");
+        await offerService.syncProductPrices(id);
+
         return res.json({ success: true, message: "Product updated successfully" });
     } catch (error) {
         console.error("Error editing product:", error);

@@ -21,7 +21,7 @@ const getCart = async (userId) => {
     
     for (let item of cart.items) {
         if (item.productId && !item.productId.isDeleted && !item.productId.isBlocked) {
-            const currentPrice = getProductPrice(item.productId);
+            const currentPrice = item.productId.salePrice;
             subtotal += currentPrice * item.quantity;
             itemsCount += item.quantity;
         }
@@ -90,7 +90,9 @@ const addToCart = async (userId, productId, size, color, quantity) => {
         item.color === color
     );
     
-    const price = getProductPrice(product);
+    const price = product.salePrice; // This is the final price after offer (synced in DB)
+    const originalPrice = product.regularPrice;
+    const offerDiscount = product.productOffer || 0;
     const parsedQuantity = parseInt(quantity);
 
     if (parsedQuantity < 1) {
@@ -107,6 +109,8 @@ const addToCart = async (userId, productId, size, color, quantity) => {
         }
         cart.items[existingItemIndex].quantity = newQuantity;
         cart.items[existingItemIndex].price = price;
+        cart.items[existingItemIndex].originalPrice = originalPrice;
+        cart.items[existingItemIndex].offerDiscount = offerDiscount;
         cart.items[existingItemIndex].totalPrice = newQuantity * price;
     } else {
         if (parsedQuantity > variant.stock) {
@@ -121,6 +125,8 @@ const addToCart = async (userId, productId, size, color, quantity) => {
             color,
             quantity: parsedQuantity,
             price: price,
+            originalPrice: originalPrice,
+            offerDiscount: offerDiscount,
             totalPrice: parsedQuantity * price
         });
     }
@@ -175,9 +181,13 @@ const updateQuantity = async (userId, productId, size, color, quantity) => {
         throw new Error("Product not found in cart");
     }
 
-    const price = getProductPrice(product);
+    const price = product.salePrice;
+    const originalPrice = product.regularPrice;
+    const offerDiscount = product.productOffer || 0;
     cart.items[itemIndex].quantity = parsedQuantity;
     cart.items[itemIndex].price = price;
+    cart.items[itemIndex].originalPrice = originalPrice;
+    cart.items[itemIndex].offerDiscount = offerDiscount;
     cart.items[itemIndex].totalPrice = parsedQuantity * price; 
 
     await cart.save();

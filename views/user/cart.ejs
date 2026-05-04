@@ -76,7 +76,14 @@
                                                     </h3><!-- End .product-title -->
                                                 </div><!-- End .product -->
                                             </td>
-                                            <td class="price-col">₹<%= effectivePrice %></td>
+                                            <td class="price-col">
+                                                <% if (product.salePrice < product.regularPrice) { %>
+                                                    ₹<%= product.salePrice %><br>
+                                                    <small style="text-decoration: line-through; color: #999;">₹<%= product.regularPrice %></small>
+                                                <% } else { %>
+                                                    ₹<%= effectivePrice %>
+                                                <% } %>
+                                            </td>
                                             <td class="size-col"><%= item.size %></td>
                                             <td class="color-col"><%= item.color %></td>
                                             <td class="quantity-col">

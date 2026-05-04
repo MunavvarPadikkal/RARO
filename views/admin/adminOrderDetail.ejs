@@ -74,7 +74,12 @@
                   <div class="flex-1 min-w-0">
                     <div class="font-medium text-gray-900 text-sm truncate"><%= item.productName %></div>
                     <div class="text-xs text-gray-500">Size: <%= item.size %> <% if (item.color) { %> · Color: <%= item.color %><% } %> · Qty: <%= item.quantity %></div>
-                    <div class="text-xs text-gray-400 mt-0.5">₹<%= item.price %> × <%= item.quantity %></div>
+                    <div class="text-xs text-gray-400 mt-0.5">
+                      <% if (item.originalPrice > item.price) { %>
+                        <span class="line-through mr-1">₹<%= item.originalPrice %></span>
+                      <% } %>
+                      ₹<%= item.price %> × <%= item.quantity %>
+                    </div>
                   </div>
                   <div class="text-right flex-shrink-0">
                     <div class="font-semibold text-gray-900">₹<%= item.itemTotal.toLocaleString() %></div>

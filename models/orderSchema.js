@@ -45,6 +45,15 @@ const orderSchema = new Schema(
                     required: true,
                     min: 1,
                 },
+                originalPrice: {
+                    type: Number,
+                    required: true,
+                    default: 0,
+                },
+                offerDiscount: {
+                    type: Number,
+                    default: 0,
+                },
                 price: {
                     type: Number,
                     required: true,

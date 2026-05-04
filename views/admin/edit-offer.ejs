@@ -1,0 +1,211 @@
+<%- include("./partials/adminHeader.ejs") %>
+<%- include("./partials/adminSidebar.ejs", { path: '/admin/offers' }) %>
+
+<div class="flex-1 overflow-x-hidden overflow-y-auto">
+    <%- include("./partials/adminTopbar.ejs") %>
+
+    <main class="px-8 pb-8">
+        <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center gap-4 mb-6">
+                <a href="/admin/offers" class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Edit Offer</h2>
+                    <p class="text-sm text-gray-500 mt-1">Update existing offer details.</p>
+                </div>
+            </div>
+
+            <div class="max-w-3xl">
+                <form id="editOfferForm" class="space-y-6">
+                        <!-- Offer Name -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Offer Name</label>
+                            <input type="text" name="name" id="name" required value="<%= offer.name %>" placeholder="e.g. Summer Sale 2026"
+                                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Offer Type -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">Offer Type</label>
+                                <select name="offerType" id="offerType" required
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                                    onchange="toggleSelectionFields()">
+                                    <option value="Product" <%= offer.offerType === 'Product' ? 'selected' : '' %>>Product Offer</option>
+                                    <option value="Category" <%= offer.offerType === 'Category' ? 'selected' : '' %>>Category Offer</option>
+                                </select>
+                            </div>
+
+                            <!-- Discount Type -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">Discount Type</label>
+                                <select name="discountType" id="discountType" required
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                                    onchange="toggleMaxDiscount()">
+                                    <option value="Percentage" <%= offer.discountType === 'Percentage' ? 'selected' : '' %>>Percentage (%)</option>
+                                    <option value="Fixed" <%= offer.discountType === 'Fixed' ? 'selected' : '' %>>Fixed Amount (₹)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Product Selection -->
+                        <div id="productSelection" class="<%= offer.offerType === 'Product' ? '' : 'hidden' %>">
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Select Products</label>
+                            <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-xl bg-gray-50 p-2 space-y-1">
+                                <% products.forEach(product => { %>
+                                    <% const isSelected = offer.selectedProducts.some(p => p._id.toString() === product._id.toString()); %>
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer transition-colors">
+                                        <input type="checkbox" name="selectedProducts" value="<%= product._id %>" <%= isSelected ? 'checked' : '' %> class="w-4 h-4 text-black border-gray-300 rounded focus:ring-black">
+                                        <span class="ml-3 text-sm text-gray-700"><%= product.productName %></span>
+                                    </label>
+                                <% }) %>
+                            </div>
+                        </div>
+
+                        <!-- Category Selection -->
+                        <div id="categorySelection" class="<%= offer.offerType === 'Category' ? '' : 'hidden' %>">
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Select Categories</label>
+                            <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-xl bg-gray-50 p-2 space-y-1">
+                                <% categories.forEach(category => { %>
+                                    <% const isSelected = offer.selectedCategories.some(c => c._id.toString() === category._id.toString()); %>
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer transition-colors">
+                                        <input type="checkbox" name="selectedCategories" value="<%= category._id %>" <%= isSelected ? 'checked' : '' %> class="w-4 h-4 text-black border-gray-300 rounded focus:ring-black">
+                                        <span class="ml-3 text-sm text-gray-700"><%= category.name %></span>
+                                    </label>
+                                <% }) %>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Discount Value -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">Discount Value</label>
+                                <input type="number" name="discountValue" id="discountValue" required min="1" step="0.01" value="<%= offer.discountValue %>"
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all">
+                            </div>
+
+                            <!-- Max Discount -->
+                            <div id="maxDiscountWrapper" class="<%= offer.discountType === 'Fixed' ? 'opacity-50 pointer-events-none' : '' %>">
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">Maximum Discount (₹) <span class="text-xs text-gray-500 font-normal">(Optional)</span></label>
+                                <input type="number" name="maxDiscount" id="maxDiscount" min="1" step="0.01" value="<%= offer.maxDiscount || '' %>" <%= offer.discountType === 'Fixed' ? 'disabled' : '' %>
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Start Date -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">Start Date</label>
+                                <input type="date" name="startDate" id="startDate" required value="<%= new Date(offer.startDate).toISOString().split('T')[0] %>"
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all">
+                            </div>
+
+                            <!-- Expiry Date -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">Expiry Date</label>
+                                <input type="date" name="expiryDate" id="expiryDate" required value="<%= new Date(offer.expiryDate).toISOString().split('T')[0] %>"
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all">
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                            <a href="/admin/offers" class="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">Cancel</a>
+                            <button type="submit" class="px-6 py-2.5 bg-black text-white font-medium rounded-xl hover:bg-gray-800 transition-colors shadow-sm">
+                                Update Offer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Toggle fields based on offer type
+    function toggleSelectionFields() {
+        const type = document.getElementById('offerType').value;
+        const productSelection = document.getElementById('productSelection');
+        const categorySelection = document.getElementById('categorySelection');
+        
+        if (type === 'Product') {
+            productSelection.classList.remove('hidden');
+            categorySelection.classList.add('hidden');
+            // We don't clear checkboxes on edit automatically unless they save
+        } else if (type === 'Category') {
+            categorySelection.classList.remove('hidden');
+            productSelection.classList.add('hidden');
+        }
+    }
+
+    // Toggle max discount based on discount type
+    function toggleMaxDiscount() {
+        const type = document.getElementById('discountType').value;
+        const wrapper = document.getElementById('maxDiscountWrapper');
+        const input = document.getElementById('maxDiscount');
+        
+        if (type === 'Percentage') {
+            wrapper.classList.remove('opacity-50', 'pointer-events-none');
+            input.disabled = false;
+        } else {
+            wrapper.classList.add('opacity-50', 'pointer-events-none');
+            input.disabled = true;
+            input.value = '';
+        }
+    }
+
+    document.getElementById('editOfferForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const offerType = document.getElementById('offerType').value;
+        if (offerType === 'Product') {
+            const checked = document.querySelectorAll('input[name="selectedProducts"]:checked');
+            if (checked.length === 0) {
+                return Swal.fire('Validation Error', 'Please select at least one product.', 'error');
+            }
+        } else if (offerType === 'Category') {
+            const checked = document.querySelectorAll('input[name="selectedCategories"]:checked');
+            if (checked.length === 0) {
+                return Swal.fire('Validation Error', 'Please select at least one category.', 'error');
+            }
+        } else {
+            return Swal.fire('Validation Error', 'Please select an offer type.', 'error');
+        }
+
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Handle array of checkboxes
+        data.selectedProducts = Array.from(document.querySelectorAll('input[name="selectedProducts"]:checked')).map(cb => cb.value);
+        data.selectedCategories = Array.from(document.querySelectorAll('input[name="selectedCategories"]:checked')).map(cb => cb.value);
+
+        try {
+            const response = await fetch('/admin/editOffer/<%= offer._id %>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: result.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = '/admin/offers';
+                });
+            } else {
+                Swal.fire('Error', result.message, 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'Something went wrong', 'error');
+        }
+    });
+</script>
+
+<%- include("./partials/adminFooter.ejs") %>

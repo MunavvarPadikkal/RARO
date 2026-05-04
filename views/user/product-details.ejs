@@ -65,6 +65,9 @@
                                         <% if (product.salePrice < product.regularPrice) { %>
                                             <span class="new-price">₹<%= product.salePrice %></span>
                                             <span class="old-price" style="text-decoration: line-through; color: #cccccc; margin-left:10px;">₹<%= product.regularPrice %></span>
+                                            <% if (product.productOffer > 0) { %>
+                                                <span class="badge badge-success" style="margin-left: 15px; background: #c96; color: white; padding: 5px 10px; border-radius: 4px; font-size: 1.2rem; font-weight: 500;"><%= Math.round((product.productOffer / product.regularPrice) * 100) %>% OFF</span>
+                                            <% } %>
                                         <% } else { %>
                                             ₹<%= product.regularPrice %>
                                         <% } %>

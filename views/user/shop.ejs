@@ -113,6 +113,8 @@
                                                         <figure class="product-media">
                                                             <% if(isNew) { %>
                                                                 <span class="product-label label-new">New</span>
+                                                            <% } else if(product.productOffer > 0) { %>
+                                                                <span class="product-label label-sale"><%= Math.round((product.productOffer / product.regularPrice) * 100) %>% OFF</span>
                                                             <% } else if(hasDiscount) { %>
                                                                 <span class="product-label label-sale">Sale</span>
                                                             <% } %>
@@ -185,6 +187,8 @@
                                                 <figure class="product-media">
                                                     <% if(isNew) { %>
                                                         <span class="product-label label-new">New</span>
+                                                    <% } else if(product.productOffer > 0) { %>
+                                                        <span class="product-label label-sale"><%= Math.round((product.productOffer / product.regularPrice) * 100) %>% OFF</span>
                                                     <% } else if(hasDiscount) { %>
                                                         <span class="product-label label-sale">Sale</span>
                                                     <% } %>

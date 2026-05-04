@@ -7,6 +7,7 @@ const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
 const adminOrderController = require("../controllers/admin/adminOrderController");
 const couponController = require("../controllers/admin/couponController");
+const offerController = require("../controllers/admin/offerController");
 const { productUpload } = require("../middlewares/multer");
 
 
@@ -73,6 +74,15 @@ router.get("/editCoupon", adminAuth.isLogin, couponController.getEditCoupon);
 router.post("/editCoupon", adminAuth.isLogin, couponController.editCoupon);
 router.post("/toggleCouponStatus", adminAuth.isLogin, couponController.toggleStatus);
 router.post("/deleteCoupon", adminAuth.isLogin, couponController.deleteCoupon);
+
+// Offer Management
+router.get("/offers", adminAuth.isLogin, offerController.loadOffers);
+router.get("/addOffer", adminAuth.isLogin, offerController.loadAddOffer);
+router.post("/addOffer", adminAuth.isLogin, offerController.addOffer);
+router.get("/editOffer/:id", adminAuth.isLogin, offerController.loadEditOffer);
+router.post("/editOffer/:id", adminAuth.isLogin, offerController.editOffer);
+router.post("/offers/toggle/:id", adminAuth.isLogin, offerController.toggleOfferStatus);
+router.post("/offers/delete/:id", adminAuth.isLogin, offerController.deleteOffer);
 
 // Refund Management
 router.get("/refunds", adminAuth.isLogin, adminController.loadRefunds);
