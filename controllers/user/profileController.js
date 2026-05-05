@@ -2,14 +2,35 @@ const profileService = require("../../services/profileService");
 const bcrypt = require("bcrypt");
 const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils");
 const walletService = require("../../services/walletService");
+const referralService = require("../../services/referralService");
+const Order = require("../../models/orderSchema");
+const Coupon = require("../../models/couponSchema");
 
 const loadProfile = async (req, res) => {
     try {
         const userId = req.session.user._id;
         const userData = await profileService.findUserById(userId);
         const addressData = await profileService.findUserAddress(userId);
+        
+        // Dashboard stats
+        const totalOrders = await Order.countDocuments({ userId: userId });
+        const pendingOrders = await Order.countDocuments({ 
+            userId: userId, 
+            orderStatus: { $in: ["Placed", "Pending", "Shipped", "Out for Delivery"] } 
+        });
+        const wallet = await walletService.getWallet(userId);
+        const walletBalance = wallet ? wallet.balance : 0;
+        const totalCoupons = await Coupon.countDocuments({ isActive: true, expiryDate: { $gt: new Date() } });
+
         return res.render("profile", {
-            user: userData, userAddress: addressData ? addressData : { address: [] }
+            user: userData, 
+            userAddress: addressData ? addressData : { address: [] },
+            stats: {
+                totalOrders,
+                pendingOrders,
+                walletBalance,
+                totalCoupons
+            }
         });
     } catch (error) {
         console.log("profile page not found", error);
@@ -354,6 +375,27 @@ const loadWallet = async (req, res) => {
     }
 };
 
+const loadReferrals = async (req, res) => {
+    try {
+        const userId = req.session.user._id;
+        const userData = await profileService.findUserById(userId);
+        const referrals = await referralService.getUserReferrals(userId);
+        const stats = await referralService.getUserReferralStats(userId);
+        const settings = await referralService.getOrCreateSettings();
+
+        res.render("referrals", {
+            user: userData,
+            referrals,
+            stats,
+            settings,
+            referralCode: userData.referralCode || "N/A",
+        });
+    } catch (error) {
+        console.error("Error loading referrals page:", error);
+        res.redirect("/profile");
+    }
+};
+
 
 module.exports = {
     loadProfile,
@@ -368,5 +410,6 @@ module.exports = {
     changeEmailRequest,
     changeEmailVerifyOtp,
     changeEmailResendOtp,
-    loadWallet
+    loadWallet,
+    loadReferrals
 };

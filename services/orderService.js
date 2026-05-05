@@ -6,6 +6,7 @@ const Counter = require("../models/counterSchema");
 const User = require("../models/userSchema");
 const Coupon = require("../models/couponSchema");
 const refundService = require("./refundService");
+const referralService = require("./referralService");
 const { v4: uuidv4 } = require("uuid");
 
 const getProductPrice = (product) => {
@@ -695,6 +696,15 @@ const adminUpdateOrderStatus = async (orderId, newStatus) => {
     // If delivered, update payment status for COD
     if (newStatus === "Delivered" && order.paymentMethod === "Cash on Delivery") {
         order.paymentStatus = "Paid";
+    }
+
+    // If delivered, process referral reward for the user's first successful order
+    if (newStatus === "Delivered") {
+        try {
+            await referralService.processReferralReward(order.userId, order.finalAmount);
+        } catch (refErr) {
+            console.error("Referral reward processing failed (non-blocking):", refErr.message);
+        }
     }
 
     // If cancelled by admin, restore stock

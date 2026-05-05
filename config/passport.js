@@ -1,6 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/userSchema");
+const referralService = require("../services/referralService");
 const env = require("dotenv").config();
 
 passport.use(
@@ -28,11 +29,15 @@ passport.use(
         return done(null, false, { message: "User with this email already exists" });
     }
 
+    // Generate a unique referral code for the new Google user
+    const referralCode = await referralService.generateReferralCode(profile.displayName);
+
     // If new user
     user = await User.create({
       name: profile.displayName,
       email: profile.emails[0].value,
       googleId: profile.id,
+      referralCode: referralCode,
     });
 
     return done(null, user);

@@ -5,6 +5,7 @@ const productService = require("../../services/productService");
 const categoryService = require("../../services/categoryService");
 const Product = require("../../models/productSchema");
 const Review = require("../../models/reviewSchema");
+const referralService = require("../../services/referralService");
 
 
 const pageNotFound = async (req, res) => {
@@ -56,7 +57,8 @@ const loadRegister = async (req, res) => {
     try {
         return res.render("register", {
             signinMessage: "",
-            registerMessage: ""
+            registerMessage: "",
+            referralCode: req.query.ref || ""
         });
     } catch (error) {
         console.log("Home page not found");
@@ -78,30 +80,30 @@ const loadOtp = async (req, res) => {
 const register = async (req, res) => {
 
     try {
-        const { name, email, password, confirmpassword } = req.body;
+        const { name, email, password, confirmpassword, referralCode } = req.body;
         if(password!==confirmpassword){
-        return res.render("register",{registerMessage:"Password do not match",signinMessage:""});
+        return res.render("register",{registerMessage:"Password do not match",signinMessage:"", referralCode: referralCode || ""});
       }
 
       if (password.length < 8) {
-        return res.render("register", {registerMessage: "Password must be at least 8 characters", signinMessage:""});
+        return res.render("register", {registerMessage: "Password must be at least 8 characters", signinMessage:"", referralCode: referralCode || ""});
       }
       if (!/[A-Z]/.test(password)) {
-        return res.render("register", {registerMessage: "Password must contain an uppercase letter", signinMessage:""});
+        return res.render("register", {registerMessage: "Password must contain an uppercase letter", signinMessage:"", referralCode: referralCode || ""});
       }
       if (!/[a-z]/.test(password)) {
-        return res.render("register", {registerMessage: "Password must contain a lowercase letter", signinMessage:""});
+        return res.render("register", {registerMessage: "Password must contain a lowercase letter", signinMessage:"", referralCode: referralCode || ""});
       }
       if (!/\d/.test(password)) {
-        return res.render("register", {registerMessage: "Password must contain a number", signinMessage:""});
+        return res.render("register", {registerMessage: "Password must contain a number", signinMessage:"", referralCode: referralCode || ""});
       }
       if (!/[@$!%*?&]/.test(password)) {
-        return res.render("register", {registerMessage: "Password must contain a special character (e.g. @$!%*?&)", signinMessage:""});
+        return res.render("register", {registerMessage: "Password must contain a special character (e.g. @$!%*?&)", signinMessage:"", referralCode: referralCode || ""});
       }
 
         const findUser = await userService.findUserByEmail(email);
         if (findUser) {
-            return res.render("register", { registerMessage: "User with this email already exists", signinMessage: "" });
+            return res.render("register", { registerMessage: "User with this email already exists", signinMessage: "", referralCode: referralCode || "" });
         }
 
         const otp = generateOtp();
@@ -112,7 +114,7 @@ const register = async (req, res) => {
 
         req.session.userOtp = otp;
         req.session.userOtpExpire = Date.now() + 60 * 1000;
-        req.session.userData = { name, email, password };
+        req.session.userData = { name, email, password, referralCode: referralCode || null };
         res.redirect("/verify-otp");
         console.log("OTP Sent ", otp);
 
@@ -150,11 +152,26 @@ const verifyOtp = async (req, res) => {
             const user = req.session.userData;
             const passwordHash = await securePassword(user.password);
 
+            // Generate a unique referral code for the new user
+            const newUserReferralCode = await referralService.generateReferralCode(user.name);
+
             const saveUserData = await userService.createUser({
                 name: user.name,
                 email: user.email,
                 password: passwordHash,
+                referralCode: newUserReferralCode,
             });
+
+            // If a referral code was provided during signup, create a pending referral
+            if (user.referralCode) {
+                try {
+                    await referralService.createReferral(user.referralCode, saveUserData._id);
+                    console.log(`Referral created: ${user.referralCode} -> ${saveUserData._id}`);
+                } catch (refError) {
+                    // Log but don't block signup if referral fails
+                    console.error("Referral creation failed (non-blocking):", refError.message);
+                }
+            }
 
             // Set session user same as normal signin
             req.session.user = {

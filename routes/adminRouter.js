@@ -95,4 +95,10 @@ router.post("/offers/delete/:id", adminAuth.isLogin, offerController.deleteOffer
 router.get("/refunds", adminAuth.isLogin, adminController.loadRefunds);
 router.post("/refunds/:refundId/approve", adminAuth.isLogin, adminController.approveRefund);
 
+// Referral Management
+const referralController = require("../controllers/admin/referralController");
+router.get("/referrals", adminAuth.isLogin, referralController.loadReferrals);
+router.get("/referral-settings", adminAuth.isLogin, referralController.loadSettings);
+router.post("/referral-settings", adminAuth.isLogin, referralController.updateSettings);
+
 module.exports = router;
