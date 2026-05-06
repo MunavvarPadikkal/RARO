@@ -1,0 +1,251 @@
+<%- include("./partials/adminHeader") %>
+<%- include("./partials/adminSidebar") %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+<style>
+.crop-modal-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);justify-content:center;align-items:center}
+.crop-modal-overlay.active{display:flex}
+.crop-modal{background:#fff;border-radius:24px;width:90vw;max-width:900px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.3);animation:cropIn .25s ease}
+@keyframes cropIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.crop-modal-header{padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.crop-modal-header h3{font-size:1.1rem;font-weight:600;color:#1a1a1a}
+.crop-modal-body{padding:20px 24px;flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f8f8f8}
+.crop-modal-body img{max-width:100%;max-height:60vh;display:block}
+.crop-modal-footer{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.crop-info{font-size:12px;color:#888}
+.crop-actions{display:flex;gap:10px}
+.crop-btn{padding:10px 24px;border-radius:12px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .2s}
+.crop-btn-cancel{background:#f0f0f0;color:#555}.crop-btn-cancel:hover{background:#e0e0e0}
+.crop-btn-confirm{background:#d38c64;color:#fff}.crop-btn-confirm:hover{background:#c07850}
+.crop-btn-close{background:none;border:none;font-size:20px;color:#999;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .2s}
+.crop-btn-close:hover{background:#f0f0f0;color:#333}
+.crop-ratio-pills{display:flex;gap:6px}
+.crop-ratio-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid #e0e0e0;background:#fff;color:#666;cursor:pointer;transition:all .2s}
+.crop-ratio-pill.active,.crop-ratio-pill:hover{border-color:#d38c64;background:#fdf5f0;color:#d38c64}
+</style>
+
+<div class="flex-1 overflow-x-hidden overflow-y-auto">
+  <%- include("./partials/adminTopbar") %>
+  <main class="px-8 pb-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Create Banner</h2>
+                <p class="text-sm text-gray-500 mt-1">Add a new banner for your storefront carousel.</p>
+            </div>
+            <a href="/admin/banners" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left text-xs"></i> Back to List
+            </a>
+        </div>
+        <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+            <form id="bannerForm" class="p-8 space-y-8" enctype="multipart/form-data" novalidate>
+                <!-- Image Upload -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-50 pb-2 flex items-center gap-2">
+                        <i class="fa-regular fa-image text-brand-orange text-sm"></i> Banner Image
+                    </h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Image <span class="text-red-500">*</span></label>
+                        <div id="imageDropzone" class="relative border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center cursor-pointer hover:border-brand-orange/50 transition-all bg-gray-50/50">
+                            <input type="file" id="bannerImageRaw" accept="image/jpeg,image/png,image/webp" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <div id="imagePlaceholder">
+                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-300 mb-3"></i>
+                                <p class="text-sm font-medium text-gray-500">Click or drag image here</p>
+                                <p class="text-[11px] text-gray-400 mt-1">JPG, PNG or WebP • Max 5MB • Image will be cropped</p>
+                            </div>
+                            <div id="imagePreviewContainer" class="hidden">
+                                <img id="imagePreview" src="" alt="Preview" class="mx-auto max-h-56 rounded-xl object-contain">
+                                <div class="flex items-center justify-center gap-3 mt-3">
+                                    <button type="button" id="recropImage" class="text-xs text-brand-orange hover:text-orange-700 font-medium transition-colors"><i class="fa-solid fa-crop-simple mr-1"></i>Re-crop</button>
+                                    <button type="button" id="removeImage" class="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"><i class="fa-solid fa-xmark mr-1"></i>Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                        <span id="imageError" class="text-red-500 text-[11px] mt-1 hidden"></span>
+                    </div>
+                </div>
+                <!-- Basic Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-50 pb-2 flex items-center gap-2"><i class="fa-solid fa-heading text-brand-orange text-sm"></i> Banner Content</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Title <span class="text-red-500">*</span></label>
+                            <input type="text" name="title" id="title" required placeholder="e.g. Summer Collection 2026" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+                            <span id="titleError" class="text-red-500 text-[11px] mt-1 hidden"></span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Subtitle <span class="text-gray-400 text-xs">(Optional)</span></label>
+                            <input type="text" name="subtitle" id="subtitle" placeholder="e.g. Up to 50% off" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Description <span class="text-gray-400 text-xs">(Optional)</span></label>
+                            <textarea name="description" id="description" rows="3" placeholder="Brief banner description..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-50 pb-2 flex items-center gap-2"><i class="fa-solid fa-link text-brand-orange text-sm"></i> Call to Action</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Button Text</label>
+                            <input type="text" name="buttonText" id="buttonText" value="Shop Now" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Button Link</label>
+                            <input type="text" name="buttonLink" id="buttonLink" value="/shop" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Priority / Order</label>
+                            <input type="number" name="priority" id="priority" value="0" min="0" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange transition-all">
+                            <p class="text-[11px] text-gray-400 mt-1 italic">Lower number = higher priority</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Scheduling & Status -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-50 pb-2 flex items-center gap-2 mb-4"><i class="fa-solid fa-calendar-days text-brand-orange text-sm"></i> Schedule</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Start Date <span class="text-gray-400 text-xs">(Optional)</span></label>
+                                <input type="date" name="startDate" id="startDate" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all">
+                                <span id="startDateError" class="text-red-500 text-[11px] mt-1 hidden"></span>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Expiry Date <span class="text-gray-400 text-xs">(Optional)</span></label>
+                                <input type="date" name="expiryDate" id="expiryDate" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all">
+                                <span id="expiryDateError" class="text-red-500 text-[11px] mt-1 hidden"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-50 pb-2 flex items-center gap-2 mb-4"><i class="fa-solid fa-toggle-on text-brand-orange text-sm"></i> Status</h3>
+                        <div class="flex items-center gap-4 mt-6">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="isActiveToggle" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-orange/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-700" id="statusLabel">Active</span>
+                            </label>
+                            <input type="hidden" name="isActive" id="isActive" value="true">
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-2 italic">Only active banners appear on the storefront</p>
+                    </div>
+                    <div class="flex items-end">
+                        <div class="w-full bg-gray-50 rounded-2xl border border-gray-100 p-4">
+                            <p class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Preview</p>
+                            <div class="bg-gray-200 rounded-xl h-20 overflow-hidden relative">
+                                <img id="miniPreviewImg" src="" alt="" class="w-full h-full object-cover hidden">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <p class="text-[10px] text-gray-400" id="miniPreviewPlaceholder">Image preview</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-gray-50 flex items-center justify-end gap-4">
+                    <button type="button" onclick="window.history.back()" class="px-8 py-3 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all">Cancel</button>
+                    <button type="submit" class="px-10 py-3 bg-brand-orange text-white rounded-xl text-sm font-semibold shadow-lg shadow-brand-orange/20 hover:bg-opacity-90 transition-all flex items-center gap-2"><i class="fa-solid fa-rocket text-xs"></i> Publish Banner</button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </main>
+</div>
+
+<!-- Crop Modal -->
+<div class="crop-modal-overlay" id="cropModal">
+    <div class="crop-modal">
+        <div class="crop-modal-header">
+            <h3><i class="fa-solid fa-crop-simple" style="color:#d38c64;margin-right:8px"></i>Crop Banner Image</h3>
+            <button type="button" class="crop-btn-close" id="cropCancelX">&times;</button>
+        </div>
+        <div class="crop-modal-body"><img id="cropImage" src="" alt="Crop"></div>
+        <div class="crop-modal-footer">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <span class="crop-info"><i class="fa-solid fa-info-circle"></i> Drag to adjust crop area</span>
+                <div class="crop-ratio-pills">
+                    <button type="button" class="crop-ratio-pill active" data-ratio="1.78">Banner (16:9)</button>
+                    <button type="button" class="crop-ratio-pill" data-ratio="0">Free</button>
+                </div>
+            </div>
+            <div class="crop-actions">
+                <button type="button" class="crop-btn crop-btn-cancel" id="cropCancelBtn">Cancel</button>
+                <button type="button" class="crop-btn crop-btn-confirm" id="cropConfirm"><i class="fa-solid fa-check" style="margin-right:4px"></i>Apply Crop</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+let cropper=null,croppedBlob=null,originalImageSrc=null;
+const rawInput=document.getElementById('bannerImageRaw'),imgPrev=document.getElementById('imagePreview'),imgPrevC=document.getElementById('imagePreviewContainer'),imgPH=document.getElementById('imagePlaceholder'),miniImg=document.getElementById('miniPreviewImg'),miniPH=document.getElementById('miniPreviewPlaceholder'),cModal=document.getElementById('cropModal'),cImg=document.getElementById('cropImage');
+
+rawInput.addEventListener('change',function(e){
+    const f=e.target.files[0]; if(!f)return;
+    if(f.size>5*1024*1024){Swal.fire('Error','Image size must be less than 5MB','error');this.value='';return;}
+    const r=new FileReader();
+    r.onload=function(ev){originalImageSrc=ev.target.result;openCropModal(originalImageSrc);};
+    r.readAsDataURL(f);
+});
+
+function openCropModal(src){
+    cImg.src=src;cModal.classList.add('active');
+    if(cropper){cropper.destroy();cropper=null;}
+    cImg.onload=function(){
+        cropper=new Cropper(cImg,{aspectRatio:16/9,viewMode:1,dragMode:'move',autoCropArea:0.95,responsive:true,guides:true,center:true,highlight:true,cropBoxMovable:true,cropBoxResizable:true,background:true});
+    };
+}
+
+document.querySelectorAll('.crop-ratio-pill').forEach(p=>{
+    p.addEventListener('click',function(){
+        document.querySelectorAll('.crop-ratio-pill').forEach(x=>x.classList.remove('active'));
+        this.classList.add('active');
+        const r=parseFloat(this.dataset.ratio);
+        if(cropper)cropper.setAspectRatio(r===0?NaN:r);
+    });
+});
+
+document.getElementById('cropConfirm').addEventListener('click',function(){
+    if(!cropper)return;
+    const canvas=cropper.getCroppedCanvas({maxWidth:1920,maxHeight:1080,imageSmoothingQuality:'high'});
+    canvas.toBlob(function(blob){
+        croppedBlob=blob;const url=URL.createObjectURL(blob);
+        imgPrev.src=url;imgPrevC.classList.remove('hidden');imgPH.classList.add('hidden');
+        miniImg.src=url;miniImg.classList.remove('hidden');miniPH.classList.add('hidden');
+        closeCropModal();
+    },'image/jpeg',0.92);
+});
+
+['cropCancelX','cropCancelBtn'].forEach(id=>document.getElementById(id).addEventListener('click',closeCropModal));
+function closeCropModal(){cModal.classList.remove('active');if(cropper){cropper.destroy();cropper=null;}}
+
+document.getElementById('recropImage').addEventListener('click',function(){if(originalImageSrc)openCropModal(originalImageSrc);});
+document.getElementById('removeImage').addEventListener('click',function(){
+    rawInput.value='';croppedBlob=null;originalImageSrc=null;
+    imgPrevC.classList.add('hidden');imgPH.classList.remove('hidden');miniImg.classList.add('hidden');miniPH.classList.remove('hidden');
+});
+
+const isAT=document.getElementById('isActiveToggle'),isAH=document.getElementById('isActive'),sL=document.getElementById('statusLabel');
+isAT.addEventListener('change',function(){isAH.value=this.checked?'true':'false';sL.textContent=this.checked?'Active':'Inactive';});
+
+document.getElementById('bannerForm').addEventListener('submit',async function(e){
+    e.preventDefault();
+    document.querySelectorAll('[id$="Error"]').forEach(el=>{el.textContent='';el.classList.add('hidden');});
+    let isValid=true;
+    const showError=(id,msg)=>{const el=document.getElementById(id);if(el){el.textContent=msg;el.classList.remove('hidden');}isValid=false;};
+    if(!document.getElementById('title').value.trim()||document.getElementById('title').value.trim().length<2)showError('titleError','Title must be at least 2 characters.');
+    if(!croppedBlob)showError('imageError','Banner image is required. Please select and crop an image.');
+    const sd=document.getElementById('startDate').value,ed=document.getElementById('expiryDate').value;
+    if(sd&&ed&&new Date(ed)<=new Date(sd))showError('expiryDateError','Expiry date must be after start date.');
+    if(!isValid)return;
+    const formData=new FormData(this);
+    formData.delete('bannerImageRaw');
+    if(croppedBlob)formData.append('bannerImage',croppedBlob,'banner-cropped.jpg');
+    try{
+        const res=await fetch('/admin/addBanner',{method:'POST',body:formData});
+        const result=await res.json();
+        if(result.success){Swal.fire({icon:'success',title:'Created!',text:result.message,timer:2000,showConfirmButton:false}).then(()=>window.location.href='/admin/banners');}
+        else Swal.fire('Error',result.message,'error');
+    }catch(err){Swal.fire('Error','Something went wrong','error');}
+});
+</script>
+<%- include("./partials/adminFooter") %>

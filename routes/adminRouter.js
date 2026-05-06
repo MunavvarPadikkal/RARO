@@ -8,7 +8,8 @@ const productController = require("../controllers/admin/productController");
 const adminOrderController = require("../controllers/admin/adminOrderController");
 const couponController = require("../controllers/admin/couponController");
 const offerController = require("../controllers/admin/offerController");
-const { productUpload } = require("../middlewares/multer");
+const bannerController = require("../controllers/admin/bannerController");
+const { productUpload, bannerUpload } = require("../middlewares/multer");
 
 
 router.get("/pageError", adminController.pageError);
@@ -100,5 +101,15 @@ const referralController = require("../controllers/admin/referralController");
 router.get("/referrals", adminAuth.isLogin, referralController.loadReferrals);
 router.get("/referral-settings", adminAuth.isLogin, referralController.loadSettings);
 router.post("/referral-settings", adminAuth.isLogin, referralController.updateSettings);
+
+// Banner Management
+router.get("/banners", adminAuth.isLogin, bannerController.loadBanners);
+router.get("/addBanner", adminAuth.isLogin, bannerController.getAddBanner);
+router.post("/addBanner", adminAuth.isLogin, bannerUpload.single("bannerImage"), bannerController.addBanner);
+router.get("/editBanner", adminAuth.isLogin, bannerController.getEditBanner);
+router.post("/editBanner", adminAuth.isLogin, bannerUpload.single("bannerImage"), bannerController.editBanner);
+router.post("/toggleBannerStatus", adminAuth.isLogin, bannerController.toggleBannerStatus);
+router.post("/deleteBanner", adminAuth.isLogin, bannerController.deleteBanner);
+router.post("/updateBannerOrder", adminAuth.isLogin, bannerController.updateBannerOrder);
 
 module.exports = router;

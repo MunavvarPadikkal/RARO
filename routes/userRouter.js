@@ -13,6 +13,10 @@ const { upload } = require("../middlewares/multer");
 
 router.get("/pageNotFound", userController.pageNotFound);
 router.get("/", userAuth.checkBlockedStatus,userController.loadHomepage)
+router.get("/about", userController.loadAboutPage);
+router.get("/contact", userController.loadContactPage);
+
+
 router.get("/signin", userAuth.isSignin, userController.loadSignin);
 router.get("/register", userAuth.isSignin, userController.loadRegister);
 router.post('/register', userController.register);

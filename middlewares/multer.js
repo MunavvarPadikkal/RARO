@@ -55,4 +55,27 @@ const productUpload = multer({
 });
 
 
-module.exports = { upload, productUpload };
+// ── Banner Images ───────────────────────────────────────────────────────
+const bannerUploadDir = path.join(__dirname, '../public/uploads/bannerImages');
+if (!fs.existsSync(bannerUploadDir)) {
+    fs.mkdirSync(bannerUploadDir, { recursive: true });
+}
+
+const bannerStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, bannerUploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const bannerUpload = multer({
+    storage: bannerStorage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB per file
+});
+
+
+module.exports = { upload, productUpload, bannerUpload };

@@ -77,7 +77,7 @@
       <span class="font-medium">Offers</span>
     </a>
     <a href="/admin/banners"
-      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= path === '/admin/banners' ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
+      class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all <%= (path === '/admin/banners' || path === '/admin/addBanner' || path === '/admin/editBanner') ? 'bg-brand-sidebarActive text-white' : 'hover:bg-brand-sidebarActive hover:text-white' %>">
       <i class="fa-regular fa-image w-5 text-center"></i>
       <span class="font-medium">Banners</span>
     </a>

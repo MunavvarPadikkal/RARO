@@ -4,8 +4,10 @@ const { generateOtp, sendVerificationEmail } = require("../../utils/emailUtils")
 const productService = require("../../services/productService");
 const categoryService = require("../../services/categoryService");
 const Product = require("../../models/productSchema");
+const Category = require("../../models/categorySchema");
 const Review = require("../../models/reviewSchema");
 const referralService = require("../../services/referralService");
+const Banner = require("../../models/bannerSchema");
 
 
 const pageNotFound = async (req, res) => {
@@ -23,16 +25,78 @@ const pageNotFound = async (req, res) => {
 const loadHomepage = async (req, res) => {
     try {
         const user = req.session.user;
-        if (user) {
-            const userData = await userService.findUserById(user._id);
-            res.render("home", { user: userData });
-        } else {
-            res.render("home");
-        }
+        
+        // Fetch all listed categories
+        const categories = await Category.find({ isListed: true });
+        
+        // Identify specific categories for tabs (Men, Customized, Oversized, Minimal)
+        const menCategory = categories.find(c => c.name.match(/men/i));
+        const customizedCategory = categories.find(c => c.name.match(/customized/i));
+        const oversizedCategory = categories.find(c => c.name.match(/oversized/i));
+        const minimalCategory = categories.find(c => c.name.match(/minimal/i));
 
+        // Fetch products for "All" tab (Newest 8)
+        const allProducts = await Product.find({ isBlocked: false, isDeleted: false })
+            .populate('category')
+            .sort({ createdAt: -1 })
+            .limit(8);
+
+        // Fetch products for "Men" tab (Newest 4)
+        const menProducts = menCategory 
+            ? await Product.find({ category: menCategory._id, isBlocked: false, isDeleted: false }).sort({ createdAt: -1 }).limit(4)
+            : [];
+
+        // Fetch products for "Customized" tab (Newest 4)
+        const customizedProducts = customizedCategory 
+            ? await Product.find({ category: customizedCategory._id, isBlocked: false, isDeleted: false }).sort({ createdAt: -1 }).limit(4)
+            : [];
+
+        // Fetch products for "Oversized" tab (Newest 4)
+        const oversizedProducts = oversizedCategory 
+            ? await Product.find({ category: oversizedCategory._id, isBlocked: false, isDeleted: false }).sort({ createdAt: -1 }).limit(4)
+            : [];
+
+        // Fetch products for "Minimal" tab (Newest 4)
+        const minimalProducts = minimalCategory 
+            ? await Product.find({ category: minimalCategory._id, isBlocked: false, isDeleted: false }).sort({ createdAt: -1 }).limit(4)
+            : [];
+
+        // Fetch active banners for the carousel
+        const now = new Date();
+        const banners = await Banner.find({
+            isActive: true,
+            isDeleted: false,
+            $or: [
+                { startDate: null },
+                { startDate: { $lte: now } }
+            ]
+        }).sort({ priority: 1 }).lean();
+
+        // Filter out expired banners (expiryDate check)
+        const activeBanners = banners.filter(b => {
+            if (!b.expiryDate) return true;
+            return new Date(b.expiryDate) >= now;
+        });
+
+        const userData = user ? await userService.findUserById(user._id) : null;
+
+        res.render("home", { 
+            user: userData, 
+            products: allProducts, 
+            menProducts, 
+            customizedProducts, 
+            oversizedProducts,
+            minimalProducts,
+            categories,
+            menCategory,
+            customizedCategory,
+            oversizedCategory,
+            minimalCategory,
+            banners: activeBanners
+        });
 
     } catch (error) {
-        console.log("Home page not found");
+        console.log("Home page error:", error);
         res.status(500).send("server error");
     }
 }
@@ -515,8 +579,39 @@ const submitReview = async (req, res) => {
     }
 }
 
+// const cartCount = async (req, res)
+// =>{
+//     try {
+//         const count = await User.find({cart}).countdocuments();
+
+//     }
+// }
+
+const loadAboutPage = async (req, res) => {
+    try {
+        const user = req.session.user;
+        const userData = user ? await userService.findUserById(user._id) : null;
+        res.render("about", { user: userData });
+    } catch (error) {
+        console.error("About page error:", error);
+        res.status(500).send("server error");
+    }
+}
+
+const loadContactPage = async (req, res) => {
+    try {
+        const user = req.session.user;
+        const userData = user ? await userService.findUserById(user._id) : null;
+        res.render("contact", { user: userData });
+    } catch (error) {
+        console.error("Contact page error:", error);
+        res.status(500).send("server error");
+    }
+}
 
 module.exports = {
+
+
     loadHomepage,
     pageNotFound,
     loadSignin,
@@ -536,5 +631,9 @@ module.exports = {
     resetPasswordUpdate,
     loadShopPage,
     loadProductDetails,
-    submitReview
+    submitReview,
+    loadAboutPage,
+    loadContactPage
 };
+
+
