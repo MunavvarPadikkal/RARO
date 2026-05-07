@@ -131,6 +131,37 @@
                     ═══════════════════════════════════════════════════════════ -->
                     <aside class="col-lg-3">
                         <div class="summary">
+                            <!-- ── SECTION: Coupons ── -->
+                            <div class="checkout-coupon-section mb-4">
+                                <h5 class="checkout-payment-title">Available Coupons</h5>
+                                
+                                <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
+                                    <div class="applied-coupon-display p-3 bg-light border rounded d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="text-brand-orange font-weight-bold"><%= appliedCoupon.code %></span>
+                                            <p class="mb-0 small text-muted">Applied Successfully</p>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="removeCoupon()">Remove</button>
+                                    </div>
+                                <% } else { %>
+                                    <div class="d-flex align-items-center" style="gap: 10px;">
+                                        <select id="available-coupons-dropdown" class="form-control form-control-sm" style="height: 38px; font-size: 1.2rem;">
+                                            <option value="">-- Select a Coupon --</option>
+                                            <% if (typeof availableCoupons !== 'undefined' && availableCoupons.length > 0) { %>
+                                                <% availableCoupons.forEach(coupon => { %>
+                                                    <option value="<%= coupon.code %>">
+                                                        <%= coupon.code %> (<%= coupon.discountType === 'percentage' ? coupon.discountValue + '%' : '₹' + coupon.discountValue %> Off)
+                                                    </option>
+                                                <% }) %>
+                                            <% } else { %>
+                                                <option disabled>No coupons available</option>
+                                            <% } %>
+                                        </select>
+                                        <button class="btn btn-primary" onclick="applySelectedCoupon()" style="min-width: 70px; height: 38px; font-size: 1.2rem; margin-bottom: 14px;">Apply</button>
+                                    </div>
+                                <% } %>
+                            </div>
+
                             <h3 class="summary-title">Price Details</h3>
 
                             <table class="table table-summary">
@@ -676,6 +707,64 @@
         } else {
             // Cash on Delivery
             placeActualOrder();
+        }
+    }
+
+    async function applySelectedCoupon() {
+        const code = $('#available-coupons-dropdown').val();
+        if (!code) {
+            Swal.fire({ icon: 'warning', title: 'No Coupon Selected', text: 'Please select a coupon from the dropdown.' });
+            return;
+        }
+        await submitCoupon(code);
+    }
+
+    async function submitCoupon(code) {
+        try {
+            const res = await fetch('/cart/apply-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Applied!',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => window.location.reload());
+            } else {
+                Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+            }
+        } catch (err) {
+            console.error("Coupon apply error:", err);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong.' });
+        }
+    }
+
+    async function removeCoupon() {
+        try {
+            const res = await fetch('/cart/remove-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Removed!',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => window.location.reload());
+            } else {
+                Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
+            }
+        } catch (err) {
+            console.error("Coupon remove error:", err);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong.' });
         }
     }
 </script>

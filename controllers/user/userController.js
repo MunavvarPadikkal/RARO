@@ -8,6 +8,7 @@ const Category = require("../../models/categorySchema");
 const Review = require("../../models/reviewSchema");
 const referralService = require("../../services/referralService");
 const Banner = require("../../models/bannerSchema");
+const wishlistService = require("../../services/wishlistService");
 
 
 const pageNotFound = async (req, res) => {
@@ -79,6 +80,7 @@ const loadHomepage = async (req, res) => {
         });
 
         const userData = user ? await userService.findUserById(user._id) : null;
+        const wishlistProductIds = user ? await wishlistService.getWishlistProductIds(user._id) : [];
 
         res.render("home", { 
             user: userData, 
@@ -92,7 +94,8 @@ const loadHomepage = async (req, res) => {
             customizedCategory,
             oversizedCategory,
             minimalCategory,
-            banners: activeBanners
+            banners: activeBanners,
+            wishlistProductIds
         });
 
     } catch (error) {
@@ -485,6 +488,7 @@ const loadShopPage = async (req, res) => {
         const listedCategories = allCats.filter(c => c.isListed);
         
         const totalPages = Math.ceil(count / limit);
+        const wishlistProductIds = req.session.user ? await wishlistService.getWishlistProductIds(req.session.user._id) : [];
 
         res.render("shop", {
             products,
@@ -498,7 +502,8 @@ const loadShopPage = async (req, res) => {
             selectedSizes: sizes,
             minPrice: minPrice || 0,
             maxPrice: maxPrice || 2000,
-            selectedLayout: layout
+            selectedLayout: layout,
+            wishlistProductIds
         });
 
     } catch (error) {

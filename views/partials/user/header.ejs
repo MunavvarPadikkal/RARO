@@ -147,20 +147,27 @@
                         </div><!-- End .header-search -->
 
                         <% if (user) { %>
-                            <div class="dropdown cart-dropdown mr-3">
-                                <a href="/wallet" title="My Wallet">
-                                    <i class="icon-wallet" style="font-size: 2.4rem;"></i>
+                            <div class="dropdown cart-dropdown" style="margin-right: 1.5rem;">
+                                <a href="/wallet" class="dropdown-toggle" title="My Wallet" role="button" style="display: flex; align-items: center; text-decoration: none;">
+                                    <i class="icon-wallet" style="font-size: 3.2rem; color: #333;"></i>
                                 </a>
                             </div>
                         <% } %>
 
                         <div class="dropdown cart-dropdown">
-                            <a href="/cart" class="dropdown-toggle" role="button">
-                                <i class="icon-shopping-cart"></i>
-                                <!-- <span class="cart-count">2</span> -->
+                            <a href="/wishlist" class="dropdown-toggle" title="Wishlist" role="button" style="display: flex; align-items: center; text-decoration: none;">
+                                <i class="fa-regular fa-heart" style="font-size: 2.3rem; color: #333; margin-top: 2px;"></i>
+                                <span class="cart-count" style="right: -8px; top: -2px; <%= (wishlistCount && wishlistCount > 0) ? '' : 'display: none;' %>"><%= wishlistCount || 0 %></span>
                             </a>
+                        </div>
 
-                        </div><!-- End .header-right -->
-                    </div><!-- End .container -->
-                </div><!-- End .header-middle -->
+                        <div class="dropdown cart-dropdown">
+                            <a href="/cart" class="dropdown-toggle" role="button" style="display: flex; align-items: center; text-decoration: none;">
+                                <i class="icon-shopping-cart" style="font-size: 3.2rem; color: #333;"></i>
+                                <span class="cart-count" style="right: -2px; top: 0; <%= (cartCount && cartCount > 0) ? '' : 'display: none;' %>"><%= cartCount || 0 %></span>
+                            </a>
+                        </div>
+                    </div><!-- End .header-right -->
+                </div><!-- End .container -->
+            </div><!-- End .header-middle -->
         </header><!-- End .header -->

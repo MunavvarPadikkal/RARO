@@ -109,32 +109,10 @@
                                     </tr>
                                 <% } %>
                             </tbody>
-                        </table><!-- End .table table-wishlist -->
+                        </table><!-- End .table table-mobile -->
 
                         <% if (cart && cart.items && cart.items.length > 0) { %>
                         <div class="cart-bottom">
-                            <div class="cart-discount">
-                                <% if (cart.appliedCoupon) { %>
-                                    <div class="applied-coupon-info">
-                                        <div class="d-flex align-items-center bg-light p-3 rounded">
-                                            <i class="icon-tag mr-2 text-primary"></i>
-                                            <span class="mr-3 font-weight-bold">Coupon Applied: <span class="text-primary"><%= cart.appliedCoupon.code %></span></span>
-                                            <button class="btn" style="background-color: #cc9966; color: white; border: none; padding: 2px 8px; font-size: 1rem; border-radius: 4px; line-height: 1.2;" onclick="removeCoupon()">Remove</button>
-                                        </div>
-                                    </div>
-                                <% } else { %>
-                                    <form id="coupon-form">
-                                        <div class="input-group">
-                                            <input type="text" id="coupon-code" class="form-control" placeholder="Enter coupon code" required>
-                                            <div class="input-group-append">
-                                                <button class="btn btn-outline-primary-2" type="submit"><i class="icon-long-arrow-right"></i></button>
-                                            </div><!-- .End .input-group-append -->
-                                        </div><!-- End .input-group -->
-                                    </form>
-                                <% } %>
-                            </div><!-- End .cart-discount -->
-
-                            <a href="/cart" class="btn btn-outline-dark-2"><span>UPDATE CART</span><i class="icon-refresh"></i></a>
                         </div><!-- End .cart-bottom -->
                         <% } %>
                     </div><!-- End .col-lg-9 -->
@@ -280,8 +258,38 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    // Quick reload to refresh totals and max constraints
-                    window.location.reload();
+                    // Update DOM elements dynamically instead of reloading
+                    row.find('.item-total-price').text('₹' + data.itemTotal);
+                    $('#cart-subtotal').text('₹' + data.subtotal);
+                    $('#cart-total').text('₹' + data.finalAmount);
+                    
+                    // Update subtotal item count text
+                    $('.summary-subtotal td:first-child').text(`Subtotal (${data.itemsCount} items):`);
+                    
+                    // Update header cart count badge
+                    const $headerCartCount = $('.cart-dropdown a[href="/cart"] .cart-count');
+                    if ($headerCartCount.length) {
+                        $headerCartCount.text(data.itemsCount);
+                        if (data.itemsCount > 0) {
+                            $headerCartCount.css('display', 'flex');
+                        } else {
+                            $headerCartCount.hide();
+                        }
+                    }
+
+                    // Handle coupon discount row updates
+                    const discountRow = $('.summary-discount');
+                    if (data.discount > 0) {
+                        if (discountRow.length) {
+                            discountRow.find('td:last-child').text('- ₹' + data.discount);
+                        } else {
+                            // If discount row didn't exist but now discount is > 0, reload to redraw
+                            window.location.reload();
+                        }
+                    } else if (discountRow.length) {
+                        // Coupon became invalid (e.g., subtotal dropped below min purchase), reload to redraw
+                        window.location.reload();
+                    }
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -360,60 +368,8 @@
             }
         });
 
-        // ── Coupon Logic ──
-        $('#coupon-form').on('submit', async function(e) {
-            e.preventDefault();
-            const code = $('#coupon-code').val().trim();
-            if (!code) return;
-
-            try {
-                const res = await fetch('/cart/apply-coupon', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Applied!',
-                        text: data.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => window.location.reload());
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
-                }
-            } catch (err) {
-                console.error("Coupon apply error:", err);
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong.' });
-            }
         });
     });
-
-    async function removeCoupon() {
-        try {
-            const res = await fetch('/cart/remove-coupon', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await res.json();
-            if (data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Removed!',
-                    text: data.message,
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => window.location.reload());
-            } else {
-                Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
-            }
-        } catch (err) {
-            console.error("Coupon remove error:", err);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong.' });
-        }
-    }
 </script>
 
 <%-include("../../views/partials/user/mobileView.ejs")%>

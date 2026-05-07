@@ -3,6 +3,14 @@
 
     <main class="main">
         <style>
+            .btn-wishlist.in-wishlist::before {
+                color: #ef837b !important;
+                content: '\f233' !important;
+            }
+            .btn-wishlist.in-wishlist {
+                color: #ef837b !important;
+            }
+
             /* ── Dynamic Banner Carousel ─────────────────────────────── */
             .banner-carousel-section {
                 position: relative;
@@ -24,8 +32,9 @@
                 content: '';
                 position: absolute;
                 inset: 0;
-                background: linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
+                background: linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 40%, transparent 100%);
                 pointer-events: none;
+                z-index: 2;
             }
             .banner-overlay {
                 position: absolute;
@@ -37,30 +46,32 @@
                 align-items: center;
                 z-index: 5;
                 padding: 0 10%;
-                background: linear-gradient(to right, rgba(255,255,255,0.2) 0%, transparent 60%);
             }
             .banner-overlay .banner-subtitle {
-                font-weight: 700;
-                font-size: 0.9rem;
-                letter-spacing: .05em;
+                font-weight: 600;
+                font-size: 1.1rem;
+                letter-spacing: .4em;
                 text-transform: uppercase;
-                margin-bottom: 1rem;
-                color: #444;
+                margin-bottom: 1.5rem;
+                color: #fff;
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px);
                 animation: bannerFadeUp 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.2s;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
             }
             .banner-overlay .banner-title {
-                color: #222;
-                font-weight: 700;
-                letter-spacing: -.02em;
-                margin-bottom: 2rem;
-                font-size: 4.5rem;
-                line-height: 1.1;
-                max-width: 500px; /* Forces wrap into two lines */
+                color: #fff;
+                font-weight: 800;
+                letter-spacing: -0.02em;
+                margin-bottom: 3rem;
+                font-size: 5.5rem;
+                line-height: 1;
+                max-width: 600px;
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px);
                 animation: bannerFadeUp 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.4s;
+                text-transform: uppercase;
+                text-shadow: 0 10px 30px rgba(0,0,0,0.4);
             }
             .banner-overlay .banner-desc {
                 display: none; /* Reference image doesn't show desc */
@@ -68,56 +79,294 @@
             .banner-overlay .banner-btn {
                 display: inline-flex;
                 align-items: center;
-                padding: 1.2rem 3rem;
-                background: #f59e6c; /* Peachy orange from image */
+                padding: 0.9rem 2.8rem;
+                background: transparent;
                 color: #fff;
-                font-weight: 600;
-                font-size: .95rem;
-                text-transform: capitalize;
-                border: none;
-                border-radius: 4px;
-                transition: all 0.3s ease;
+                font-weight: 400;
+                font-size: 1rem;
+                text-transform: uppercase;
+                border: 1px solid #fff;
+                border-radius: 0;
+                transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
                 opacity: 0;
                 transform: translateY(20px);
                 animation: bannerFadeUp 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.6s;
+                letter-spacing: 0.2em;
+                text-decoration: none;
+            }
+            .banner-overlay .banner-btn .btn-arrow {
+                display: inline-block;
+                margin-left: 15px;
+                font-size: 1.2rem;
+                line-height: 1;
+                transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             }
             .banner-overlay .banner-btn:hover {
-                background: #e08d5c;
-                transform: translateY(-3px);
-                box-shadow: 0 10px 20px rgba(245, 158, 108, 0.3);
+                background: #c96;
+                color: #fff;
+                border-color: #c96;
+            }
+            .banner-overlay .banner-btn:hover .btn-arrow {
+                transform: translateX(8px);
+            }
+
+            /* Responsive Banner Adjustments */
+            @media screen and (max-width: 1200px) {
+                .banner-overlay .banner-title { font-size: 4.8rem; max-width: 550px; }
+            }
+            @media screen and (max-width: 992px) {
+                .banner-overlay .banner-title { font-size: 3.8rem; max-width: 450px; }
+                .banner-overlay .banner-subtitle { font-size: 1rem; letter-spacing: 0.3em; }
             }
             @media screen and (max-width: 768px) {
-                .banner-overlay .banner-title {
-                    font-size: 2.8rem;
-                    max-width: 300px;
+                .banner-overlay .banner-title { font-size: 3rem; max-width: 320px; margin-bottom: 2rem; }
+                .banner-overlay .banner-subtitle { font-size: 0.9rem; letter-spacing: 0.2em; margin-bottom: 1.2rem; }
+                .banner-overlay .banner-btn { padding: 0.7rem 2.2rem; font-size: 0.85rem; }
+                .banner-carousel-section .carousel-item { aspect-ratio: 1 / 1; max-height: 550px; }
+            }
+            @media screen and (max-width: 480px) {
+                .banner-overlay { padding: 0 5%; }
+                .banner-overlay .banner-title { font-size: 2.4rem; max-width: 280px; }
+                .banner-overlay .banner-subtitle { font-size: 0.8rem; letter-spacing: 0.15em; }
+                .banner-carousel-section .carousel-item { aspect-ratio: 1 / 1.1; }
+            }
+
+            /* ── Shop by Categories — Premium Grid ──────────────────── */
+            .raro-categories-section {
+                padding: 6rem 0;
+                background: #ffffff;
+            }
+            .raro-categories-section .section-eyebrow {
+                display: block;
+                font-size: 0.75rem;
+                font-weight: 600;
+                letter-spacing: 0.35em;
+                text-transform: uppercase;
+                color: #c96;
+                margin-bottom: 0.8rem;
+            }
+            .raro-categories-section .section-heading {
+                font-size: 2.6rem;
+                font-weight: 700;
+                color: #222;
+                letter-spacing: -0.02em;
+                margin-bottom: 0.5rem;
+                line-height: 1.1;
+            }
+            .raro-categories-section .section-subtext {
+                font-size: 0.95rem;
+                color: #888;
+                letter-spacing: 0.02em;
+                margin-bottom: 0;
+            }
+            .raro-categories-section .section-header {
+                text-align: center;
+                margin-bottom: 3.5rem;
+            }
+            .raro-categories-section .section-divider {
+                width: 40px;
+                height: 2px;
+                background: #c96;
+                margin: 1.2rem auto 1.5rem;
+            }
+
+            /* Grid Layout */
+            .cat-grid {
+                display: grid;
+                grid-template-columns: 1.4fr 1fr 1fr;
+                grid-template-rows: 340px 280px;
+                gap: 10px;
+            }
+
+            /* Featured card spans full height */
+            .cat-card--featured {
+                grid-column: 1;
+                grid-row: 1 / 3;
+            }
+
+            /* Individual Card */
+            .cat-card {
+                position: relative;
+                overflow: hidden;
+                display: block;
+                text-decoration: none;
+                cursor: pointer;
+                background: #111;
+            }
+            .cat-card:hover { text-decoration: none; }
+
+            .cat-card__img {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.65s cubic-bezier(0.165, 0.84, 0.44, 1);
+                will-change: transform;
+            }
+            .cat-card:hover .cat-card__img {
+                transform: scale(1.06);
+            }
+
+            /* Dark gradient overlay */
+            .cat-card__overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                    to top,
+                    rgba(0,0,0,0.75) 0%,
+                    rgba(0,0,0,0.2) 50%,
+                    transparent 100%
+                );
+                transition: opacity 0.4s ease;
+                z-index: 1;
+            }
+            .cat-card:hover .cat-card__overlay {
+                opacity: 0.9;
+            }
+
+            /* Card Content */
+            .cat-card__content {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                padding: 2rem 1.8rem;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cat-card--featured .cat-card__content {
+                padding: 2.5rem 2.2rem;
+            }
+
+            .cat-card__label {
+                font-size: 0.7rem;
+                font-weight: 600;
+                letter-spacing: 0.3em;
+                text-transform: uppercase;
+                color: #c96;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+            .cat-card__title {
+                font-size: 1.7rem;
+                font-weight: 700;
+                color: #fff;
+                letter-spacing: -0.01em;
+                line-height: 1.15;
+                margin: 0 0 1.2rem;
+            }
+            .cat-card--featured .cat-card__title {
+                font-size: 2.4rem;
+            }
+
+            .cat-card__cta {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                letter-spacing: 0.25em;
+                text-transform: uppercase;
+                color: #fff;
+                border-bottom: 1px solid rgba(255,255,255,0.4);
+                padding-bottom: 3px;
+                transition: all 0.3s ease;
+            }
+            .cat-card__cta-arrow {
+                display: inline-block;
+                transition: transform 0.3s ease;
+            }
+            .cat-card:hover .cat-card__cta {
+                color: #c96;
+                border-bottom-color: #c96;
+            }
+            .cat-card:hover .cat-card__cta-arrow {
+                transform: translateX(6px);
+            }
+
+            /* Responsive Grid */
+            @media screen and (max-width: 1024px) {
+                .cat-grid {
+                    grid-template-columns: 1fr 1fr;
+                    grid-template-rows: 340px 280px 280px;
+                }
+                .cat-card--featured {
+                    grid-column: 1 / 3;
+                    grid-row: 1;
                 }
             }
+            @media screen and (max-width: 640px) {
+                .raro-categories-section { padding: 4rem 0; }
+                .raro-categories-section .section-heading { font-size: 2rem; }
+                .cat-grid {
+                    grid-template-columns: 1fr;
+                    grid-template-rows: none;
+                    gap: 8px;
+                }
+                .cat-card--featured, .cat-card {
+                    grid-column: auto;
+                    grid-row: auto;
+                }
+                .cat-card {
+                    aspect-ratio: 4 / 3;
+                }
+                .cat-card--featured {
+                    aspect-ratio: 3 / 2;
+                }
+                .cat-card__title { font-size: 1.5rem; }
+                .cat-card--featured .cat-card__title { font-size: 1.9rem; }
+                .cat-card__content { padding: 1.5rem; }
+            }
+
             @keyframes bannerFadeUp {
                 to {
                     opacity: 1;
                     transform: translateY(0);
                 }
             }
-            /* Control Arrows & Indicators styling to match image */
+            /* Control Arrows & Indicators styling */
             .carousel-control-prev, .carousel-control-next {
-                width: 44px;
-                height: 44px;
-                background: #fff;
-                color: #333;
-                border-radius: 50%;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                opacity: 0.8;
+                width: 60px;
+                height: 60px;
+                background: transparent;
+                color: #fff;
+                border: none;
+                border-radius: 0;
+                opacity: 0.6;
                 top: 50%;
                 transform: translateY(-50%);
+                z-index: 10;
+                transition: all 0.3s ease;
             }
             .carousel-control-prev:hover, .carousel-control-next:hover {
-                background: #fff;
                 opacity: 1;
-                color: #f59e6c;
+                transform: translateY(-50%) scale(1.1);
             }
+            .carousel-control-prev { left: 20px; }
+            .carousel-control-next { right: 20px; }
+            
             .carousel-control-prev-icon, .carousel-control-next-icon {
-                filter: invert(1); /* Dark arrows */
-                width: 20px;
+                filter: none;
+                width: 32px;
+                height: 32px;
+            }
+            .carousel-control-prev-icon { filter: brightness(0) invert(1); }
+            .carousel-control-next-icon { filter: brightness(0) invert(1); }
+
+            @media screen and (max-width: 768px) {
+                .carousel-control-prev, .carousel-control-next {
+                    width: 40px;
+                    height: 40px;
+                }
+                .carousel-control-prev-icon, .carousel-control-next-icon {
+                    width: 24px;
+                    height: 24px;
+                }
+                .carousel-control-prev { left: 10px; }
+                .carousel-control-next { right: 10px; }
             }
             .carousel-indicators li {
                 width: 8px;
@@ -186,7 +435,7 @@
                                 <% if (banner.buttonText) { %>
                                     <a href="<%= banner.buttonLink || '/shop' %>" class="banner-btn">
                                         <%= banner.buttonText %>
-                                        <i class="icon-long-arrow-right"></i>
+                                        <span class="btn-arrow">&rarr;</span>
                                     </a>
                                 <% } %>
                             </div>
@@ -261,7 +510,7 @@
                                             <% } %>
                                         </a>
                                         <div class="product-action-vertical">
-                                            <a href="#" class="btn-product-icon btn-wishlist"><span>add to wishlist</span></a>
+                                            <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
                                         </div>
                                     </figure>
                                     <div class="product-body">
@@ -288,6 +537,9 @@
                                         <a href="/product/<%= product._id %>">
                                             <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
+                                        <div class="product-action-vertical">
+                                            <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
+                                        </div>
                                     </figure>
                                     <div class="product-body">
                                         <h3 class="product-title"><a href="/product/<%= product._id %>"><%= product.productName %></a></h3>
@@ -315,6 +567,9 @@
                                         <a href="/product/<%= product._id %>">
                                             <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
+                                        <div class="product-action-vertical">
+                                            <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
+                                        </div>
                                     </figure>
                                     <div class="product-body">
                                         <h3 class="product-title"><a href="/product/<%= product._id %>"><%= product.productName %></a></h3>
@@ -342,6 +597,9 @@
                                         <a href="/product/<%= product._id %>">
                                             <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
+                                        <div class="product-action-vertical">
+                                            <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
+                                        </div>
                                     </figure>
                                     <div class="product-body">
                                         <h3 class="product-title"><a href="/product/<%= product._id %>"><%= product.productName %></a></h3>
@@ -369,6 +627,9 @@
                                         <a href="/product/<%= product._id %>">
                                             <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
+                                        <div class="product-action-vertical">
+                                            <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
+                                        </div>
                                     </figure>
                                     <div class="product-body">
                                         <h3 class="product-title"><a href="/product/<%= product._id %>"><%= product.productName %></a></h3>
@@ -387,72 +648,84 @@
             </div><!-- End .tab-content -->
         </div><!-- End .container -->
 
-        <div class="container categories pt-2">
-            <h2 class="title-lg text-center mb-4">Shop by Categories</h2>
-            <div class="row">
-                <!-- Left Column: Men (Large) -->
-                <div class="col-md-6 col-lg-4">
+        <!-- ── Shop by Categories — Premium Grid ──────────────── -->
+        <section class="raro-categories-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-eyebrow">Explore the Range</span>
+                    <h2 class="section-heading">Shop by Categories</h2>
+                    <div class="section-divider"></div>
+                    <p class="section-subtext">Crafted for the streets. Worn everywhere.</p>
+                </div>
+
+                <div class="cat-grid">
+
+                    <!-- Featured: Men -->
                     <% if(menCategory) { %>
-                        <div class="banner banner-display banner-link-anim" style="height: 520px;">
-                            <a href="/shop?category=<%= menCategory._id %>">
-                                <img src="assets/images/bbe3d0d8a9532d92a8541c7eecf92005.jpg" alt="Men" style="height: 100%; object-fit: cover;">
-                            </a>
-                            <div class="banner-content banner-content-center">
-                                <h3 class="banner-title text-white"><a href="/shop?category=<%= menCategory._id %>">MEN</a></h3>
-                                <a href="/shop?category=<%= menCategory._id %>" class="btn btn-outline-white banner-link">Shop Now<i class="icon-long-arrow-right"></i></a>
-                            </div>
+                    <a href="/shop?category=<%= menCategory._id %>" class="cat-card cat-card--featured">
+                        <img src="assets/images/bbe3d0d8a9532d92a8541c7eecf92005.jpg" alt="Men's Collection" class="cat-card__img">
+                        <div class="cat-card__overlay"></div>
+                        <div class="cat-card__content">
+                            <span class="cat-card__label">New Season</span>
+                            <h3 class="cat-card__title">Men's<br>Collection</h3>
+                            <span class="cat-card__cta">Shop Now <span class="cat-card__cta-arrow">&rarr;</span></span>
                         </div>
+                    </a>
                     <% } %>
-                </div>
 
-                <!-- Center Column: Customized & Oversized (Small Stacked) -->
-                <div class="col-md-6 col-lg-4">
-                    <div class="row">
-                        <div class="col-12 mb-2">
-                            <% if(customizedCategory) { %>
-                                <div class="banner banner-display banner-link-anim" style="height: 255px;">
-                                    <a href="/shop?category=<%= customizedCategory._id %>">
-                                        <img src="assets/images/671a326c69aeadc88b991be3c4ceaf15.jpg" alt="Customized" style="height: 100%; object-fit: cover;">
-                                    </a>
-                                    <div class="banner-content banner-content-center">
-                                        <h3 class="banner-title text-white"><a href="/shop?category=<%= customizedCategory._id %>">CUSTOMIZED</a></h3>
-                                        <a href="/shop?category=<%= customizedCategory._id %>" class="btn btn-outline-white banner-link">Shop Now<i class="icon-long-arrow-right"></i></a>
-                                    </div>
-                                </div>
-                            <% } %>
+                    <!-- Customized -->
+                    <% if(customizedCategory) { %>
+                    <a href="/shop?category=<%= customizedCategory._id %>" class="cat-card">
+                        <img src="assets/images/671a326c69aeadc88b991be3c4ceaf15.jpg" alt="Customized" class="cat-card__img">
+                        <div class="cat-card__overlay"></div>
+                        <div class="cat-card__content">
+                            <span class="cat-card__label">Exclusive</span>
+                            <h3 class="cat-card__title">Customized</h3>
+                            <span class="cat-card__cta">Shop Now <span class="cat-card__cta-arrow">&rarr;</span></span>
                         </div>
-                        <div class="col-12 mt-2">
-                            <% if(oversizedCategory) { %>
-                                <div class="banner banner-display banner-link-anim" style="height: 255px;">
-                                    <a href="/shop?category=<%= oversizedCategory._id %>">
-                                        <img src="assets/images/2e67a632d90d1105cc25d1e7bed3b543.jpg" alt="Oversized" style="height: 100%; object-fit: cover;">
-                                    </a>
-                                    <div class="banner-content banner-content-center">
-                                        <h3 class="banner-title text-white"><a href="/shop?category=<%= oversizedCategory._id %>">OVERSIZED</a></h3>
-                                        <a href="/shop?category=<%= oversizedCategory._id %>" class="btn btn-outline-white banner-link">Shop Now<i class="icon-long-arrow-right"></i></a>
-                                    </div>
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
+                    </a>
+                    <% } %>
 
-                <!-- Right Column: Minimal (Large) -->
-                <div class="col-lg-4 d-none d-lg-block">
+                    <!-- Oversized -->
+                    <% if(oversizedCategory) { %>
+                    <a href="/shop?category=<%= oversizedCategory._id %>" class="cat-card">
+                        <img src="assets/images/2e67a632d90d1105cc25d1e7bed3b543.jpg" alt="Oversized" class="cat-card__img">
+                        <div class="cat-card__overlay"></div>
+                        <div class="cat-card__content">
+                            <span class="cat-card__label">Trending</span>
+                            <h3 class="cat-card__title">Oversized</h3>
+                            <span class="cat-card__cta">Shop Now <span class="cat-card__cta-arrow">&rarr;</span></span>
+                        </div>
+                    </a>
+                    <% } %>
+
+                    <!-- Minimal -->
                     <% if(minimalCategory) { %>
-                        <div class="banner banner-display banner-link-anim" style="height: 520px;">
-                            <a href="/shop?category=<%= minimalCategory._id %>">
-                                <img src="assets/images/498cf6ab8496ebceda99be5e1608bed2.jpg" alt="Minimal" style="height: 100%; object-fit: cover;">
-                            </a>
-                            <div class="banner-content banner-content-center">
-                                <h3 class="banner-title text-white"><a href="/shop?category=<%= minimalCategory._id %>">MINIMAL</a></h3>
-                                <a href="/shop?category=<%= minimalCategory._id %>" class="btn btn-outline-white banner-link">Shop Now<i class="icon-long-arrow-right"></i></a>
-                            </div>
+                    <a href="/shop?category=<%= minimalCategory._id %>" class="cat-card">
+                        <img src="assets/images/498cf6ab8496ebceda99be5e1608bed2.jpg" alt="Minimal" class="cat-card__img">
+                        <div class="cat-card__overlay"></div>
+                        <div class="cat-card__content">
+                            <span class="cat-card__label">Essentials</span>
+                            <h3 class="cat-card__title">Minimal</h3>
+                            <span class="cat-card__cta">Shop Now <span class="cat-card__cta-arrow">&rarr;</span></span>
                         </div>
+                    </a>
                     <% } %>
+
+                    <!-- Streetwear fallback slot — links to shop -->
+                    <a href="/shop" class="cat-card" style="background: #111;">
+                        <img src="assets/images/2e67a632d90d1105cc25d1e7bed3b543.jpg" alt="All Styles" class="cat-card__img" style="filter: grayscale(60%) brightness(0.5);">
+                        <div class="cat-card__overlay"></div>
+                        <div class="cat-card__content">
+                            <span class="cat-card__label">Raro</span>
+                            <h3 class="cat-card__title">All Styles</h3>
+                            <span class="cat-card__cta">View All <span class="cat-card__cta-arrow">&rarr;</span></span>
+                        </div>
+                    </a>
+
                 </div>
             </div>
-        </div>
+        </section>
 
         <div class="mb-2"></div>
 
@@ -686,72 +959,72 @@
                         }'>
                     <article class="entry entry-display">
                         <figure class="entry-media">
-                            <a href="single.html">
+                            <a href="javascript:void(0)">
                                 <img src="assets/images/blog/home/post-1.jpg" alt="image desc">
                             </a>
                         </figure><!-- End .entry-media -->
 
                         <div class="entry-body pb-4 text-center">
                             <div class="entry-meta">
-                                <a href="#">Nov 22, 2018</a>, 0 Comments
+                                <a href="javascript:void(0)">Nov 22, 2018</a>, 0 Comments
                             </div><!-- End .entry-meta -->
 
                             <h3 class="entry-title">
-                                <a href="single.html">Sed adipiscing ornare.</a>
+                                <a href="javascript:void(0)">Sed adipiscing ornare.</a>
                             </h3><!-- End .entry-title -->
 
                             <div class="entry-content">
                                 <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Phasellus
                                     hendrerit.<br>Pelletesque aliquet nibh necurna. </p>
-                                <a href="single.html" class="read-more">Read More</a>
+                                <a href="javascript:void(0)" class="read-more">Read More</a>
                             </div><!-- End .entry-content -->
                         </div><!-- End .entry-body -->
                     </article><!-- End .entry -->
 
                     <article class="entry entry-display">
                         <figure class="entry-media">
-                            <a href="single.html">
+                            <a href="javascript:void(0)">
                                 <img src="assets/images/blog/home/post-2.jpg" alt="image desc">
                             </a>
                         </figure><!-- End .entry-media -->
 
                         <div class="entry-body pb-4 text-center">
                             <div class="entry-meta">
-                                <a href="#">Dec 12, 2018</a>, 0 Comments
+                                <a href="javascript:void(0)">Dec 12, 2018</a>, 0 Comments
                             </div><!-- End .entry-meta -->
 
                             <h3 class="entry-title">
-                                <a href="single.html">Fusce lacinia arcuet nulla.</a>
+                                <a href="javascript:void(0)">Fusce lacinia arcuet nulla.</a>
                             </h3><!-- End .entry-title -->
 
                             <div class="entry-content">
                                 <p>Sed pretium, ligula sollicitudin laoreet<br>viverra, tortor libero sodales leo, eget
                                     blandit nunc tortor eu nibh. Nullam mollis justo. </p>
-                                <a href="single.html" class="read-more">Read More</a>
+                                <a href="javascript:void(0)" class="read-more">Read More</a>
                             </div><!-- End .entry-content -->
                         </div><!-- End .entry-body -->
                     </article><!-- End .entry -->
 
                     <article class="entry entry-display">
                         <figure class="entry-media">
-                            <a href="single.html">
+                            <a href="javascript:void(0)">
                                 <img src="assets/images/blog/home/post-3.jpg" alt="image desc">
                             </a>
                         </figure><!-- End .entry-media -->
 
                         <div class="entry-body pb-4 text-center">
                             <div class="entry-meta">
-                                <a href="#">Dec 19, 2018</a>, 2 Comments
+                                <a href="javascript:void(0)">Dec 19, 2018</a>, 2 Comments
                             </div><!-- End .entry-meta -->
 
                             <h3 class="entry-title">
-                                <a href="single.html">Quisque volutpat mattis eros.</a>
+                                <a href="javascript:void(0)">Quisque volutpat mattis eros.</a>
                             </h3><!-- End .entry-title -->
 
                             <div class="entry-content">
                                 <p>Suspendisse potenti. Sed egestas, ante et vulputate volutpat, eros pede semper est,
                                     vitae luctus metus libero eu augue. </p>
-                                <a href="single.html" class="read-more">Read More</a>
+                                <a href="javascript:void(0)" class="read-more">Read More</a>
                             </div><!-- End .entry-content -->
                         </div><!-- End .entry-body -->
                     </article><!-- End .entry -->
@@ -759,7 +1032,7 @@
             </div><!-- container -->
 
             <div class="more-container text-center mb-0 mt-3">
-                <a href="blog.html" class="btn btn-outline-darker btn-more"><span>View more articles</span><i
+                <a href="javascript:void(0)" class="btn btn-outline-darker btn-more"><span>View more articles</span><i
                         class="icon-long-arrow-right"></i></a>
             </div><!-- End .more-container -->
         </div>
@@ -776,7 +1049,7 @@
                             </div><!-- End .col -->
 
                             <div class="col-auto">
-                                <a href="login.html" class="btn btn-outline-white"><span>SIGN UP</span><i
+                                <a href="/register" class="btn btn-outline-white"><span>SIGN UP</span><i
                                         class="icon-long-arrow-right"></i></a>
                             </div><!-- End .col-auto -->
                         </div><!-- End .row no-gutters -->
@@ -876,6 +1149,85 @@
         <script src="assets/js/jquery.magnific-popup.min.js"></script>
         <!-- Main JS File -->
         <script src="assets/js/main.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            $(document).ready(function() {
+                $(document).on('click', '.btn-add-wishlist', async function(e) {
+                    e.preventDefault();
+                    const $btn = $(this);
+                    const productId = $btn.data('product-id');
+
+                    try {
+                        const response = await fetch('/wishlist/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ productId })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.success) {
+                            $btn.addClass('in-wishlist');
+                            
+                            // Update wishlist count in header
+                            const $wishlistCount = $('.cart-dropdown a[href="/wishlist"] .cart-count');
+                            if ($wishlistCount.length) {
+                                let currentCount = parseInt($wishlistCount.text()) || 0;
+                                // Only increment if the product was actually newly added (not already there)
+                                if (data.message.toLowerCase().includes('added')) {
+                                    $wishlistCount.text(currentCount + 1);
+                                    $wishlistCount.css('display', 'flex'); // Ensure it becomes visible
+                                }
+                            }
+
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                                }
+                            });
+
+                            Toast.fire({
+                                icon: 'success',
+                                title: data.message
+                            });
+                        } else {
+                            if (response.status === 401 || (typeof data.message === 'string' && data.message.toLowerCase().includes('login'))) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Please Login',
+                                    text: 'You need to be logged in to save items to your wishlist.',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Login Now'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = '/signin';
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: data.message || 'Could not add to wishlist.'
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Wishlist error:", error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong.'
+                        });
+                    }
+                });
+            });
+        </script>
         </body>
 
 

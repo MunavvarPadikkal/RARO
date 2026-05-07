@@ -1,5 +1,14 @@
 <%-include("../../views/partials/user/header.ejs")%>
 <link rel="stylesheet" href="assets/css/plugins/nouislider/nouislider.css">
+<style>
+    .btn-wishlist.in-wishlist::before {
+        color: #ef837b !important;
+        content: '\f233' !important; /* Filled heart if available, or just color */
+    }
+    .btn-wishlist.in-wishlist {
+        color: #ef837b !important;
+    }
+</style>
 
 <main class="main">
     <div class="page-header text-center" style="background-image: url('assets/images/page-header-bg.jpg')">
@@ -147,7 +156,7 @@
 
                                                     <div class="col-lg-6">
                                                         <div class="product-body product-action-inner">
-                                                            <a href="#" class="btn-product btn-wishlist btn-add-wishlist" data-product-id="<%= product._id %>" title="Add to wishlist" style="font-size: 1.8rem;"><span>add to wishlist</span></a>
+                                                            <a href="#" class="btn-product btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist" style="font-size: 1.8rem;"><span>add to wishlist</span></a>
                                                             <div class="product-cat">
                                                                 <a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a>
                                                             </div>
@@ -202,7 +211,7 @@
                                                     </a>
 
                                                     <div class="product-action-vertical">
-                                                        <a href="#" class="btn-product-icon btn-wishlist btn-expandable btn-add-wishlist" data-product-id="<%= product._id %>" style="font-size: 1.8rem;"><span>add to wishlist</span></a>
+                                                        <a href="#" class="btn-product-icon btn-wishlist btn-expandable btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" style="font-size: 1.8rem;"><span>add to wishlist</span></a>
                                                     </div><!-- End .product-action-vertical -->
 
                                                     <div class="product-action">
@@ -462,8 +471,21 @@ function updateQueryStringParameter(uri, key, value) {
                 });
 
                 const data = await response.json();
+                const $btn = $(this);
 
                 if (response.ok && data.success) {
+                    $btn.addClass('in-wishlist');
+                    
+                    // Update wishlist count in header
+                    const $wishlistCount = $('.cart-dropdown a[href="/wishlist"] .cart-count');
+                    if ($wishlistCount.length) {
+                        let currentCount = parseInt($wishlistCount.text()) || 0;
+                        if (data.message.toLowerCase().includes('added')) {
+                            $wishlistCount.text(currentCount + 1);
+                            $wishlistCount.css('display', 'flex'); // Ensure it becomes visible
+                        }
+                    }
+
                     const Toast = Swal.mixin({
                         toast: true,
                         position: 'top-end',

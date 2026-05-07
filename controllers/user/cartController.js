@@ -39,7 +39,32 @@ const updateQuantity = async (req, res) => {
         }
 
         await cartService.updateQuantity(userId, productId, size, color, quantity);
-        res.json({ success: true, message: "Quantity updated" });
+        
+        // Fetch updated cart data for AJAX response
+        const { cart, subtotal, itemsCount, discount, finalAmount } = await cartService.getCart(userId);
+        
+        // Find the updated item total
+        let itemTotal = 0;
+        const updatedItem = cart.items.find(item => 
+            item.productId._id.toString() === productId.toString() && 
+            item.size === size && 
+            item.color === color
+        );
+        
+        if (updatedItem) {
+            const effectivePrice = updatedItem.productId.salePrice < updatedItem.productId.regularPrice ? updatedItem.productId.salePrice : updatedItem.productId.regularPrice;
+            itemTotal = effectivePrice * updatedItem.quantity;
+        }
+
+        res.json({ 
+            success: true, 
+            message: "Quantity updated",
+            itemTotal,
+            subtotal,
+            itemsCount,
+            discount,
+            finalAmount
+        });
 
     } catch (error) {
         console.error("Error updating quantity:", error);

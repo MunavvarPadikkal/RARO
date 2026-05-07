@@ -20,9 +20,28 @@ const loadCheckout = async (req, res) => {
             shippingCharge,
             finalAmount,
             itemsCount,
+            appliedCoupon
         } = await orderService.getCheckoutData(userId);
 
         const wallet = await walletService.getWallet(userId);
+        
+        // Fetch available coupons
+        const Coupon = require("../../models/couponSchema");
+        const now = new Date();
+        const availableCoupons = await Coupon.find({
+            isActive: true,
+            isDeleted: false,
+            startDate: { $lte: now },
+            expiryDate: { $gte: now },
+            $expr: { $lt: ["$usageCount", "$totalUsageLimit"] }
+        }).lean();
+
+        // Filter coupons based on user-specific limits
+        const filteredCoupons = availableCoupons.filter(coupon => {
+            const userUsage = coupon.usersUsed.find(u => u.userId.toString() === userId.toString());
+            const userUsageCount = userUsage ? userUsage.count : 0;
+            return userUsageCount < coupon.perUserLimit;
+        });
 
         return res.render("checkout", {
             user: req.session.user,
@@ -33,8 +52,10 @@ const loadCheckout = async (req, res) => {
             shippingCharge,
             finalAmount,
             itemsCount,
+            appliedCoupon,
             walletBalance: wallet.balance,
-            razorpayKeyId: process.env.RAZORPAY_KEY_ID
+            razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+            availableCoupons: filteredCoupons
         });
     } catch (error) {
         if (error.message === "CART_EMPTY") {

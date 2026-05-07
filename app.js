@@ -35,7 +35,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Sync Passport user with our session-based user and expose to views
-app.use((req, res, next) => {
+const Cart = require("./models/cartSchema");
+const Wishlist = require("./models/wishlistSchema");
+
+app.use(async (req, res, next) => {
   if (req.user && !req.session.user) {
     req.session.user = {
       _id: req.user._id,
@@ -45,6 +48,27 @@ app.use((req, res, next) => {
   }
   res.locals.user = req.session.user || null;
   res.locals.path = req.path;
+  
+  // Fetch cart and wishlist counts if user is logged in
+  if (req.session.user) {
+    try {
+      const [cart, wishlist] = await Promise.all([
+        Cart.findOne({ userId: req.session.user._id }),
+        Wishlist.findOne({ userId: req.session.user._id })
+      ]);
+      
+      res.locals.cartCount = cart ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+      res.locals.wishlistCount = wishlist ? wishlist.products.length : 0;
+    } catch (error) {
+      console.error("Error fetching counts for header:", error);
+      res.locals.cartCount = 0;
+      res.locals.wishlistCount = 0;
+    }
+  } else {
+    res.locals.cartCount = 0;
+    res.locals.wishlistCount = 0;
+  }
+  
   next();
 });
 
