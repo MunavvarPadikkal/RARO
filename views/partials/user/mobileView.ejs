@@ -1,4 +1,52 @@
 <!-- Mobile Menu -->
+    <style>
+        /* Force mobile menu to the left and fix positioning */
+        .mobile-menu-container {
+            left: 0 !important;
+            transform: translateX(-101%) !important;
+            transition: transform 0.4s ease, visibility 0.4s !important;
+            visibility: hidden !important;
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            width: 280px !important;
+            z-index: 3001 !important; /* Higher than header */
+            background-color: #333 !important;
+        }
+
+        .mmenu-active .mobile-menu-container {
+            transform: translateX(0) !important;
+            visibility: visible !important;
+        }
+
+        /* Ensure overlay is on top of everything except the menu */
+        .mobile-menu-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            z-index: 3000 !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            transition: all 0.4s !important;
+        }
+
+        .mmenu-active .mobile-menu-overlay {
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Prevent page wrapper from shifting too much or looking weird */
+        .mmenu-active .page-wrapper {
+            transform: none !important; /* Disable default theme shift if it causes issues */
+        }
+        
+        body.mmenu-active {
+            overflow: hidden !important;
+        }
+    </style>
     <div class="mobile-menu-overlay"></div><!-- End .mobil-menu-overlay -->
 
     <div class="mobile-menu-container">

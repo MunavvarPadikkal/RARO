@@ -199,6 +199,8 @@
         const minPur = parseFloat(data.minPurchase);
         if (isNaN(minPur) || minPur < 0) {
             showError('minPurchaseError', 'Min purchase cannot be negative.');
+        } else if (data.discountType === 'fixed' && discountVal >= minPur) {
+            showError('minPurchaseError', 'Min purchase must be greater than discount amount.');
         }
 
         // 4. Max Discount Validation (for percentage)

@@ -7,6 +7,7 @@
 <style>
   .profile-sidebar-nav {
     margin-bottom: 2rem;
+    transition: all 0.3s ease;
   }
   .profile-sidebar-nav .nav-item {
     border-bottom: .1rem solid #ebebeb;
@@ -43,10 +44,68 @@
     opacity: 1;
     left: -1rem;
   }
+
+  /* Mobile Toggle Styles */
+  .profile-toggle-btn {
+    display: none;
+    width: 100%;
+    padding: 1rem 0;
+    background: none;
+    border: none;
+    margin-bottom: 1rem;
+    text-align: left;
+    align-items: center;
+    font-weight: 500;
+    font-size: 1.6rem;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .profile-toggle-btn:hover {
+    color: #c96;
+  }
+
+  .profile-toggle-btn i {
+    font-size: 1.8rem;
+    margin-right: 1rem;
+  }
+
+  @media screen and (max-width: 767px) {
+    .profile-toggle-btn {
+      display: flex;
+    }
+    .profile-sidebar-nav {
+      display: none;
+      background: #fff;
+      border: 1px solid #ebebeb;
+      border-radius: 0.4rem;
+      padding: 0 1rem;
+      margin-bottom: 2rem;
+    }
+    .profile-sidebar-nav.show {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+    .profile-sidebar-nav .nav-link::before {
+        display: none;
+    }
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 
 <aside class="col-md-4 col-lg-3">
-  <ul class="nav profile-sidebar-nav flex-column" role="tablist">
+  <!-- Mobile Toggle Button -->
+  <div class="profile-toggle-btn" id="profileMenuToggle">
+    <i class="icon-bars"></i>
+    <span>Account Menu</span>
+  </div>
+
+  <ul class="nav profile-sidebar-nav flex-column" id="profileSidebarMenu" role="tablist">
     <li class="nav-item">
       <a class="nav-link <%= _activeTab === 'dashboard' ? 'active' : '' %>" href="/profile">
         Dashboard
@@ -70,13 +129,7 @@
         Account Details
       </a>
     </li>
-
-    <li class="nav-item">
-      <a class="nav-link <%= _activeTab === 'coupons' ? 'active' : '' %>" href="#">
-        Coupons
-      </a>
-    </li>
-
+    
     <li class="nav-item">
       <a class="nav-link <%= _activeTab === 'wallet' ? 'active' : '' %>" href="/wallet">
         Wallet
@@ -116,5 +169,29 @@
       }
     });
   }
+
+  // Toggle Profile Menu on Mobile
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('profileMenuToggle');
+    const sidebarMenu = document.getElementById('profileSidebarMenu');
+
+    if (toggleBtn && sidebarMenu) {
+      toggleBtn.addEventListener('click', function() {
+        sidebarMenu.classList.toggle('show');
+        toggleBtn.classList.toggle('active');
+        
+        // Change icon based on state
+        const icon = toggleBtn.querySelector('i');
+        if (sidebarMenu.classList.contains('show')) {
+          icon.classList.remove('icon-bars');
+          icon.classList.add('icon-close');
+        } else {
+          icon.classList.remove('icon-close');
+          icon.classList.add('icon-bars');
+        }
+      });
+    }
+  });
 </script>
+
 

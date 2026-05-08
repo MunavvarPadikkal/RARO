@@ -112,9 +112,7 @@
             </div><!-- End .dashboard -->
         </div><!-- End .page-content -->
     </main>
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</div><!-- End .page-wrapper -->
 
     <style>
         .ce-otp-wrap {
@@ -190,34 +188,41 @@
 
     <script>
         // ── Profile form submit ───────────────────────────────────────────────
-        document.getElementById('accountDetailsForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const formData = {
-                name: document.getElementById('editName').value,
-                phone: document.getElementById('editPhone').value,
-                currentPassword: document.getElementById('editCurrentPassword')?.value || "",
-                newPassword: document.getElementById('editNewPassword')?.value || "",
-                confirmPassword: document.getElementById('editConfirmPassword')?.value || ""
-            };
-            try {
-                const response = await fetch('/updateProfile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('accountDetailsForm');
+            if (form) {
+                form.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const formData = {
+                        name: document.getElementById('editName').value,
+                        phone: document.getElementById('editPhone').value,
+                        currentPassword: document.getElementById('editCurrentPassword')?.value || "",
+                        newPassword: document.getElementById('editNewPassword')?.value || "",
+                        confirmPassword: document.getElementById('editConfirmPassword')?.value || ""
+                    };
+                    try {
+                        const response = await fetch('/updateProfile', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(formData)
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            Swal.fire('Success', result.message, 'success').then(() => { window.location.href = '/profile'; });
+                        } else {
+                            Swal.fire('Error', result.message, 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'An error occurred during profile update.', 'error');
+                    }
                 });
-                const result = await response.json();
-                if (result.success) {
-                    Swal.fire('Success', result.message, 'success').then(() => { window.location.href = '/profile'; });
-                } else {
-                    Swal.fire('Error', result.message, 'error');
-                }
-            } catch (err) {
-                Swal.fire('Error', 'An error occurred during profile update.', 'error');
+            }
+
+            const changeEmailBtn = document.getElementById('changeEmailBtn');
+            if (changeEmailBtn) {
+                changeEmailBtn.addEventListener('click', showStep1);
             }
         });
-
-        // ── Change Email ──────────────────────────────────────────────────────
-        document.getElementById('changeEmailBtn').addEventListener('click', showStep1);
 
         // STEP 1 — collect new email + current password
         function showStep1() {
@@ -389,21 +394,10 @@
         }
     </script>
 
-    <%- include("../../views/partials/user/footer.ejs") %>
+    <button id="scroll-top" title="Back to Top">
+        <i class="icon-arrow-up"></i>
+    </button>
 
-        </div><!-- End .page-wrapper -->
-
-        <button id="scroll-top" title="Back to Top">
-            <i class="icon-arrow-up"></i>
-        </button>
-
-        <script src="assets/js/jquery.min.js"></script>
-        <script src="assets/js/bootstrap.bundle.min.js"></script>
-        <script src="assets/js/jquery.hoverIntent.min.js"></script>
-        <script src="assets/js/jquery.waypoints.min.js"></script>
-        <script src="assets/js/superfish.min.js"></script>
-        <script src="assets/js/owl.carousel.min.js"></script>
-        <script src="assets/js/jquery.magnific-popup.min.js"></script>
-        <!-- Main JS File -->
-        <script src="assets/js/main.js"></script>
-        <%-include("../../views/partials/user/mobileView.ejs")%>
+<%- include("../../views/partials/user/footer.ejs") %>
+<%- include("../../views/partials/user/mobileView.ejs") %>
+<%- include("../../views/partials/user/scripts.ejs") %>

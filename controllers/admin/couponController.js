@@ -92,6 +92,10 @@ const addCoupon = async (req, res) => {
             return res.status(400).json({ success: false, message: "Percentage discount must be between 1 and 100." });
         }
 
+        if (discountType === "fixed" && parseFloat(discountValue) >= parseFloat(minPurchase)) {
+            return res.status(400).json({ success: false, message: "Discount amount must be less than the minimum purchase amount." });
+        }
+
         const newCoupon = new Coupon({
             code: code.toUpperCase(),
             discountType,
@@ -164,6 +168,10 @@ const editCoupon = async (req, res) => {
         // 3. Validate values
         if (discountType === "percentage" && (discountValue <= 0 || discountValue > 100)) {
             return res.status(400).json({ success: false, message: "Percentage discount must be between 1 and 100." });
+        }
+
+        if (discountType === "fixed" && parseFloat(discountValue) >= parseFloat(minPurchase)) {
+            return res.status(400).json({ success: false, message: "Discount amount must be less than the minimum purchase amount." });
         }
 
         await Coupon.findByIdAndUpdate(id, {

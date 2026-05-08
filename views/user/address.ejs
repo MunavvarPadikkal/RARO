@@ -214,8 +214,12 @@
             </div><!-- End .dashboard -->
         </div><!-- End .page-content -->
     </main>
+</div><!-- End .page-wrapper -->
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <button id="scroll-top" title="Back to Top">
+        <i class="icon-arrow-up"></i>
+    </button>
+
     <script>
         const formHtml = `
         <div class="row mt-3 text-left">
@@ -472,8 +476,6 @@
         }
     </script>
 
-    <%- include("../../views/partials/user/footer.ejs") %>
-
-        </div><!-- End .page-wrapper -->
-
-        <%-include("../../views/partials/user/mobileView.ejs")%>
+<%- include("../../views/partials/user/footer.ejs") %>
+<%- include("../../views/partials/user/mobileView.ejs") %>
+<%- include("../../views/partials/user/scripts.ejs") %>
