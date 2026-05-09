@@ -62,6 +62,22 @@ const orderSchema = new Schema(
                     type: Number,
                     required: true,
                 },
+                couponDiscountPerUnit: {
+                    type: Number,
+                    default: 0,
+                },
+                totalCouponDiscount: {
+                    type: Number,
+                    default: 0,
+                },
+                finalPricePerUnit: {
+                    type: Number,
+                    default: 0,
+                },
+                finalItemTotal: {
+                    type: Number,
+                    default: 0,
+                },
                 // Per-item lifecycle status
                 itemStatus: {
                     type: String,

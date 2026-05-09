@@ -7,6 +7,7 @@ const User = require("../models/userSchema");
 const Coupon = require("../models/couponSchema");
 const refundService = require("./refundService");
 const referralService = require("./referralService");
+const { distributeCouponDiscount } = require("../utils/orderUtils");
 const { v4: uuidv4 } = require("uuid");
 
 const getProductPrice = (product) => {
@@ -44,12 +45,28 @@ const _updateTotalOrderStatus = (order) => {
     } else if (allReturnRequested) {
         order.orderStatus = "Return Requested";
     } else {
-        // For mixed statuses or rejections, default to Delivered if already past shipping
-        const postDeliveryStatuses = ["Shipped", "Out for Delivery", "Delivered", "Return Requested", "Return Approved", "Return Rejected", "Returned", "Partially Returned", "Partially Cancelled"];
-        if (postDeliveryStatuses.includes(order.orderStatus)) {
-            order.orderStatus = "Delivered";
+        const anyActive = items.some(i => i.itemStatus === "Active");
+        if (!anyActive) {
+            // If none are active but mixed cancellation/return
+            order.orderStatus = "Partially Returned";
+        } else {
+             const postDeliveryStatuses = ["Shipped", "Out for Delivery", "Delivered", "Return Requested", "Return Approved", "Return Rejected", "Returned", "Partially Returned", "Partially Cancelled"];
+             if (postDeliveryStatuses.includes(order.orderStatus)) {
+                 order.orderStatus = "Delivered";
+             }
         }
     }
+};
+
+// ─── Totals update helper ───────────────────────────────────────────────────
+const _updateOrderTotals = (order, cancelledItem) => {
+    if (!cancelledItem) return;
+    
+    // Subtract cancelled item values from order totals
+    // Using stored proportional coupon values
+    order.subtotal = Math.max(0, Math.round((order.subtotal - cancelledItem.itemTotal) * 100) / 100);
+    order.discount = Math.max(0, Math.round((order.discount - (cancelledItem.totalCouponDiscount || 0)) * 100) / 100);
+    order.finalAmount = Math.max(0, Math.round((order.finalAmount - (cancelledItem.finalItemTotal || cancelledItem.itemTotal)) * 100) / 100);
 };
 
 // ─── Checkout helpers (preserved from original) ──────────────────────────────
@@ -166,7 +183,7 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
     if (!selectedAddress) throw new Error("Selected address not found.");
 
     // Prepare order items (snapshots)
-    const orderItems = cart.items.map((item) => {
+    let orderItems = cart.items.map((item) => {
         const currentPrice = item.productId.salePrice;
         return {
             productId: item.productId._id,
@@ -222,6 +239,9 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
             throw new Error("Applied coupon is no longer valid. Please review checkout.");
         }
     }
+
+    // Apply proportional coupon distribution
+    orderItems = distributeCouponDiscount(orderItems, discount, subtotal);
 
     const finalAmount = subtotal + shippingCharge - discount;
 
@@ -424,6 +444,16 @@ const cancelOrder = async (orderId, userId, reason = "") => {
     if (order.orderStatus === "Cancelled")
         throw new Error("Order is already cancelled.");
 
+    // Calculate refund amount before updating order totals
+    let amountToRefund = 0;
+    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
+        for (const item of order.orderedItems) {
+            if (item.itemStatus === "Active") {
+                amountToRefund += (item.finalItemTotal || item.itemTotal);
+            }
+        }
+    }
+
     // Restore stock for all active items
     for (const item of order.orderedItems) {
         if (item.itemStatus === "Active") {
@@ -436,6 +466,7 @@ const cancelOrder = async (orderId, userId, reason = "") => {
             );
             item.itemStatus = "Cancelled";
             item.cancellationReason = reason || "Full order cancelled";
+            _updateOrderTotals(order, item);
         }
     }
 
@@ -449,9 +480,9 @@ const cancelOrder = async (orderId, userId, reason = "") => {
 
     await order.save();
 
-    // Trigger Refund if order was paid
-    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
-        await refundService.createRefundRequest(order, null, "cancel", reason || "Order cancelled");
+    // Trigger Refund if there's anything to refund
+    if (amountToRefund > 0) {
+        await refundService.createRefundRequest(order, null, "cancel", reason || "Order cancelled", amountToRefund);
     }
 
     return order;
@@ -486,6 +517,7 @@ const cancelOrderItem = async (orderId, itemId, userId, reason = "") => {
     item.itemStatus = "Cancelled";
     item.cancellationReason = reason || "Cancelled by customer";
 
+    _updateOrderTotals(order, item);
     _updateTotalOrderStatus(order);
     if (order.orderStatus === "Cancelled") order.cancellationReason = "All items cancelled";
     
@@ -495,7 +527,7 @@ const cancelOrderItem = async (orderId, itemId, userId, reason = "") => {
         note: `Item "${item.productName}" cancelled`,
     });
 
-    // DO NOT recalculate subtotal and finalAmount to preserve original transaction record.
+    // Totals updated via _updateOrderTotals helper above.
     // Refund will be handled separately via refundAmount.
 
     await order.save();
@@ -707,10 +739,16 @@ const adminUpdateOrderStatus = async (orderId, newStatus) => {
         }
     }
 
-    // If cancelled by admin, restore stock
+    // If cancelled by admin, restore stock and calculate refund
     if (newStatus === "Cancelled") {
+        let amountToRefund = 0;
+        const isPaid = order.paymentStatus === "Paid" || order.paymentMethod === "Wallet";
+
         for (const item of order.orderedItems) {
             if (item.itemStatus === "Active") {
+                if (isPaid) {
+                    amountToRefund += (item.finalItemTotal || item.itemTotal);
+                }
                 await Product.updateOne(
                     {
                         _id: item.productId,
@@ -720,9 +758,14 @@ const adminUpdateOrderStatus = async (orderId, newStatus) => {
                 );
                 item.itemStatus = "Cancelled";
                 item.cancellationReason = "Cancelled by admin";
+                _updateOrderTotals(order, item);
             }
         }
         order.cancellationReason = "Cancelled by admin";
+
+        if (amountToRefund > 0) {
+            await refundService.createRefundRequest(order, null, "cancel", "Cancelled by admin", amountToRefund);
+        }
     }
 
     await order.save();
@@ -737,6 +780,16 @@ const adminApproveReturn = async (orderId) => {
     if (order.orderStatus !== "Return Requested")
         throw new Error("Order is not in Return Requested status.");
 
+    // Calculate refund amount before updating order totals
+    let amountToRefund = 0;
+    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
+        for (const item of order.orderedItems) {
+            if (item.itemStatus === "Return Requested") {
+                amountToRefund += (item.finalItemTotal || item.itemTotal);
+            }
+        }
+    }
+
     // Restore stock for all return-requested items
     for (const item of order.orderedItems) {
         if (item.itemStatus === "Return Requested") {
@@ -748,6 +801,7 @@ const adminApproveReturn = async (orderId) => {
                 { $inc: { "variants.$.stock": item.quantity } }
             );
             item.itemStatus = "Return Approved";
+            _updateOrderTotals(order, item);
         }
     }
 
@@ -761,8 +815,8 @@ const adminApproveReturn = async (orderId) => {
     await order.save();
 
     // Trigger Refund for return
-    if (order.paymentStatus === "Paid" || order.paymentMethod === "Wallet") {
-        await refundService.createRefundRequest(order, null, "return", "Full order return approved");
+    if (amountToRefund > 0) {
+        await refundService.createRefundRequest(order, null, "return", "Full order return approved", amountToRefund);
     }
 
     return order;
@@ -814,6 +868,7 @@ const adminApproveItemReturn = async (orderId, itemId) => {
     );
 
     item.itemStatus = "Return Approved";
+    _updateOrderTotals(order, item);
 
     _updateTotalOrderStatus(order);
 

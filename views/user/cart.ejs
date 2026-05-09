@@ -225,6 +225,11 @@
             const color = row.data('color');
             const max = parseInt($(this).data('max'));
             const newQuantity = parseInt($(this).val());
+            
+            if (isNaN(newQuantity)) {
+                $(this).val(1);
+                return;
+            }
 
             if (newQuantity > max) {
                 Swal.fire({
@@ -366,7 +371,6 @@
                     });
                 }
             }
-        });
 
         });
     });

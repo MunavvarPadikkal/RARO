@@ -43,17 +43,20 @@ const updateQuantity = async (req, res) => {
         // Fetch updated cart data for AJAX response
         const { cart, subtotal, itemsCount, discount, finalAmount } = await cartService.getCart(userId);
         
+        if (!cart) {
+            throw new Error("Cart not found after update");
+        }
+
         // Find the updated item total
         let itemTotal = 0;
         const updatedItem = cart.items.find(item => 
-            item.productId._id.toString() === productId.toString() && 
+            item.productId && item.productId._id.toString() === productId.toString() && 
             item.size === size && 
             item.color === color
         );
         
         if (updatedItem) {
-            const effectivePrice = updatedItem.productId.salePrice < updatedItem.productId.regularPrice ? updatedItem.productId.salePrice : updatedItem.productId.regularPrice;
-            itemTotal = effectivePrice * updatedItem.quantity;
+            itemTotal = updatedItem.totalPrice;
         }
 
         res.json({ 
@@ -68,7 +71,7 @@ const updateQuantity = async (req, res) => {
 
     } catch (error) {
         console.error("Error updating quantity:", error);
-        res.status(400).json({ success: false, message: error.message || "Failed to update quantity" });
+        res.status(error.status || 400).json({ success: false, message: error.message || "Failed to update quantity" });
     }
 };
 

@@ -7,23 +7,35 @@ const Order = require("../models/orderSchema");
  * RULE: If couponApplied is true, no item is eligible.
  */
 const checkEligibility = (order) => {
-    return !order.couponApplied;
+    // Proportional refund is always eligible if order is paid
+    return true;
 };
 
 /**
  * Create a refund request for a cancelled or returned item/order.
  */
-const createRefundRequest = async (order, itemId, type, reason) => {
+const createRefundRequest = async (order, itemId, type, reason, manualAmount = null) => {
+    // If COD and unpaid, no refund needed
+    if (order.paymentMethod === "Cash on Delivery" && order.paymentStatus !== "Paid") {
+        return null;
+    }
+
     const isEligible = checkEligibility(order);
     
     let amount = 0;
-    if (itemId) {
+    if (manualAmount !== null) {
+        amount = manualAmount;
+    } else if (itemId) {
         const item = order.orderedItems.id(itemId);
-        amount = item ? item.itemTotal : 0;
+        // Use the finalItemTotal (after coupon distribution) for refund
+        amount = item ? (item.finalItemTotal || item.itemTotal) : 0;
     } else {
-        // Full order cancellation refund (excluding shipping if already shipped, but for now we assume full)
-        amount = order.finalAmount;
+        // Full order cancellation refund
+        // Deduct any already refunded amounts to avoid double refunding
+        amount = order.finalAmount - (order.refundAmount || 0);
     }
+
+    if (amount <= 0) return null;
 
     const refund = await Refund.create({
         userId: order.userId,

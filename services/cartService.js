@@ -189,6 +189,7 @@ const updateQuantity = async (userId, productId, size, color, quantity) => {
     cart.items[itemIndex].originalPrice = originalPrice;
     cart.items[itemIndex].offerDiscount = offerDiscount;
     cart.items[itemIndex].totalPrice = parsedQuantity * price; 
+    cart.markModified('items');
 
     await cart.save();
     return cart;
