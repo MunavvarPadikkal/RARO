@@ -142,12 +142,19 @@
                                                     <% } %>
                                                     ₹<%= item.price %> × <%= item.quantity %>
                                                 </div>
-                                                <% if (item.itemStatus !== 'Active') { %>
+                                                <% 
+                                                    const terminalItemStatuses = ['Cancelled', 'Returned', 'Return Approved'];
+                                                    const isItemTerminal = terminalItemStatuses.includes(item.itemStatus);
+                                                %>
+                                                <% if (isItemTerminal || !['Placed', 'Active'].includes(item.itemStatus)) { %>
                                                     <%
                                                         let itemBadgeColor = '#888';
                                                         if (item.itemStatus === 'Cancelled') itemBadgeColor = '#c62828';
                                                         else if (item.itemStatus.includes('Return')) itemBadgeColor = '#e65100';
                                                         else if (item.itemStatus === 'Returned') itemBadgeColor = '#6a1b9a';
+                                                        else if (item.itemStatus === 'Shipped' || item.itemStatus === 'Out for Delivery') itemBadgeColor = '#1565c0';
+                                                        else if (item.itemStatus === 'Delivered') itemBadgeColor = '#2e7d32';
+                                                        else if (item.itemStatus === 'Pending') itemBadgeColor = '#f57c00';
                                                     %>
                                                     <span style="display: inline-block; background: <%= itemBadgeColor %>15; color: <%= itemBadgeColor %>; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-top: 4px;"><%= item.itemStatus %></span>
                                                     <% if (item.cancellationReason) { %>
@@ -159,9 +166,7 @@
                                                     
                                                     <% if (order.paymentStatus === 'Paid' || order.paymentMethod === 'Wallet') { %>
                                                         <div style="margin-top: 5px;">
-                                                            <% if (order.couponApplied) { %>
-                                                                <span style="font-size: 11px; color: #d32f2f; font-weight: 500;"><i class="icon-info-circle"></i> Not Eligible for Refund (Coupon Applied)</span>
-                                                            <% } else if (item.itemStatus === 'Cancelled' || item.itemStatus === 'Returned' || item.itemStatus === 'Return Approved') { %>
+                                                            <% if (item.itemStatus === 'Cancelled' || item.itemStatus === 'Returned' || item.itemStatus === 'Return Approved') { %>
                                                                 <span style="font-size: 11px; color: #2e7d32; font-weight: 500;"><i class="icon-check-circle"></i> Refunded to Wallet</span>
                                                             <% } else if (item.itemStatus === 'Return Requested') { %>
                                                                 <span style="font-size: 11px; color: #e65100; font-weight: 500;"><i class="icon-clock"></i> Refund Pending Approval</span>
@@ -173,10 +178,12 @@
                                             <div style="text-align: right; min-width: 100px;">
                                                 <div style="font-size: 15px; font-weight: 700; color: #c96;">₹<%= item.itemTotal %></div>
                                                 <!-- Per-item actions -->
-                                                <% if (item.itemStatus === 'Active' && ['Placed', 'Pending'].includes(order.orderStatus)) { %>
+                                                <% const isCancellable = !terminalItemStatuses.includes(item.itemStatus) && ['Placed', 'Pending', 'Active'].includes(item.itemStatus); %>
+                                                <% if (isCancellable) { %>
                                                     <button class="btn btn-sm mt-1" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', '<%= item.productName %>')" style="background: none; color: #c62828; font-size: 11px; padding: 4px 8px; border: 1px solid #c62828; border-radius: 6px;">Cancel</button>
                                                 <% } %>
-                                                <% if (item.itemStatus === 'Active' && ['Delivered', 'Return Rejected'].includes(order.orderStatus)) { %>
+                                                <% const isReturnable = item.itemStatus === 'Delivered'; %>
+                                                <% if (isReturnable) { %>
                                                     <button class="btn btn-sm mt-1" onclick="returnItem('<%= order._id %>', '<%= item._id %>', '<%= item.productName %>')" style="background: none; color: #e65100; font-size: 11px; padding: 4px 8px; border: 1px solid #e65100; border-radius: 6px;">Return</button>
                                                 <% } %>
                                             </div>
@@ -191,17 +198,22 @@
                                     <div class="card shadow-sm border-0 mb-3" style="border-radius: 16px; overflow: hidden;">
                                         <div class="card-body p-4">
                                             <h6 style="font-weight: 700; margin-bottom: 16px; font-size: 1.5rem;">Price Breakdown</h6>
+                                            <%
+                                                const originalSubtotal = order.orderedItems.reduce((acc, item) => acc + item.itemTotal, 0);
+                                                const originalDiscount = order.orderedItems.reduce((acc, item) => acc + (item.totalCouponDiscount || 0), 0);
+                                                const originalFinalAmount = originalSubtotal - originalDiscount + (order.shippingCharge || 0);
+                                            %>
                                             <div class="mb-3">
                                                 <h6 class="text-muted small text-uppercase mb-2" style="letter-spacing: 1px; font-weight: 700;">Order Summary</h6>
                                                 <table style="width: 100%; font-size: 14px;">
                                                     <tr>
                                                         <td style="padding: 4px 0; color: #666;">Subtotal</td>
-                                                        <td style="padding: 4px 0; text-align: right; font-weight: 600;">₹<%= order.subtotal.toLocaleString() %></td>
+                                                        <td style="padding: 4px 0; text-align: right; font-weight: 600;">₹<%= originalSubtotal.toLocaleString() %></td>
                                                     </tr>
-                                                    <% if (order.discount > 0) { %>
+                                                    <% if (originalDiscount > 0) { %>
                                                     <tr>
                                                         <td style="padding: 4px 0; color: #2e7d32;">Coupon Discount</td>
-                                                        <td style="padding: 4px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= order.discount.toLocaleString() %></td>
+                                                        <td style="padding: 4px 0; text-align: right; color: #2e7d32; font-weight: 600;">− ₹<%= originalDiscount.toLocaleString() %></td>
                                                     </tr>
                                                     <% } %>
                                                     <tr>
@@ -209,8 +221,8 @@
                                                         <td style="padding: 4px 0; text-align: right;"><%= order.shippingCharge === 0 ? 'Free' : '₹' + order.shippingCharge.toLocaleString() %></td>
                                                     </tr>
                                                     <tr style="border-top: 1px solid #eee;">
-                                                        <td style="padding: 10px 0; font-weight: 700; color: #222;">Total Payable</td>
-                                                        <td style="padding: 10px 0; text-align: right; font-weight: 700; color: #222;">₹<%= order.finalAmount.toLocaleString() %></td>
+                                                        <td style="padding: 10px 0; font-weight: 700; color: #222;">Original Total</td>
+                                                        <td style="padding: 10px 0; text-align: right; font-weight: 700; color: #222;">₹<%= originalFinalAmount.toLocaleString() %></td>
                                                     </tr>
                                                 </table>
                                             </div>
@@ -227,7 +239,7 @@
                                                     <tr>
                                                         <td style="padding: 4px 0; color: #666;">Final Paid</td>
                                                         <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #c96;">
-                                                            ₹<%= Math.max(0, order.finalAmount - order.walletAmountUsed).toLocaleString() %>
+                                                            ₹<%= Math.max(0, originalFinalAmount - order.walletAmountUsed).toLocaleString() %>
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -248,7 +260,7 @@
                                             <div style="margin-top: 12px; font-size: 13px;">
                                                 <span style="color: #666;">Payment:</span> 
                                                 <strong>
-                                                    <% if (order.walletAmountUsed >= order.finalAmount) { %>
+                                                    <% if (order.walletAmountUsed >= originalFinalAmount) { %>
                                                         Wallet
                                                     <% } else { %>
                                                         <%= order.walletAmountUsed > 0 ? 'Wallet + ' : '' %>
@@ -294,7 +306,7 @@
                                         </a>
                                     <% } %>
                                     
-                                    <% if (['Placed', 'Pending'].includes(order.orderStatus)) { %>
+                                    <% if (['Placed', 'Pending', 'Active'].includes(order.orderStatus)) { %>
                                         <button id="cancelOrderBtn" class="btn btn-sm" onclick="cancelFullOrder('<%= order._id %>')" style="background: #c62828; color: #fff; border-radius: 8px; padding: 10px 24px; font-size: 13px;">
                                             Cancel Order
                                         </button>
@@ -402,14 +414,7 @@
 
         // Return full order
         function returnFullOrder(orderId) {
-            <% if (order.couponApplied) { %>
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Non-Refundable Order',
-                    text: 'Items purchased with coupon discount are not eligible for refund.',
-                    confirmButtonColor: '#cc9966'
-                });
-            <% } %>
+
 
             Swal.fire({
                 title: 'Return Order?',
@@ -449,14 +454,7 @@
 
         // Return single item
         function returnItem(orderId, itemId, itemName) {
-            <% if (order.couponApplied) { %>
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Non-Refundable Item',
-                    text: 'Items purchased with coupon discount are not eligible for refund.',
-                    confirmButtonColor: '#cc9966'
-                });
-            <% } %>
+
 
             Swal.fire({
                 title: `Return "${itemName}"?`,

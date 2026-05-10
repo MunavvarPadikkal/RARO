@@ -109,15 +109,20 @@
                                                                 else if (order.orderStatus === 'Cancelled') badgeColor = '#c62828';
                                                                 else if (order.orderStatus === 'Shipped' || order.orderStatus === 'Out for Delivery') badgeColor = '#1565c0';
                                                                 else if (order.orderStatus === 'Pending') badgeColor = '#f57c00';
-                                                                else if (order.orderStatus === 'Placed') badgeColor = '#6a1b9a';
+                                                                else if (order.orderStatus === 'Placed' || order.orderStatus === 'Active') badgeColor = '#6a1b9a';
                                                                 else if (order.orderStatus.includes('Return')) badgeColor = '#e65100';
+                                                                
+                                                                // Calculate original total for display
+                                                                const originalSubtotal = order.orderedItems.reduce((acc, item) => acc + item.itemTotal, 0);
+                                                                const originalDiscount = order.orderedItems.reduce((acc, item) => acc + (item.totalCouponDiscount || 0), 0);
+                                                                const originalFinalAmount = originalSubtotal - originalDiscount + (order.shippingCharge || 0);
                                                             %>
                                                             <span style="display: inline-block; background: <%= badgeColor %>15; color: <%= badgeColor %>; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 8px;">
                                                                 <%= displayStatus %>
                                                             </span>
-                                                            <div style="font-size: 18px; font-weight: 800; color: #222;">₹<%= order.finalAmount.toLocaleString() %></div>
+                                                            <div style="font-size: 18px; font-weight: 800; color: #222;">₹<%= originalFinalAmount.toLocaleString() %></div>
                                                             <% if (order.walletAmountUsed > 0) { %>
-                                                                <div style="font-size: 11px; color: #a67c52; font-weight: 600;">(₹<%= (order.finalAmount - order.walletAmountUsed).toLocaleString() %> <%= order.paymentStatus === 'Paid' ? 'Paid' : 'to pay' %>)</div>
+                                                                <div style="font-size: 11px; color: #a67c52; font-weight: 600;">(₹<%= (originalFinalAmount - order.walletAmountUsed).toLocaleString() %> <%= order.paymentStatus === 'Paid' ? 'Paid' : 'to pay' %>)</div>
                                                             <% } %>
                                                         </div>
                                                     </div>
@@ -154,11 +159,42 @@
                                                             <a class="page-link" href="/orders?page=<%= currentPage - 1 %>&search=<%= search %>&status=<%= status %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>" style="border-radius: 8px; font-size: 13px;">‹ Prev</a>
                                                         </li>
                                                     <% } %>
-                                                    <% for (let i = 1; i <= totalPages; i++) { %>
-                                                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                                                            <a class="page-link" href="/orders?page=<%= i %>&search=<%= search %>&status=<%= status %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>" style="border-radius: 8px; font-size: 13px; <%= i === currentPage ? 'background: #c96; border-color: #c96; color: white;' : '' %>"><%= i %></a>
-                                                        </li>
-                                                    <% } %>
+                                                    <% 
+                                                        const delta = 2;
+                                                        const left = currentPage - delta;
+                                                        const right = currentPage + delta + 1;
+                                                        const range = [];
+                                                        const rangeWithDots = [];
+                                                        let l;
+
+                                                        for (let i = 1; i <= totalPages; i++) {
+                                                            if (i == 1 || i == totalPages || (i >= left && i < right)) {
+                                                                range.push(i);
+                                                            }
+                                                        }
+
+                                                        for (let i of range) {
+                                                            if (l) {
+                                                                if (i - l === 2) {
+                                                                    rangeWithDots.push(l + 1);
+                                                                } else if (i - l !== 1) {
+                                                                    rangeWithDots.push('...');
+                                                                }
+                                                            }
+                                                            rangeWithDots.push(i);
+                                                            l = i;
+                                                        }
+                                                    %>
+
+                                                    <% rangeWithDots.forEach(i => { %>
+                                                        <% if (i === '...') { %>
+                                                            <li class="page-item disabled"><span class="page-link" style="border: none; background: none;">...</span></li>
+                                                        <% } else { %>
+                                                            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                                                <a class="page-link" href="/orders?page=<%= i %>&search=<%= search %>&status=<%= status %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>" style="border-radius: 8px; font-size: 13px; <%= i === currentPage ? 'background: #c96; border-color: #c96; color: white;' : '' %>"><%= i %></a>
+                                                            </li>
+                                                        <% } %>
+                                                    <% }) %>
                                                     <% if (currentPage < totalPages) { %>
                                                         <li class="page-item">
                                                             <a class="page-link" href="/orders?page=<%= currentPage + 1 %>&search=<%= search %>&status=<%= status %>&dateFrom=<%= dateFrom %>&dateTo=<%= dateTo %>" style="border-radius: 8px; font-size: 13px;">Next ›</a>

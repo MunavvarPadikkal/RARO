@@ -48,9 +48,9 @@ const createRefundRequest = async (order, itemId, type, reason, manualAmount = n
         eligibleForRefund: isEligible
     });
 
-    // If it's a cancellation and eligible, we can automatically process it
-    if (type === "cancel" && isEligible) {
-        await executeRefund(refund._id);
+    // If it's a cancellation or return and eligible, we can automatically process it
+    if ((type === "cancel" || type === "return") && isEligible) {
+        await executeRefund(refund._id, order);
     }
 
     return refund;
@@ -58,15 +58,16 @@ const createRefundRequest = async (order, itemId, type, reason, manualAmount = n
 
 /**
  * Execute a pending refund: credit the wallet and mark as completed.
+ * If an order object is passed, it updates that object directly to avoid stale save issues.
  */
-const executeRefund = async (refundId) => {
+const executeRefund = async (refundId, existingOrder = null) => {
     const refund = await Refund.findById(refundId);
     if (!refund) throw new Error("Refund request not found.");
     if (refund.status !== "Pending") return;
     if (!refund.eligibleForRefund) return;
 
     // Get order details for transaction reason
-    const order = await Order.findById(refund.orderId);
+    const order = existingOrder || await Order.findById(refund.orderId);
     const orderDisplayId = order ? order.orderId : "Unknown";
 
     await walletService.creditWallet(

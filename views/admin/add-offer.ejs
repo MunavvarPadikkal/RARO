@@ -125,8 +125,18 @@
 <script>
     // Set min date for date inputs
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').min = today;
-    document.getElementById('expiryDate').min = today;
+    const startDateInput = document.getElementById('startDate');
+    const expiryDateInput = document.getElementById('expiryDate');
+
+    startDateInput.min = today;
+    expiryDateInput.min = today;
+
+    startDateInput.addEventListener('change', function() {
+        expiryDateInput.min = this.value;
+        if (expiryDateInput.value && expiryDateInput.value < this.value) {
+            expiryDateInput.value = this.value;
+        }
+    });
 
     // Toggle fields based on offer type
     function toggleSelectionFields() {
@@ -183,6 +193,24 @@
 
         const formData = new FormData(this);
         const data = Object.fromEntries(formData.entries());
+
+        // Date Validation
+        const startVal = data.startDate;
+        const expiryVal = data.expiryDate;
+        const todayDate = new Date();
+        todayDate.setHours(0,0,0,0);
+
+        if (!startVal) {
+            return Swal.fire('Validation Error', 'Start date is required.', 'error');
+        } else if (new Date(startVal) < todayDate) {
+            return Swal.fire('Validation Error', 'Start date cannot be in the past.', 'error');
+        }
+
+        if (!expiryVal) {
+            return Swal.fire('Validation Error', 'Expiry date is required.', 'error');
+        } else if (new Date(expiryVal) < new Date(startVal)) {
+            return Swal.fire('Validation Error', 'Expiry date must be on or after start date.', 'error');
+        }
         
         // Handle array of checkboxes
         data.selectedProducts = Array.from(document.querySelectorAll('input[name="selectedProducts"]:checked')).map(cb => cb.value);

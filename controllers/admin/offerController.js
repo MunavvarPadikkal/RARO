@@ -73,8 +73,18 @@ const addOffer = async (req, res) => {
             return res.status(400).json({ success: false, message: "Offer with this name already exists" });
         }
 
-        if (new Date(startDate) >= new Date(expiryDate)) {
-            return res.status(400).json({ success: false, message: "Expiry date must be after start date" });
+        // Date Validation
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        const end = new Date(expiryDate);
+
+        if (start < now) {
+            return res.status(400).json({ success: false, message: "Start date cannot be in the past" });
+        }
+
+        if (end < start) {
+            return res.status(400).json({ success: false, message: "Expiry date must be on or after start date" });
         }
 
         if (discountType === "Percentage" && discountValue > 100) {
@@ -194,8 +204,18 @@ const editOffer = async (req, res) => {
             return res.status(400).json({ success: false, message: "Offer with this name already exists" });
         }
 
-        if (new Date(startDate) >= new Date(expiryDate)) {
-            return res.status(400).json({ success: false, message: "Expiry date must be after start date" });
+        // Date Validation
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        const end = new Date(expiryDate);
+
+        if (start < now) {
+            return res.status(400).json({ success: false, message: "Start date cannot be in the past" });
+        }
+
+        if (end < start) {
+            return res.status(400).json({ success: false, message: "Expiry date must be on or after start date" });
         }
 
         if (discountType === "Percentage" && discountValue > 100) {

@@ -34,26 +34,30 @@ const CANCELLABLE_STATUSES = ["Placed", "Pending"];
 // ─── Status update helper ────────────────────────────────────────────────────
 const _updateTotalOrderStatus = (order) => {
     const items = order.orderedItems;
-    const allCancelled = items.every(i => i.itemStatus === "Cancelled");
-    const allReturned = items.every(i => i.itemStatus === "Returned");
-    const allReturnRequested = items.every(i => i.itemStatus === "Return Requested");
+    
+    // Check if all items are in terminal inactive states
+    const allTerminal = items.every(i => ["Cancelled", "Returned", "Return Approved"].includes(i.itemStatus));
+    
+    if (allTerminal) {
+        const anyReturned = items.some(i => ["Returned", "Return Approved"].includes(i.itemStatus));
+        order.orderStatus = anyReturned ? "Returned" : "Cancelled";
+        return;
+    }
 
-    if (allCancelled) {
-        order.orderStatus = "Cancelled";
-    } else if (allReturned) {
-        order.orderStatus = "Returned";
-    } else if (allReturnRequested) {
-        order.orderStatus = "Return Requested";
-    } else {
-        const anyActive = items.some(i => i.itemStatus === "Active");
-        if (!anyActive) {
-            // If none are active but mixed cancellation/return
-            order.orderStatus = "Partially Returned";
-        } else {
-             const postDeliveryStatuses = ["Shipped", "Out for Delivery", "Delivered", "Return Requested", "Return Approved", "Return Rejected", "Returned", "Partially Returned", "Partially Cancelled"];
-             if (postDeliveryStatuses.includes(order.orderStatus)) {
-                 order.orderStatus = "Delivered";
-             }
+    // Status Hierarchy (Highest priority wins for the total order status)
+    const statusPriority = ["Return Requested", "Out for Delivery", "Shipped", "Delivered", "Pending", "Placed"];
+    
+    for (const status of statusPriority) {
+        if (items.some(i => i.itemStatus === status || (status === "Delivered" && i.itemStatus === "Return Rejected"))) {
+            order.orderStatus = status;
+            
+            // Special Case: If any item is Delivered/Rejected, but others are Shipped/Pending, 
+            // the order as a whole is still Shipped.
+            if (status === "Delivered" && items.some(i => ["Shipped", "Out for Delivery"].includes(i.itemStatus))) {
+                continue; 
+            }
+            
+            break;
         }
     }
 };
@@ -196,7 +200,7 @@ const placeOrder = async (userId, addressId, paymentMethod = "Cash on Delivery",
             offerDiscount: item.productId.productOffer || 0,
             price: currentPrice,
             itemTotal: currentPrice * item.quantity,
-            itemStatus: "Active",
+            itemStatus: "Placed",
         };
     });
 
@@ -454,9 +458,9 @@ const cancelOrder = async (orderId, userId, reason = "") => {
         }
     }
 
-    // Restore stock for all active items
+    // Restore stock for all non-terminal items
     for (const item of order.orderedItems) {
-        if (item.itemStatus === "Active") {
+        if (!["Cancelled", "Returned", "Return Approved"].includes(item.itemStatus)) {
             await Product.updateOne(
                 {
                     _id: item.productId,
@@ -598,7 +602,7 @@ const requestItemReturn = async (orderId, itemId, userId, reason) => {
 
     const item = order.orderedItems.id(itemId);
     if (!item) throw new Error("Item not found in order.");
-    if (item.itemStatus !== "Active")
+    if (["Cancelled", "Returned", "Return Approved"].includes(item.itemStatus))
         throw new Error(`Item cannot be returned. Current status: ${item.itemStatus}`);
 
     item.itemStatus = "Return Requested";
@@ -719,6 +723,18 @@ const adminUpdateOrderStatus = async (orderId, newStatus) => {
     }
 
     order.orderStatus = newStatus;
+    
+    // Propagate status to all items that are not already terminal
+    const terminalStatuses = ["Cancelled", "Returned", "Return Approved"];
+    
+    // If not a terminal status, just update non-terminal items
+    if (!terminalStatuses.includes(newStatus)) {
+        for (const item of order.orderedItems) {
+            if (!terminalStatuses.includes(item.itemStatus)) {
+                item.itemStatus = newStatus;
+            }
+        }
+    }
     order.statusHistory.push({
         status: newStatus,
         date: new Date(),
@@ -745,7 +761,9 @@ const adminUpdateOrderStatus = async (orderId, newStatus) => {
         const isPaid = order.paymentStatus === "Paid" || order.paymentMethod === "Wallet";
 
         for (const item of order.orderedItems) {
-            if (item.itemStatus === "Active") {
+            // Check for any active status (legacy 'Active' or new lifecycle statuses)
+            const isActive = !["Cancelled", "Returned", "Return Approved"].includes(item.itemStatus);
+            if (isActive) {
                 if (isPaid) {
                     amountToRefund += (item.finalItemTotal || item.itemTotal);
                 }
@@ -765,6 +783,38 @@ const adminUpdateOrderStatus = async (orderId, newStatus) => {
 
         if (amountToRefund > 0) {
             await refundService.createRefundRequest(order, null, "cancel", "Cancelled by admin", amountToRefund);
+        }
+    }
+    
+    // If returned by admin, restore stock and calculate refund
+    if (newStatus === "Returned") {
+        let amountToRefund = 0;
+        const isPaid = order.paymentStatus === "Paid" || order.paymentMethod === "Wallet";
+
+        for (const item of order.orderedItems) {
+            const isActive = !["Cancelled", "Returned", "Return Approved"].includes(item.itemStatus);
+            if (isActive || item.itemStatus === "Return Requested" || item.itemStatus === "Return Approved") {
+                if (isPaid) {
+                    amountToRefund += (item.finalItemTotal || item.itemTotal);
+                }
+                // Stock restoration (if not already restored by Approve)
+                if (isActive || item.itemStatus === "Return Requested") {
+                    await Product.updateOne(
+                        {
+                            _id: item.productId,
+                            variants: { $elemMatch: { color: item.color, size: item.size } }
+                        },
+                        { $inc: { "variants.$.stock": item.quantity } }
+                    );
+                }
+                item.itemStatus = "Returned";
+                _updateOrderTotals(order, item);
+            }
+        }
+        order.returnReason = "Marked as Returned by admin";
+
+        if (amountToRefund > 0) {
+            await refundService.createRefundRequest(order, null, "return", "Order marked as Returned by admin", amountToRefund);
         }
     }
 
@@ -1015,6 +1065,62 @@ const updateVariantStock = async (productId, variantId, newStock) => {
     return product;
 };
 
+// ─── Admin: Update Single Item Status ────────────────────────────────────────
+
+const adminUpdateItemStatus = async (orderId, itemId, newStatus) => {
+    const order = await Order.findById(orderId);
+    if (!order) throw new Error("Order not found.");
+
+    const item = order.orderedItems.id(itemId);
+    if (!item) throw new Error("Item not found in order.");
+
+    if (item.itemStatus === newStatus) return order;
+
+    const oldStatus = item.itemStatus;
+    item.itemStatus = newStatus;
+
+    // Handle Stock & Refund for Terminal Statuses
+    if (newStatus === "Cancelled" || newStatus === "Returned" || newStatus === "Return Approved") {
+        // Restore stock ONLY if transitioning FROM an active status (Active, Return Requested, Return Rejected)
+        // to a terminal status (Cancelled, Returned, Return Approved)
+        const isActive = ["Active", "Return Requested", "Return Rejected"].includes(oldStatus);
+        
+        if (isActive) {
+             await Product.updateOne(
+                {
+                    _id: item.productId,
+                    variants: { $elemMatch: { color: item.color, size: item.size } }
+                },
+                { $inc: { "variants.$.stock": item.quantity } }
+            );
+        }
+
+        // Trigger Refund if paid and not already refunded for this item
+        // We check payment status or if it was paid by wallet
+        const isPaid = order.paymentStatus === "Paid" || order.paymentMethod === "Wallet";
+        if (isPaid && isActive) {
+             const type = newStatus === "Cancelled" ? "cancel" : "return";
+             await refundService.createRefundRequest(order, itemId, type, `Item status updated to ${newStatus} by admin`);
+        }
+        
+        // Update order totals (reduce subtotal, discount, etc. for this item)
+        if (isActive) {
+            _updateOrderTotals(order, item);
+        }
+    }
+
+    _updateTotalOrderStatus(order);
+
+    order.statusHistory.push({
+        status: `Item ${newStatus}`,
+        date: new Date(),
+        note: `Status for "${item.productName}" updated to ${newStatus} by admin`,
+    });
+
+    await order.save();
+    return order;
+};
+
 module.exports = {
     getCheckoutData,
     placeOrder,
@@ -1033,6 +1139,7 @@ module.exports = {
     adminApproveItemReturn,
     adminRejectItemReturn,
     adminCompleteItemReturn,
+    adminUpdateItemStatus,
     generateInvoiceNumber,
     getInventoryData,
     updateVariantStock,

@@ -313,6 +313,33 @@ const completeItemReturn = async (req, res) => {
     }
 };
 
+const updateItemStatus = async (req, res) => {
+    try {
+        const { orderId, itemId } = req.params;
+        const { newStatus } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ success: false, message: "Invalid order ID." });
+        }
+
+        if (!newStatus) {
+            return res.status(400).json({ success: false, message: "New status is required." });
+        }
+
+        await orderService.adminUpdateItemStatus(orderId, itemId, newStatus);
+        return res.json({
+            success: true,
+            message: `Item status updated to ${newStatus}.`,
+        });
+    } catch (error) {
+        console.error("Admin updateItemStatus error:", error);
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Failed to update item status.",
+        });
+    }
+};
+
 // ─── Admin: Inventory/Stock Management ───────────────────────────────────────
 
 /**
@@ -381,6 +408,7 @@ module.exports = {
     approveItemReturn,
     rejectItemReturn,
     completeItemReturn,
+    updateItemStatus,
     loadInventory,
     updateStock,
 };

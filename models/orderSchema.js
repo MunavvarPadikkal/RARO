@@ -82,14 +82,19 @@ const orderSchema = new Schema(
                 itemStatus: {
                     type: String,
                     enum: [
-                        "Active",
+                        "Active", // Legacy support
+                        "Placed",
+                        "Pending",
+                        "Shipped",
+                        "Out for Delivery",
+                        "Delivered",
                         "Cancelled",
                         "Return Requested",
                         "Return Approved",
                         "Return Rejected",
                         "Returned",
                     ],
-                    default: "Active",
+                    default: "Placed",
                 },
                 cancellationReason: {
                     type: String,
@@ -139,6 +144,7 @@ const orderSchema = new Schema(
         orderStatus: {
             type: String,
             enum: [
+                "Active", // Legacy support
                 "Placed",
                 "Pending",
                 "Payment Failed",

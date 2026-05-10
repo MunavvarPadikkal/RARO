@@ -147,9 +147,18 @@
 <script>
     // Set default dates
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').value = today;
-    document.getElementById('startDate').min = today;
-    document.getElementById('expiryDate').min = today;
+    const startDateInput = document.getElementById('startDate');
+    const expiryDateInput = document.getElementById('expiryDate');
+
+    startDateInput.min = today;
+    expiryDateInput.min = today;
+
+    startDateInput.addEventListener('change', function() {
+        expiryDateInput.min = this.value;
+        if (expiryDateInput.value && expiryDateInput.value < this.value) {
+            expiryDateInput.value = this.value;
+        }
+    });
 
     // Toggle Max Discount field based on type
     document.getElementById('discountType').addEventListener('change', function() {
@@ -229,21 +238,28 @@
         }
 
         // 6. Date Validation
-        const start = new Date(data.startDate);
-        const expiry = new Date(data.expiryDate);
-        const todayDate = new Date();
-        todayDate.setHours(0,0,0,0);
-
-        if (!data.startDate) {
+        const startVal = data.startDate;
+        const expiryVal = data.expiryDate;
+        
+        if (!startVal) {
             showError('startDateError', 'Start date is required.');
-        } else if (start < todayDate) {
-            showError('startDateError', 'Start date cannot be in the past.');
+        } else {
+            const start = new Date(startVal);
+            const todayDate = new Date();
+            todayDate.setHours(0,0,0,0);
+            if (start < todayDate) {
+                showError('startDateError', 'Start date cannot be in the past.');
+            }
         }
 
-        if (!data.expiryDate) {
+        if (!expiryVal) {
             showError('expiryDateError', 'Expiry date is required.');
-        } else if (expiry <= start) {
-            showError('expiryDateError', 'Expiry date must be after start date.');
+        } else if (startVal) {
+            const start = new Date(startVal);
+            const expiry = new Date(expiryVal);
+            if (expiry < start) {
+                showError('expiryDateError', 'Expiry date must be on or after start date.');
+            }
         }
 
         if (!isValid) return;

@@ -4,10 +4,11 @@ const Category = require("../models/categorySchema");
 const moment = require("moment");
 
 const getDashboardMetrics = async () => {
-    const totalOrdersCount = await Order.countDocuments();
+    const excludedStatuses = ["Cancelled", "Returned", "Payment Failed"];
+    const totalOrdersCount = await Order.countDocuments({ orderStatus: { $nin: excludedStatuses } });
 
     const stats = await Order.aggregate([
-        { $match: { orderStatus: { $nin: ["Cancelled", "Returned", "Payment Failed"] } } },
+        { $match: { orderStatus: { $nin: excludedStatuses } } },
         {
             $project: {
                 activeItems: {
@@ -17,10 +18,7 @@ const getDashboardMetrics = async () => {
                         cond: { $not: { $in: ["$$item.itemStatus", ["Cancelled", "Returned"]] } }
                     }
                 },
-                discount: 1,
-                walletAmountUsed: 1,
-                finalAmount: 1,
-                refundAmount: 1
+                shippingCharge: { $ifNull: ["$shippingCharge", 0] }
             }
         },
         {
@@ -37,7 +35,13 @@ const getDashboardMetrics = async () => {
                                     "$$value", 
                                     { 
                                         $multiply: [
-                                            { $ifNull: ["$$this.originalPrice", "$$this.price"] }, 
+                                            { 
+                                                $cond: {
+                                                    if: { $gt: ["$$this.originalPrice", 0] },
+                                                    then: "$$this.originalPrice",
+                                                    else: "$$this.price"
+                                                }
+                                            }, 
                                             "$$this.quantity"
                                         ] 
                                     }
@@ -67,7 +71,13 @@ const getDashboardMetrics = async () => {
                                         $multiply: [
                                             { 
                                                 $subtract: [
-                                                    { $ifNull: ["$$this.originalPrice", "$$this.price"] }, 
+                                                    { 
+                                                        $cond: {
+                                                            if: { $gt: ["$$this.originalPrice", 0] },
+                                                            then: "$$this.originalPrice",
+                                                            else: "$$this.price"
+                                                        }
+                                                    }, 
                                                     "$$this.price"
                                                 ] 
                                             }, 
@@ -79,8 +89,17 @@ const getDashboardMetrics = async () => {
                         }
                     } 
                 },
-                totalCouponDiscount: { $sum: { $ifNull: ["$discount", 0] } },
-                totalWalletUsage: { $sum: "$walletAmountUsed" }
+                totalCouponDiscount: { 
+                    $sum: {
+                        $reduce: {
+                            input: "$activeItems",
+                            initialValue: 0,
+                            in: { $add: ["$$value", { $ifNull: ["$$this.totalCouponDiscount", 0] }] }
+                        }
+                    }
+                },
+                totalWalletUsage: { $sum: { $ifNull: ["$walletAmountUsed", 0] } },
+                totalShipping: { $sum: "$shippingCharge" }
             }
         }
     ]);
@@ -93,13 +112,14 @@ const getDashboardMetrics = async () => {
             totalOfferDiscount: 0,
             totalCouponDiscount: 0,
             totalWalletUsage: 0,
-            netRevenue: 0
+            netRevenue: 0,
+            totalShipping: 0
         };
     }
 
     const data = stats[0];
     data.totalOrders = totalOrdersCount;
-    data.totalRevenue = data.totalActiveItemRevenue - data.totalCouponDiscount;
+    data.totalRevenue = (data.totalActiveItemRevenue - data.totalCouponDiscount) + data.totalShipping;
     data.netRevenue = data.totalRevenue;
     return data;
 };

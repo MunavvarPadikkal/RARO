@@ -83,8 +83,17 @@ const addCoupon = async (req, res) => {
         }
 
         // 2. Validate dates
-        if (new Date(expiryDate) <= new Date(startDate)) {
-            return res.status(400).json({ success: false, message: "Expiry date must be after start date." });
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        const end = new Date(expiryDate);
+
+        if (start < now) {
+            return res.status(400).json({ success: false, message: "Start date cannot be in the past." });
+        }
+
+        if (end < start) {
+            return res.status(400).json({ success: false, message: "Expiry date must be on or after start date." });
         }
 
         // 3. Validate values
@@ -161,8 +170,20 @@ const editCoupon = async (req, res) => {
         }
 
         // 2. Validate dates
-        if (new Date(expiryDate) <= new Date(startDate)) {
-            return res.status(400).json({ success: false, message: "Expiry date must be after start date." });
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        const end = new Date(expiryDate);
+
+        // For editing, we might allow the start date to be in the past if it's already active,
+        // but if the user is CHANGING it, it should be today or later.
+        // However, to follow the requirement "Disable previous dates while adding and editing", we'll be strict.
+        if (start < now) {
+            return res.status(400).json({ success: false, message: "Start date cannot be in the past." });
+        }
+
+        if (end < start) {
+            return res.status(400).json({ success: false, message: "Expiry date must be on or after start date." });
         }
 
         // 3. Validate values
