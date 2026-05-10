@@ -336,7 +336,7 @@ const signin = async (req, res) => {
 
 const logout = (req, res) => {
     req.session.destroy(() => {
-        res.redirect("/");
+        res.redirect("/signin");
     });
 };
 

@@ -507,14 +507,11 @@ function updateQueryStringParameter(uri, key, value) {
                 if (response.ok && data.success) {
                     $btn.addClass('in-wishlist');
                     
-                    // Update wishlist count in header
+                    // Spontaneously update wishlist count in header
                     const $wishlistCount = $('.cart-dropdown a[href="/wishlist"] .cart-count');
                     if ($wishlistCount.length) {
-                        let currentCount = parseInt($wishlistCount.text()) || 0;
-                        if (data.message.toLowerCase().includes('added')) {
-                            $wishlistCount.text(currentCount + 1);
-                            $wishlistCount.css('display', 'flex'); // Ensure it becomes visible
-                        }
+                        $wishlistCount.text(data.wishlistCount);
+                        $wishlistCount.css('display', 'flex'); // Ensure it becomes visible
                     }
 
                     const Toast = Swal.mixin({

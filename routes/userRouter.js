@@ -18,6 +18,7 @@ router.get("/contact", userController.loadContactPage);
 
 
 router.get("/signin", userAuth.isSignin, userController.loadSignin);
+router.get("/login", (req, res) => res.redirect("/signin"));
 router.get("/register", userAuth.isSignin, userController.loadRegister);
 router.post('/register', userController.register);
 router.get('/verify-otp', userAuth.isSignin, userController.loadOtp);

@@ -25,11 +25,12 @@ const addToWishlist = async (req, res) => {
         }
 
         const result = await wishlistService.addToWishlist(userId, productId);
+        const wishlistCount = result.wishlist.products.length;
         
         if (result.existing) {
-            res.json({ success: true, message: "Product is already in your wishlist" });
+            res.json({ success: true, message: "Product is already in your wishlist", wishlistCount });
         } else {
-            res.json({ success: true, message: "Added to wishlist successfully" });
+            res.json({ success: true, message: "Added to wishlist successfully", wishlistCount });
         }
 
     } catch (error) {
@@ -47,8 +48,8 @@ const removeFromWishlist = async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing product ID" });
         }
 
-        await wishlistService.removeFromWishlist(userId, productId);
-        res.json({ success: true, message: "Removed from wishlist" });
+        const updatedWishlist = await wishlistService.removeFromWishlist(userId, productId);
+        res.json({ success: true, message: "Removed from wishlist", wishlistCount: updatedWishlist.products.length });
 
     } catch (error) {
         console.error("Error removing from wishlist:", error);
