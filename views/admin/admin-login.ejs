@@ -14,17 +14,18 @@
 
   <style>
     :root {
-      --rar-primary: #cc9966;
-      /* gold accent, same as site */
-      --rar-bg: #f6f7fb;
-      --rar-text: #222;
+      --rar-gold: #cc9966;
+      --rar-dark: #333333;
+      --rar-bg: #fdfbf8;
+      --rar-text: #2d2d2d;
+      --rar-text-muted: #7a7a7a;
     }
 
     body {
       min-height: 100vh;
       margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: var(--rar-bg);
+      font-family: "Outfit", "Poppins", sans-serif;
+      background: #ffffff;
       color: var(--rar-text);
       display: flex;
       align-items: center;
@@ -33,145 +34,183 @@
 
     .admin-login-shell {
       width: 100%;
-      max-width: 420px;
-      padding: 16px;
+      max-width: 450px;
+      padding: 20px;
     }
 
     .admin-login-card {
       background: #ffffff;
-      border-radius: 18px;
-      padding: 20px 22px 18px;
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.09);
-      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-radius: 24px;
+      padding: 45px 40px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(204, 153, 102, 0.15);
+      text-align: center;
     }
 
     .admin-login-logo {
+      margin-bottom: 35px;
       display: flex;
-      align-items: center;
       justify-content: center;
-      margin-bottom: 18px;
     }
 
     .admin-login-logo img {
-      height: 88px;
-      /* big RARO logo */
+      height: 120px;
       object-fit: contain;
     }
 
     .admin-login-title {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+      letter-spacing: -0.5px;
+      color: var(--rar-dark);
+      margin-top: -41px;
     }
 
     .admin-login-sub {
-      font-size: 1rem;
-      color: #6c757d;
-      margin-bottom: 12px;
-      text-align: center;
+      font-size: 1.1rem;
+      color: var(--rar-text-muted);
+      margin-bottom: 35px;
+      font-weight: 300;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 22px;
     }
 
     .form-label {
-      font-size: 1rem;
-      font-weight: 500;
-      margin-bottom: 0;
-      /* no extra gap under label */
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+      color: #8c6d4a;
     }
 
     .form-control {
-      border-radius: 999px;
-      padding: 0.8rem 1.1rem;
-      /* bigger, neat inputs */
-      font-size: 1rem;
-      background-color: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.16);
-      color: var(--rar-text);
+      background: #fcfcfc !important;
+      border: 1.5px solid #ececec !important;
+      border-radius: 12px !important;
+      padding: 14px 18px !important;
+      font-size: 1.1rem !important;
+      color: var(--rar-text) !important;
+      transition: all 0.3s ease;
     }
 
     .form-control::placeholder {
-      color: #b0b5bd;
+      color: #bdbdbd;
     }
 
-    /* remove vertical gap between the two fields */
-    .admin-login-card .mb-3 {
-      margin-bottom: 0;
+    .form-control:focus {
+      background: #ffffff !important;
+      border-color: #cc9966 !important;
+      box-shadow: 0 0 15px rgba(204, 153, 102, 0.1) !important;
+      outline: none;
     }
 
     .btn-rar {
-      background-color: #000;
-      /* black button like user login */
-      border-color: #000;
+      background: linear-gradient(135deg, #cc9966 0%, #b38659 100%);
+      border: none;
       color: #fff;
-      border-radius: 999px;
-      font-weight: 500;
+      border-radius: 12px;
+      font-weight: 600;
       width: 100%;
-      padding: 0.7rem 1rem;
-      font-size: 0.98rem;
-      margin-top: 6px;
+      padding: 16px;
+      font-size: 1.15rem;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .btn-rar:hover {
-      background-color: #111;
-      border-color: #111;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(204, 153, 102, 0.25);
+      background: linear-gradient(135deg, #b38659 0%, #cc9966 100%);
       color: #fff;
     }
 
+    .btn-rar:active {
+      transform: translateY(0);
+    }
+
     .admin-login-footer {
-      margin-top: 12px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.8rem;
-      color: #6c757d;
+      margin-top: 30px;
+      font-size: 1rem;
+      color: var(--rar-text-muted);
     }
 
     .admin-login-footer a {
-      color: var(--rar-primary);
+      color: #cc9966;
       text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .admin-login-footer a:hover {
+      color: #8c6d4a;
+      text-decoration: underline;
+    }
+
+    .error-msg {
+      color: #e53935;
+      font-size: 0.95rem;
+      margin-top: 6px;
+      display: none;
+      font-weight: 500;
+    }
+
+    .alert-danger {
+      background: #fff8f8;
+      border: 1px solid #ffebeb;
+      color: #e53935;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      font-size: 1.05rem;
+      padding: 14px;
+      font-weight: 500;
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
   <div class="admin-login-shell">
     <div class="admin-login-card">
       <div class="admin-login-logo">
-        <!-- Big RARO logo from user side assets -->
         <img src="/assets/images/RARO Logo.png" alt="RARO Logo" />
       </div>
 
-      <h1 class="admin-login-title">Admin login</h1>
-      <p class="admin-login-sub">
-        Use your admin credentials to access the dashboard.
-      </p>
+      <h1 class="admin-login-title">Admin Login</h1>
+      <p class="admin-login-sub">Secure access to your dashboard</p>
 
       <% if (locals.message) { %>
-        <div class="alert alert-danger text-center" style="font-size: 0.85rem; padding: 10px; border-radius: 8px;">
+        <div class="alert alert-danger" style="background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.2); color: #ff4d4d; border-radius: 12px; margin-bottom: 20px; font-size: 1rem; padding: 12px;">
           <%= message %>
         </div>
       <% } %>
 
-      <!-- You will wire this action + method yourself -->
       <form method="post" action="/admin/login" id="adminLoginForm">
-        <div class="mb-3">
-          <label class="form-label" for="admin-email">Email</label>
+        <div class="form-group">
+          <label class="form-label" for="admin-email">Email Address</label>
           <input type="text" class="form-control" id="admin-email" name="email" placeholder="admin@raro.com" />
-          <div id="email-error" style="display: none; color: #dc3545; font-size: 0.8rem; margin-top: 5px;"></div>
+          <div id="email-error" class="error-msg"></div>
         </div>
 
-        <div class="mb-3" style="margin-top: 15px;">
+        <div class="form-group">
           <label class="form-label" for="admin-password">Password</label>
-          <input type="password" class="form-control" id="admin-password" name="password" placeholder="Enter password" />
-          <div id="password-error" style="display: none; color: #dc3545; font-size: 0.8rem; margin-top: 5px;"></div>
+          <input type="password" class="form-control" id="admin-password" name="password" placeholder="Enter your password" />
+          <div id="password-error" class="error-msg"></div>
         </div>
 
-        <button type="submit" class="btn btn-rar" style="margin-top: 15px;">
-          <span>Login to dashboard</span>
+        <button type="submit" class="btn btn-rar">
+          Login to Dashboard
         </button>
       </form>
 
       <div class="admin-login-footer">
-        <span>Back to store? <a href="/">Go to RARO</a></span>
+        <span>Need to return? <a href="/">Go to Store</a></span>
       </div>
     </div>
   </div>

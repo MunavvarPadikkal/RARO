@@ -70,8 +70,22 @@ const updateProfile = async (req, res) => {
     try {
         const userId = req.session.user._id;
         const { name, phone, currentPassword, newPassword, confirmPassword } = req.body;
+
+        // Validation
+        const nameRegex = /^[A-Za-z\s]+$/;
+        const phoneRegex = /^[0-9]{10}$/;
+
+        if (!name || name.trim().length < 3) {
+            return res.status(400).json({ success: false, message: "Name must be at least 3 characters long" });
+        }
+        if (!nameRegex.test(name)) {
+            return res.status(400).json({ success: false, message: "Name can only contain letters and spaces" });
+        }
+        if (phone && !phoneRegex.test(phone)) {
+            return res.status(400).json({ success: false, message: "Please enter a valid 10-digit phone number" });
+        }
         
-        const updateData = { name, phone };
+        const updateData = { name: name.trim(), phone };
 
         // Handle password update if new password is provided
         if (newPassword) {

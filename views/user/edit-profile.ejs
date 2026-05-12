@@ -193,12 +193,35 @@
             if (form) {
                 form.addEventListener('submit', async function (e) {
                     e.preventDefault();
+                    const name = document.getElementById('editName').value.trim();
+                    const phone = document.getElementById('editPhone').value.trim();
+                    const currentPassword = document.getElementById('editCurrentPassword')?.value || "";
+                    const newPassword = document.getElementById('editNewPassword')?.value || "";
+                    const confirmPassword = document.getElementById('editConfirmPassword')?.value || "";
+
+                    // Validation
+                    const nameRegex = /^[A-Za-z\s]+$/;
+                    const phoneRegex = /^[0-9]{10}$/;
+
+                    if (!name || name.length < 3) {
+                        return Swal.fire('Error', 'Name must be at least 3 characters long', 'error');
+                    }
+                    if (!nameRegex.test(name)) {
+                        return Swal.fire('Error', 'Name can only contain letters and spaces', 'error');
+                    }
+                    if (phone && !phoneRegex.test(phone)) {
+                        return Swal.fire('Error', 'Please enter a valid 10-digit phone number', 'error');
+                    }
+                    if (newPassword && newPassword !== confirmPassword) {
+                        return Swal.fire('Error', 'New passwords do not match', 'error');
+                    }
+
                     const formData = {
-                        name: document.getElementById('editName').value,
-                        phone: document.getElementById('editPhone').value,
-                        currentPassword: document.getElementById('editCurrentPassword')?.value || "",
-                        newPassword: document.getElementById('editNewPassword')?.value || "",
-                        confirmPassword: document.getElementById('editConfirmPassword')?.value || ""
+                        name,
+                        phone,
+                        currentPassword,
+                        newPassword,
+                        confirmPassword
                     };
                     try {
                         const response = await fetch('/updateProfile', {

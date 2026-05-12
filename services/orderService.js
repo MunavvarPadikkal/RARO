@@ -88,6 +88,12 @@ const getCheckoutData = async (userId) => {
         .filter((item) => item.productId)
         .map((item) => {
             const currentPrice = item.productId.salePrice;
+            const variant = item.productId.variants.find(
+                (v) => v.color === item.color && v.size === item.size
+            );
+            const availableStock = variant ? variant.stock : 0;
+            const isOutOfStock = availableStock < item.quantity || item.productId.isBlocked || item.productId.isDeleted;
+
             return {
                 _id: item._id,
                 productId: item.productId._id,
@@ -101,6 +107,8 @@ const getCheckoutData = async (userId) => {
                 offerDiscount: item.productId.productOffer || 0,
                 regularPrice: item.productId.regularPrice,
                 itemTotal: currentPrice * item.quantity,
+                availableStock,
+                isOutOfStock
             };
         });
 
@@ -506,7 +514,7 @@ const cancelOrderItem = async (orderId, itemId, userId, reason = "") => {
 
     const item = order.orderedItems.id(itemId);
     if (!item) throw new Error("Item not found in order.");
-    if (item.itemStatus !== "Active")
+    if (item.itemStatus === CANCELLABLE_STATUSES)
         throw new Error(`Item is already ${item.itemStatus}.`);
 
     // Restore stock for this item

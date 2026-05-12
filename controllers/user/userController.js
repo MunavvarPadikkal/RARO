@@ -20,9 +20,6 @@ const pageNotFound = async (req, res) => {
 }
 
 
-
-
-
 const loadHomepage = async (req, res) => {
     try {
         const user = req.session.user;
@@ -148,8 +145,18 @@ const register = async (req, res) => {
 
     try {
         const { name, email, password, confirmpassword, referralCode } = req.body;
+        
+        // Validation
+        const nameRegex = /^[A-Za-z\s]+$/;
+        if (!name || name.trim().length < 3) {
+            return res.render("register", { registerMessage: "Name must be at least 3 characters long", signinMessage: "", referralCode: referralCode || "" });
+        }
+        if (!nameRegex.test(name)) {
+            return res.render("register", { registerMessage: "Name can only contain letters and spaces", signinMessage: "", referralCode: referralCode || "" });
+        }
+
         if(password!==confirmpassword){
-        return res.render("register",{registerMessage:"Password do not match",signinMessage:"", referralCode: referralCode || ""});
+        return res.render("register",{registerMessage:"Passwords do not match",signinMessage:"", referralCode: referralCode || ""});
       }
 
       if (password.length < 8) {

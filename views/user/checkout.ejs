@@ -89,8 +89,12 @@
                         <h2 class="checkout-title mt-4">Order Summary</h2>
 
                         <div class="checkout-items-list">
-                            <% cartItems.forEach(item => { %>
-                                <div class="checkout-item-row">
+                            <% 
+                                let anyOutOfStock = false;
+                                cartItems.forEach(item => { 
+                                    if (item.isOutOfStock) anyOutOfStock = true;
+                            %>
+                                <div class="checkout-item-row <%= item.isOutOfStock ? 'item-unavailable' : '' %>">
                                     <div class="checkout-item-image">
                                         <% if (item.productImage) { %>
                                             <img src="/uploads/productImages/<%= item.productImage %>"
@@ -99,9 +103,17 @@
                                             <img src="/assets/images/products/product-4.jpg"
                                                  alt="No image">
                                         <% } %>
+                                        <% if (item.isOutOfStock) { %>
+                                            <div class="out-of-stock-overlay">Unavailable</div>
+                                        <% } %>
                                     </div>
                                     <div class="checkout-item-details">
-                                        <h4 class="checkout-item-name"><%= item.productName %></h4>
+                                        <h4 class="checkout-item-name">
+                                            <%= item.productName %>
+                                            <% if (item.isOutOfStock) { %>
+                                                <span class="text-danger ml-2" style="font-size: 1.1rem; font-weight: 700;">(Out of Stock)</span>
+                                            <% } %>
+                                        </h4>
                                         <div class="checkout-item-meta">
                                             <span class="meta-badge">Size: <%= item.size %></span>
                                             <% if (item.color) { %>
@@ -109,16 +121,20 @@
                                             <% } %>
                                             <span class="meta-badge">Qty: <%= item.quantity %></span>
                                         </div>
-                                        <div class="checkout-item-pricing">
-                                            <% if (item.regularPrice > item.price) { %>
-                                                <span class="checkout-item-original">₹<%= item.regularPrice %></span>
-                                            <% } %>
-                                            <span class="checkout-item-price">₹<%= item.price %></span>
-                                            <span class="checkout-item-separator">×</span>
-                                            <span class="checkout-item-qty"><%= item.quantity %></span>
-                                            <span class="checkout-item-separator">=</span>
-                                            <span class="checkout-item-total">₹<%= item.itemTotal %></span>
-                                        </div>
+                                        <% if (item.isOutOfStock) { %>
+                                            <p class="text-danger small mb-0 mt-1">This item is no longer available in the requested quantity. Please remove it from your cart.</p>
+                                        <% } else { %>
+                                            <div class="checkout-item-pricing">
+                                                <% if (item.regularPrice > item.price) { %>
+                                                    <span class="checkout-item-original">₹<%= item.regularPrice %></span>
+                                                <% } %>
+                                                <span class="checkout-item-price">₹<%= item.price %></span>
+                                                <span class="checkout-item-separator">×</span>
+                                                <span class="checkout-item-qty"><%= item.quantity %></span>
+                                                <span class="checkout-item-separator">=</span>
+                                                <span class="checkout-item-total">₹<%= item.itemTotal %></span>
+                                            </div>
+                                        <% } %>
                                     </div>
                                 </div>
                             <% }) %>
@@ -261,7 +277,14 @@
                             </div>
 
                             <!-- ── Place Order Button ── -->
-                            <% if (addresses && addresses.length > 0) { %>
+                            <% if (anyOutOfStock) { %>
+                                <div class="alert alert-danger mt-3 p-3" style="font-size: 1.2rem; border-radius: 8px;">
+                                    <i class="icon-warning mr-2"></i> Some items in your order are unavailable. Please go back to the cart and update your items.
+                                </div>
+                                <a href="/cart" class="btn btn-primary btn-order btn-block mt-2">
+                                    Return to Cart
+                                </a>
+                            <% } else if (addresses && addresses.length > 0) { %>
                                 <button id="place-order-btn"
                                         class="btn btn-outline-primary-2 btn-order btn-block mt-3"
                                         onclick="submitOrder()">
@@ -462,6 +485,29 @@
         opacity: 0.65;
         cursor: not-allowed;
         pointer-events: none;
+    }
+
+    .item-unavailable {
+        background-color: #fff5f5 !important;
+        opacity: 0.8;
+    }
+    .out-of-stock-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .checkout-item-image {
+        position: relative;
     }
 </style>
 

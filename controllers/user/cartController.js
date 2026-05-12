@@ -14,13 +14,13 @@ const loadCart = async (req, res) => {
 const addToCart = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { productId, size, color, quantity } = req.body;
+        const { productId, size, color, quantity, variantId } = req.body;
 
-        if (!productId || !size || !color || !quantity) {
-            return res.status(400).json({ success: false, message: "Missing required fields" });
+        if (!productId || !quantity) {
+             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        await cartService.addToCart(userId, productId, size, color, quantity);
+        await cartService.addToCart(userId, productId, size, color, quantity, variantId);
         const { itemsCount } = await cartService.getCart(userId);
         res.json({ success: true, message: "Added to cart successfully", itemsCount });
 
@@ -33,13 +33,13 @@ const addToCart = async (req, res) => {
 const updateQuantity = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { productId, size, color, quantity } = req.body;
+        const { productId, size, color, quantity, variantId } = req.body;
 
-        if (!productId || !size || !color || !quantity) {
+        if (!productId || !quantity) {
              return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        await cartService.updateQuantity(userId, productId, size, color, quantity);
+        await cartService.updateQuantity(userId, productId, size, color, quantity, variantId);
         
         // Fetch updated cart data for AJAX response
         const { cart, subtotal, itemsCount, discount, finalAmount } = await cartService.getCart(userId);
@@ -79,13 +79,13 @@ const updateQuantity = async (req, res) => {
 const removeFromCart = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { productId, size, color } = req.body;
+        const { productId, size, color, variantId } = req.body;
 
-        if (!productId || !size || !color) {
+        if (!productId) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        await cartService.removeFromCart(userId, productId, size, color);
+        await cartService.removeFromCart(userId, productId, size, color, variantId);
         res.json({ success: true, message: "Removed from cart" });
 
     } catch (error) {

@@ -67,16 +67,26 @@ const getCart = async (userId) => {
     };
 };
 
-const addToCart = async (userId, productId, size, color, quantity) => {
+const addToCart = async (userId, productId, size, color, quantity, variantId = null) => {
     const product = await Product.findById(productId);
     if (!product || product.isBlocked || product.isDeleted) {
         throw new Error("Product is not available");
     }
 
-    const variant = product.variants.find(v => v.color === color && v.size === size);
+    let variant;
+    if (variantId) {
+        variant = product.variants.id(variantId);
+    } else {
+        variant = product.variants.find(v => v.color === color && v.size === size);
+    }
+
     if (!variant) {
         throw new Error("Selected variant is not available for this product");
     }
+
+    variantId = variant._id;
+    size = variant.size;
+    color = variant.color;
 
     let cart = await Cart.findOne({ userId });
 
@@ -86,11 +96,10 @@ const addToCart = async (userId, productId, size, color, quantity) => {
 
     const existingItemIndex = cart.items.findIndex(item => 
         item.productId.toString() === productId.toString() && 
-        item.size === size &&
-        item.color === color
+        (item.variantId ? item.variantId.toString() === variantId.toString() : (item.size === size && item.color === color))
     );
     
-    const price = product.salePrice; // This is the final price after offer (synced in DB)
+    const price = product.salePrice;
     const originalPrice = product.regularPrice;
     const offerDiscount = product.productOffer || 0;
     const parsedQuantity = parseInt(quantity);
@@ -121,6 +130,7 @@ const addToCart = async (userId, productId, size, color, quantity) => {
         }
         cart.items.push({
             productId,
+            variantId,
             size,
             color,
             quantity: parsedQuantity,
@@ -146,7 +156,7 @@ const addToCart = async (userId, productId, size, color, quantity) => {
     return cart;
 };
 
-const updateQuantity = async (userId, productId, size, color, quantity) => {
+const updateQuantity = async (userId, productId, size, color, quantity, variantId = null) => {
     const parsedQuantity = parseInt(quantity);
     if (parsedQuantity < 1) {
         throw new Error("Quantity must be at least 1");
@@ -160,7 +170,13 @@ const updateQuantity = async (userId, productId, size, color, quantity) => {
         throw new Error("Product is not available");
     }
 
-    const variant = product.variants.find(v => v.color === color && v.size === size);
+    let variant;
+    if (variantId) {
+        variant = product.variants.id(variantId);
+    } else {
+        variant = product.variants.find(v => v.color === color && v.size === size);
+    }
+
     if (!variant) {
          throw new Error("Selected variant is not available for this product");
     }
@@ -174,8 +190,7 @@ const updateQuantity = async (userId, productId, size, color, quantity) => {
 
     const itemIndex = cart.items.findIndex(item => 
         item.productId.toString() === productId.toString() && 
-        item.size === size &&
-        item.color === color
+        (item.variantId ? item.variantId.toString() === variant._id.toString() : (item.size === size && item.color === color))
     );
     if (itemIndex === -1) {
         throw new Error("Product not found in cart");
@@ -195,14 +210,13 @@ const updateQuantity = async (userId, productId, size, color, quantity) => {
     return cart;
 };
 
-const removeFromCart = async (userId, productId, size, color) => {
+const removeFromCart = async (userId, productId, size, color, variantId = null) => {
     const cart = await Cart.findOne({ userId });
     if (!cart) throw new Error("Cart not found");
 
     cart.items = cart.items.filter(item => !(
         item.productId.toString() === productId.toString() && 
-        item.size === size &&
-        item.color === color
+        (item.variantId && variantId ? item.variantId.toString() === variantId.toString() : (item.size === size && item.color === color))
     ));
     
     await cart.save();

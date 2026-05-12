@@ -1,8 +1,6 @@
 const customerService = require("../../services/customerService");
 
 
-
-
 const customerInfo = async (req,res)=>{
     try {
         let search = "";
@@ -24,7 +22,6 @@ const customerInfo = async (req,res)=>{
         res.redirect("/admin/pageError");
     }
 }
-
 
 
 const customerBlocked = async (req,res)=>{

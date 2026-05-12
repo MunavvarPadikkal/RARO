@@ -79,9 +79,31 @@
                                 </td>
                                 
                                 <td class="action-col">
-                                    <a href="/product/<%= product._id %>" class="btn btn-block btn-outline-primary-2">
-                                        <i class="icon-eye"></i>View Product
-                                    </a>
+                                    <% if (isOutOfStock) { %>
+                                        <button class="btn btn-block btn-outline-primary-2 disabled" disabled>
+                                            <i class="icon-close"></i>Out of Stock
+                                        </button>
+                                    <% } else if (product.variants && product.variants.length === 1) { %>
+                                        <button class="btn btn-block btn-outline-primary-2 quick-add-btn" 
+                                                data-product-id="<%= product._id %>"
+                                                data-variant-id="<%= product.variants[0]._id %>"
+                                                data-product-name="<%= product.productName %>">
+                                            <i class="icon-cart-plus"></i>Add to Cart
+                                        </button>
+                                    <% } else if (product.variants && product.variants.length > 1) { %>
+                                        <button class="btn btn-block btn-outline-primary-2 select-options-btn" 
+                                                data-product-id="<%= product._id %>"
+                                                data-product-name="<%= product.productName %>"
+                                                data-product-price="<%= effectivePrice %>"
+                                                data-product-image="<%= product.productImage && product.productImage.length > 0 ? '/uploads/productImages/' + product.productImage[0] : '/assets/images/products/table/product-1.jpg' %>"
+                                                data-variants='<%= JSON.stringify(product.variants).replace(/'/g, "&apos;") %>'>
+                                            <i class="icon-cart-plus"></i>Add to Cart
+                                        </button>
+                                    <% } else { %>
+                                        <a href="/product/<%= product._id %>" class="btn btn-block btn-outline-primary-2">
+                                            <i class="icon-eye"></i>View Product
+                                        </a>
+                                    <% } %>
                                 </td>
                                 <td class="remove-col">
                                     <button class="btn-remove remove-wishlist-btn"><i class="icon-close"></i></button>
@@ -113,6 +135,149 @@
     </div><!-- End .page-content -->
 </main><!-- End .main -->
 
+<!-- Variant Selection Modal -->
+<div class="modal fade" id="variantModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
+            <div class="modal-body p-0">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 15px; top: 15px; z-index: 10;">
+                    <span aria-hidden="true"><i class="icon-close"></i></span>
+                </button>
+                <div class="row no-gutters">
+                    <div class="col-md-5">
+                        <img id="modalProductImage" src="" alt="Product" class="img-fluid" style="height: 100%; object-fit: cover; min-height: 250px;">
+                    </div>
+                    <div class="col-md-7 p-4">
+                        <h4 id="modalProductName" class="mb-1" style="font-weight: 600;">Product Name</h4>
+                        <div class="product-price mb-3" style="color: #c96; font-size: 1.8rem; font-weight: 400;">
+                            ₹<span id="modalProductPrice">0</span>
+                        </div>
+
+                        <div class="variant-selection-area">
+                            <div class="form-group mb-3">
+                                <label class="d-block mb-1" style="font-size: 13px; font-weight: 500; color: #333;">Select Color:</label>
+                                <div id="colorOptions" class="d-flex flex-wrap" style="gap: 8px;">
+                                    <!-- Colors dynamically populated -->
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="d-block mb-1" style="font-size: 13px; font-weight: 500; color: #333;">Select Size:</label>
+                                <div id="sizeOptions" class="d-flex flex-wrap" style="gap: 8px;">
+                                    <!-- Sizes dynamically populated -->
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label class="d-block mb-1" style="font-size: 13px; font-weight: 500; color: #333;">Quantity:</label>
+                                <div class="input-spinner">
+                                    <button class="btn-spinner btn-decrement" type="button">
+                                        <i class="icon-minus"></i>
+                                    </button>
+                                    <input type="number" id="modalQuantity" class="qty-input" value="1" min="1" max="5" readonly>
+                                    <button class="btn-spinner btn-increment" type="button">
+                                        <i class="icon-plus"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted d-block mt-1" style="font-size: 10px;">Max 5 units per item</small>
+                                <small id="stockStatus" class="d-block mt-1" style="font-size: 11px;"></small>
+                            </div>
+                        </div>
+
+                        <button id="finalAddToCartBtn" class="btn btn-primary btn-block py-3" style="font-weight: 500; letter-spacing: .05em; border-radius: 4px;">
+                            <i class="icon-cart-plus mr-2"></i>ADD TO CART
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .variant-option {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+        min-width: 40px;
+        text-align: center;
+        background: #fff;
+        color: #666;
+    }
+    .variant-option:hover:not(.disabled) {
+        border-color: #c96;
+        color: #c96;
+    }
+    .variant-option.active {
+        background: #c96;
+        border-color: #c96;
+        color: #fff;
+    }
+    .variant-option.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f4f4f4;
+        text-decoration: line-through;
+    }
+    .btn-outline-primary-2:hover small {
+        color: #fff;
+    }
+    .quick-add-btn:hover, .select-options-btn:hover {
+        background-color: #c96 !important;
+        border-color: #c96 !important;
+        color: #fff !important;
+    }
+
+    /* Standardized Spinner Style */
+    .input-spinner {
+        display: flex;
+        align-items: center;
+        border: 1px solid #dadada;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #fff;
+        width: fit-content;
+    }
+    .btn-spinner {
+        padding: 0.5rem 0.8rem;
+        background: #f9f9f9;
+        border: none;
+        color: #333;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 35px;
+    }
+    .btn-spinner:hover:not(:disabled) {
+        background: #ebebeb;
+    }
+    .qty-input {
+        width: 45px !important;
+        height: 34px !important;
+        text-align: center;
+        border: none !important;
+        border-left: 1px solid #dadada !important;
+        border-right: 1px solid #dadada !important;
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-weight: 500;
+        color: #333;
+        -moz-appearance: textfield;
+    }
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+
 <button id="scroll-top" title="Back to Top">
     <i class="icon-arrow-up"></i>
 </button>
@@ -130,7 +295,223 @@
 
 <script>
     $(document).ready(function() {
-        // Handle wishlist item removal
+        let currentProduct = null;
+        let selectedColor = null;
+        let selectedSize = null;
+        let selectedVariant = null;
+
+        // Handle Quick Add (Single Variant)
+        $('.quick-add-btn').on('click', async function() {
+            const btn = $(this);
+            const productId = btn.data('product-id');
+            const variantId = btn.data('variant-id');
+            const productName = btn.data('product-name');
+
+            // Show loading state
+            const originalHtml = btn.html();
+            btn.html('<i class="icon-refresh rotate-icon"></i> Adding...').prop('disabled', true);
+
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, variantId, quantity: 1 })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update cart count in header if element exists
+                    const cartCountEl = $('.cart-count');
+                    if (cartCountEl.length && data.itemsCount !== undefined) {
+                        cartCountEl.text(data.itemsCount);
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart',
+                        text: `${productName} added successfully!`,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.reload(); // Refresh to remove from wishlist UI
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Notice',
+                        text: data.message || 'Failed to add to cart',
+                        confirmButtonColor: '#c96'
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Something went wrong', 'error');
+            } finally {
+                btn.html(originalHtml).prop('disabled', false);
+            }
+        });
+
+        // Handle Select Options Modal
+        $('.select-options-btn').on('click', function() {
+            const btn = $(this);
+            currentProduct = {
+                id: btn.data('product-id'),
+                name: btn.data('product-name'),
+                price: btn.data('product-price'),
+                image: btn.data('product-image'),
+                variants: btn.data('variants')
+            };
+
+            // Reset selection
+            selectedColor = null;
+            selectedSize = null;
+            selectedVariant = null;
+            $('#modalQuantity').val(1);
+            $('#finalAddToCartBtn').prop('disabled', true);
+
+            // Populate Modal
+            $('#modalProductName').text(currentProduct.name);
+            $('#modalProductPrice').text(currentProduct.price);
+            $('#modalProductImage').attr('src', currentProduct.image);
+            $('#stockStatus').text('');
+
+            // Populate Colors
+            const colors = [...new Set(currentProduct.variants.map(v => v.color))];
+            let colorHtml = '';
+            colors.forEach(color => {
+                colorHtml += `<div class="variant-option color-opt" data-color="${color}">${color}</div>`;
+            });
+            $('#colorOptions').html(colorHtml);
+            $('#sizeOptions').html('<p style="font-size: 11px; color: #999;">Select color first</p>');
+
+            $('#variantModal').modal('show');
+        });
+
+        // Color selection handler
+        $(document).on('click', '.color-opt', function() {
+            if ($(this).hasClass('disabled')) return;
+            
+            $('.color-opt').removeClass('active');
+            $(this).addClass('active');
+            selectedColor = $(this).data('color');
+            selectedSize = null; // Reset size on color change
+            selectedVariant = null;
+            $('#finalAddToCartBtn').prop('disabled', true);
+            $('#modalQuantity').val(1);
+
+            // Populate Sizes for this color
+            const sizes = currentProduct.variants.filter(v => v.color === selectedColor);
+            let sizeHtml = '';
+            sizes.forEach(v => {
+                const isOutOfStock = v.stock <= 0;
+                sizeHtml += `<div class="variant-option size-opt ${isOutOfStock ? 'disabled' : ''}" 
+                                  data-size="${v.size}" 
+                                  data-variant-id="${v._id}"
+                                  data-stock="${v.stock}">${v.size}</div>`;
+            });
+            $('#sizeOptions').html(sizeHtml);
+            $('#stockStatus').text('');
+        });
+
+        // Size selection handler
+        $(document).on('click', '.size-opt', function() {
+            if ($(this).hasClass('disabled')) return;
+
+            $('.size-opt').removeClass('active');
+            $(this).addClass('active');
+            selectedSize = $(this).data('size');
+            const variantId = $(this).data('variant-id');
+            const stock = $(this).data('stock');
+            
+            selectedVariant = currentProduct.variants.find(v => v._id === variantId);
+            
+            $('#stockStatus').text(stock < 5 ? `Only ${stock} left in stock!` : 'In Stock')
+                          .css('color', stock < 5 ? '#ef837b' : '#a6c76c');
+            
+            $('#finalAddToCartBtn').prop('disabled', false);
+            
+            // Adjust max quantity if stock is low
+            $('#modalQuantity').attr('max', Math.min(stock, 5));
+        });
+
+        // Quantity handlers
+        $('.btn-spinner').on('click', function() {
+            const btn = $(this);
+            const input = $('#modalQuantity');
+            const current = parseInt(input.val());
+            const max = parseInt(input.attr('max')) || 5;
+
+            if (btn.hasClass('btn-increment')) {
+                if (current < max) {
+                    input.val(current + 1);
+                } else if (max === 5 && current === 5) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'warning',
+                        title: 'Maximum 5 units allowed per item',
+                        showConfirmButton: false,
+                        timer: 2500
+                    });
+                }
+            } else if (btn.hasClass('btn-decrement')) {
+                if (current > 1) {
+                    input.val(current - 1);
+                }
+            }
+        });
+
+        // Final Add to Cart Submit
+        $('#finalAddToCartBtn').on('click', async function() {
+            if (!selectedVariant) return;
+
+            const btn = $(this);
+            const originalHtml = btn.html();
+            btn.html('<i class="icon-refresh rotate-icon"></i> Adding...').prop('disabled', true);
+
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: currentProduct.id,
+                        variantId: selectedVariant._id,
+                        quantity: parseInt($('#modalQuantity').val())
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    $('#variantModal').modal('hide');
+                    
+                    const cartCountEl = $('.cart-count');
+                    if (cartCountEl.length && data.itemsCount !== undefined) {
+                        cartCountEl.text(data.itemsCount);
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart',
+                        text: `${currentProduct.name} added successfully!`,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to add to cart', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Something went wrong', 'error');
+            } finally {
+                btn.html(originalHtml).prop('disabled', false);
+            }
+        });
+
+        // Handle wishlist item removal (existing logic)
         $('.remove-wishlist-btn').on('click', async function(e) {
             e.preventDefault();
             

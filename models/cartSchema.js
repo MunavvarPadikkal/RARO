@@ -21,6 +21,10 @@ const cartSchema = new Schema({
             type: String,
             required: true,
         },
+        variantId: {
+            type: Schema.Types.ObjectId,
+            required: false,
+        },
         quantity:{
             type:Number,
             default:1,
