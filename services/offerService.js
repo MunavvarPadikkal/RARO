@@ -69,6 +69,7 @@ const syncProductPrices = async (productId = null) => {
             
             // Update only if changed to avoid unnecessary DB writes
             if (product.salePrice !== newSalePrice || product.productOffer !== bestDiscount) {
+                console.log(`Updating price for ${product.productName}: SalePrice ${product.salePrice} -> ${newSalePrice}, Offer ${product.productOffer} -> ${bestDiscount}`);
                 product.salePrice = newSalePrice;
                 product.productOffer = bestDiscount;
                 await product.save();

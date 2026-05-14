@@ -19,7 +19,7 @@ const productStorage = new CloudinaryStorage({
   params: {
     folder: 'ecommerce/products',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 800, height: 800, crop: 'cover' }]
+    transformation: [{ width: 800, height: 800, crop: 'fill' }]
   }
 });
 const productUpload = multer({ 

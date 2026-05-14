@@ -1,5 +1,6 @@
 const productService = require("../../services/productService");
 const categoryService = require("../../services/categoryService");
+const offerService = require("../../services/offerService");
 const cloudinary = require("../../config/cloudinary");
 
 /**
@@ -69,18 +70,22 @@ const addProduct = async (req, res) => {
         const { productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, variants: variantsJSON } = req.body;
 
         // Validation
-        if (!productName || !description || !category || !regularPrice || !salePrice || !color || !variantsJSON) {
+        if (!productName || !description || !category || !regularPrice || !color || !variantsJSON) {
+            console.warn("Validation failed: Missing fields", { productName, category, regularPrice, color });
             return res.status(400).json({ error: "All fields are required" });
         }
 
+        const initialSalePrice = salePrice ? parseFloat(salePrice) : parseFloat(regularPrice);
+
         if (!req.files || req.files.length < 3) {
+            console.warn("Validation failed: Missing images", req.files ? req.files.length : 0);
             return res.status(400).json({ error: "Minimum 3 product images are required" });
         }
 
         // Check duplicate product name
-        const Product = require("../../models/productSchema");
+        const Product = require("../../models/productSchema"); // Keep for local scope consistency or move to top
         const duplicate = await Product.findOne({
-            productName: { $regex: new RegExp("^" + productName.trim() + "$", "i") },
+            productName: { $regex: new RegExp("^" + productName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") },
             isDeleted: false
         });
         if (duplicate) {
@@ -107,26 +112,33 @@ const addProduct = async (req, res) => {
         const productData = {
             productName: productName.trim(),
             description: description.trim(),
-            highlights: highlights ? highlights.split('\n').map(h => h.trim()).filter(h => h.length > 0) : [],
+            highlights: Array.isArray(highlights) ? highlights : (highlights ? highlights.split('\n').map(h => h.trim()).filter(h => h.length > 0) : []),
             additionalInfo: additionalInfo ? additionalInfo.trim() : "",
             category,
             regularPrice: parseFloat(regularPrice),
-            salePrice: parseFloat(salePrice),
-            color: color.split(',').map(c => c.trim()).filter(c => c.length > 0),
+            salePrice: initialSalePrice,
+            color: Array.isArray(color) ? color : color.split(',').map(c => c.trim()).filter(c => c.length > 0),
             variants,
             productImage: imageNames,
             status: totalQty > 0 ? "Available" : "Out of stock",
         };
 
+        console.log("Adding product with data:", JSON.stringify(productData, null, 2));
+
         const addedProduct = await productService.addProduct(productData);
+        console.log("Product saved successfully:", addedProduct._id);
         
-        const offerService = require("../../services/offerService");
-        await offerService.syncProductPrices(addedProduct._id);
+        if (addedProduct && addedProduct._id) {
+            await offerService.syncProductPrices(addedProduct._id);
+        } else {
+            console.error("Product was not saved correctly - addedProduct is null or missing _id");
+            return res.status(500).json({ error: "Failed to save product" });
+        }
 
         return res.json({ success: true, message: "Product added successfully" });
     } catch (error) {
         console.error("Error adding product:", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: error.message || "Internal server error" });
     }
 };
 
@@ -152,16 +164,20 @@ const getEditProduct = async (req, res) => {
 // ── Edit Product POST ──────────────────────────────────────────────────
 const editProduct = async (req, res) => {
     try {
-        const { id, productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, variants: variantsJSON } = req.body;
+        let { id, productName, description, highlights, additionalInfo, category, regularPrice, salePrice, color, variants: variantsJSON } = req.body;
+        id = id.trim();
+        console.log("Starting update for product ID:", id);
 
-        if (!productName || !description || !category || !regularPrice || !salePrice || !color || !variantsJSON) {
+        if (!productName || !description || !category || !regularPrice || !color || !variantsJSON) {
             return res.status(400).json({ error: "All fields are required" });
         }
+
+        const initialSalePrice = salePrice ? parseFloat(salePrice) : parseFloat(regularPrice);
 
         // Check duplicate
         const Product = require("../../models/productSchema");
         const duplicate = await Product.findOne({
-            productName: { $regex: new RegExp("^" + productName.trim() + "$", "i") },
+            productName: { $regex: new RegExp("^" + productName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") },
             _id: { $ne: id },
             isDeleted: false
         });
@@ -186,15 +202,17 @@ const editProduct = async (req, res) => {
         const updateData = {
             productName: productName.trim(),
             description: description.trim(),
-            highlights: highlights ? highlights.split('\n').map(h => h.trim()).filter(h => h.length > 0) : [],
+            highlights: Array.isArray(highlights) ? highlights : (highlights ? highlights.split('\n').map(h => h.trim()).filter(h => h.length > 0) : []),
             additionalInfo: additionalInfo ? additionalInfo.trim() : "",
             category,
             regularPrice: parseFloat(regularPrice),
-            salePrice: parseFloat(salePrice),
-            color: color.split(',').map(c => c.trim()).filter(c => c.length > 0),
+            salePrice: initialSalePrice,
+            color: Array.isArray(color) ? color : color.split(',').map(c => c.trim()).filter(c => c.length > 0),
             variants,
             status: totalQty > 0 ? "Available" : "Out of stock",
         };
+
+        console.log("Updating product with data:", JSON.stringify(updateData, null, 2));
 
         // Handle images to delete
         let imagesToRemove = [];
@@ -243,15 +261,20 @@ const editProduct = async (req, res) => {
             }
         }
 
-        await productService.updateProduct(id, updateData);
+        const updatedProduct = await productService.updateProduct(id, updateData);
+        console.log("Update result from DB:", updatedProduct ? "Success" : "Failed (document not found)");
         
-        const offerService = require("../../services/offerService");
-        await offerService.syncProductPrices(id);
+        if (updatedProduct) {
+            const offerService = require("../../services/offerService");
+            await offerService.syncProductPrices(id);
+        } else {
+            return res.status(404).json({ error: "Product not found or update failed" });
+        }
 
         return res.json({ success: true, message: "Product updated successfully" });
     } catch (error) {
         console.error("Error editing product:", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: error.message || "Internal server error" });
     }
 };
 

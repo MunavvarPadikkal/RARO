@@ -4,7 +4,11 @@ const errorHandler = (err, req, res, next) => {
     const statusCode = err.status || 500;
 
     // Check if the request expects JSON
-    if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+    const isJsonRequest = req.xhr || 
+                         (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                         (req.headers['content-type'] && req.headers['content-type'].includes('application/json'));
+
+    if (isJsonRequest) {
         return res.status(statusCode).json({
             success: false,
             message: err.message || "Internal Server Error"

@@ -26,7 +26,10 @@ const addProduct = async (productData) => {
 };
 
 const updateProduct = async (id, updateData) => {
-    return await Product.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+    console.log(`Executing Mongoose update for ID ${id} with data:`, JSON.stringify(updateData));
+    const result = await Product.findByIdAndUpdate(id, { $set: updateData }, { new: true, returnDocument: 'after' });
+    if (!result) console.warn(`No document found to update for ID ${id}`);
+    return result;
 };
 
 const softDeleteProduct = async (id) => {
@@ -44,7 +47,7 @@ const toggleProductBlock = async (id, isBlocked) => {
 const removeProductImage = async (productId, imageToRemove) => {
     return await Product.findByIdAndUpdate(productId, {
         $pull: { productImage: imageToRemove }
-    }, { new: true });
+    }, { new: true, returnDocument: 'after' });
 };
 
 const getShopProducts = async ({ search, category, sort, page, limit, minPrice, maxPrice, sizes }) => {

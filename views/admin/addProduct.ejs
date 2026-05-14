@@ -68,12 +68,6 @@
                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
                 <span class="text-xs text-red-500 hidden mt-1" id="err-regularPrice"></span>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Offer Price *</label>
-                <input type="number" id="salePrice" name="salePrice" step="0.01" min="1" required
-                       class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none transition-colors">
-                <span class="text-xs text-red-500 hidden mt-1" id="err-salePrice"></span>
-              </div>
             </div>
           </div>
           <div>
@@ -426,7 +420,6 @@
         const category = document.getElementById('category').value;
         const desc = document.getElementById('description').value.trim();
         const regPrice = parseFloat(document.getElementById('regularPrice').value);
-        const salePrice = parseFloat(document.getElementById('salePrice').value);
         const availableColors = getSelectedColors();
 
         // Collect Variants
@@ -467,8 +460,7 @@
         if (name.length < 3) showError('productName', 'Name must be at least 3 characters');
         if (!category) showError('category', 'Category is required');
         if (desc.length < 10) showError('description', 'Description minimum 10 characters');
-        if (regPrice <= 0) showError('regularPrice', 'Invalid price');
-        if (salePrice <= 0 || salePrice > regPrice) showError('salePrice', 'Sale price must be valid and <= regular price');
+        if (isNaN(regPrice) || regPrice <= 0) showError('regularPrice', 'Please enter a valid price');
         if (availableColors.length === 0) showError('availableColors', 'At least one color is required');
         
         if (variants.length === 0) showError('variants', 'At least one variant is required');
@@ -487,7 +479,7 @@
         formData.append('highlights', document.getElementById('highlights').value.trim());
         formData.append('additionalInfo', document.getElementById('additionalInfo').value.trim());
         formData.append('regularPrice', regPrice);
-        formData.append('salePrice', salePrice);
+        formData.append('salePrice', regPrice); // Initial salePrice is same as regularPrice
         formData.append('color', availableColors.join(','));
         formData.append('variants', JSON.stringify(variants));
 
@@ -502,27 +494,38 @@
         try {
             const res = await fetch('/admin/addProduct', {
                 method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                },
                 body: formData
             });
-            const data = await res.json();
+            let data;
+            const text = await res.text();
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error("Non-JSON response:", text);
+                throw new Error(`Server returned non-JSON response (${res.status})`);
+            }
             
             if (res.ok) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
-                    text: data.message,
+                    text: data.message || "Product added successfully",
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
                     window.location.href = '/admin/products';
                 });
             } else {
-                Swal.fire('Error', data.error || 'Failed to add product', 'error');
+                Swal.fire('Error', data.error || data.message || 'Failed to add product', 'error');
                 submitBtn.innerHTML = 'Save Product';
                 submitBtn.disabled = false;
             }
         } catch (err) {
-            Swal.fire('Error', 'Network error occurred', 'error');
+            console.error("Add Product Error:", err);
+            Swal.fire('Error', err.message || 'Network error occurred', 'error');
             submitBtn.innerHTML = 'Save Product';
             submitBtn.disabled = false;
         }

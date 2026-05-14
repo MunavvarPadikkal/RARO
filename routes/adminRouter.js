@@ -47,7 +47,15 @@ router.post("/removeCategoryOffer", adminAuth.isLogin, categoryController.remove
 // Product Management
 router.get("/products", adminAuth.isLogin, productController.getProducts);
 router.get("/addProduct", adminAuth.isLogin, productController.getAddProduct);
-router.post("/addProduct", adminAuth.isLogin, productUpload.array("productImages", 4), productController.addProduct);
+router.post("/addProduct", adminAuth.isLogin, (req, res, next) => {
+    productUpload.array("productImages", 4)(req, res, (err) => {
+        if (err) {
+            console.error("Multer error during product upload:", err);
+            return res.status(400).json({ error: err.message || "Error uploading images" });
+        }
+        next();
+    });
+}, productController.addProduct);
 router.get("/editProduct", adminAuth.isLogin, productController.getEditProduct);
 router.post("/editProduct", adminAuth.isLogin, productUpload.array("productImages", 4), productController.editProduct);
 router.post("/deleteProduct", adminAuth.isLogin, productController.deleteProduct);
