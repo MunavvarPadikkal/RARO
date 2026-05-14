@@ -68,7 +68,7 @@
                 <div class="flex items-center gap-4">
                   <div class="w-14 h-14 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
                     <% if (item.productImage) { %>
-                      <img src="/uploads/productImages/<%= item.productImage %>" alt="<%= item.productName %>" class="w-full h-full object-cover">
+                      <img src="<%= item.productImage %>" alt="<%= item.productName %>" class="w-full h-full object-cover">
                     <% } else { %>
                       <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400"><i class="fa-solid fa-image"></i></div>
                     <% } %>

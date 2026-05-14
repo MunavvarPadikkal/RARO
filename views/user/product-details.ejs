@@ -32,7 +32,7 @@
                                 <div class="product-gallery product-gallery-vertical">
                                     <div class="row">
                                         <figure class="product-main-image">
-                                            <img id="product-zoom" src="/uploads/productImages/<%= product.productImage[0] %>" data-zoom-image="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                                            <img id="product-zoom" src="<%= product.productImage[0] %>" data-zoom-image="<%= product.productImage[0] %>" alt="<%= product.productName %>">
 
                                             <a href="#" id="btn-product-gallery" class="btn-product-gallery">
                                                 <i class="icon-arrows"></i>
@@ -41,8 +41,8 @@
 
                                         <div id="product-zoom-gallery" class="product-image-gallery">
                                             <% product.productImage.forEach((img, index) => { %>
-                                                <a class="product-gallery-item <%= index === 0 ? 'active' : '' %>" href="#" data-image="/uploads/productImages/<%= img %>" data-zoom-image="/uploads/productImages/<%= img %>">
-                                                    <img src="/uploads/productImages/<%= img %>" alt="<%= product.productName %> view <%= index+1 %>">
+                                                <a class="product-gallery-item <%= index === 0 ? 'active' : '' %>" href="#" data-image="<%= img %>" data-zoom-image="<%= img %>">
+                                                    <img src="<%= img %>" alt="<%= product.productName %> view <%= index+1 %>">
                                                 </a>
                                             <% }) %>
                                         </div><!-- End .product-image-gallery -->
@@ -283,7 +283,7 @@
                                         <% } %>
                                         <a href="/product/<%= rel._id %>">
                                             <% if (rel.productImage && rel.productImage.length > 0) { %>
-                                                <img src="/uploads/productImages/<%= rel.productImage[0] %>" alt="<%= rel.productName %>" class="product-image">
+                                                <img src="<%= rel.productImage[0] %>" alt="<%= rel.productName %>" class="product-image">
                                             <% } else { %>
                                                 <img src="/assets/images/products/product-4.jpg" alt="No image" class="product-image">
                                             <% } %>

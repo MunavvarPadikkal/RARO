@@ -9,7 +9,7 @@ const adminOrderController = require("../controllers/admin/adminOrderController"
 const couponController = require("../controllers/admin/couponController");
 const offerController = require("../controllers/admin/offerController");
 const bannerController = require("../controllers/admin/bannerController");
-const { productUpload, bannerUpload } = require("../middlewares/multer");
+const { productUpload, bannerUpload } = require("../middlewares/upload");
 
 
 router.get("/pageError", adminController.pageError);

@@ -441,7 +441,7 @@
                 <div class="carousel-inner">
                     <% banners.forEach((banner, idx) => { %>
                     <div class="carousel-item <%= idx === 0 ? 'active' : '' %>">
-                        <img src="/uploads/bannerImages/<%= banner.imageUrl %>" alt="<%= banner.title %>" loading="<%= idx === 0 ? 'eager' : 'lazy' %>">
+                        <img src="<%= banner.imageUrl %>" alt="<%= banner.title %>" loading="<%= idx === 0 ? 'eager' : 'lazy' %>">
                         <div class="banner-overlay">
                             <div class="container">
                                 <% if (banner.subtitle) { %>
@@ -523,9 +523,9 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                             <% if(product.productImage[1]) { %>
-                                                <img src="/uploads/productImages/<%= product.productImage[1] %>" alt="<%= product.productName %>" class="product-image-hover">
+                                                <img src="<%= product.productImage[1] %>" alt="<%= product.productName %>" class="product-image-hover">
                                             <% } %>
                                         </a>
                                         <div class="product-action-vertical">
@@ -554,7 +554,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                         <div class="product-action-vertical">
                                             <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
@@ -584,7 +584,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                         <div class="product-action-vertical">
                                             <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
@@ -614,7 +614,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                         <div class="product-action-vertical">
                                             <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
@@ -644,7 +644,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                         <div class="product-action-vertical">
                                             <a href="#" class="btn-product-icon btn-wishlist btn-add-wishlist <%= wishlistProductIds.includes(product._id.toString()) ? 'in-wishlist' : '' %>" data-product-id="<%= product._id %>" title="Add to wishlist"><span>add to wishlist</span></a>
@@ -780,9 +780,9 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                             <% if(product.productImage[1]) { %>
-                                                <img src="/uploads/productImages/<%= product.productImage[1] %>" alt="<%= product.productName %>" class="product-image-hover">
+                                                <img src="<%= product.productImage[1] %>" alt="<%= product.productName %>" class="product-image-hover">
                                             <% } %>
                                         </a>
                                         <div class="product-action-vertical">
@@ -811,7 +811,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                     </figure>
                                     <div class="product-body">
@@ -838,7 +838,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                     </figure>
                                     <div class="product-body">
@@ -865,7 +865,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                     </figure>
                                     <div class="product-body">
@@ -892,7 +892,7 @@
                                 <div class="product product-11 text-center">
                                     <figure class="product-media">
                                         <a href="/product/<%= product._id %>">
-                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                         </a>
                                     </figure>
                                     <div class="product-body">

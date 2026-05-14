@@ -54,7 +54,7 @@
                                 <p class="text-[11px] text-gray-400 mt-1">JPG, PNG or WebP • Max 5MB • Image will be cropped</p>
                             </div>
                             <div id="imagePreviewContainer">
-                                <img id="imagePreview" src="/uploads/bannerImages/<%= banner.imageUrl %>" alt="<%= banner.title %>" class="mx-auto max-h-56 rounded-xl object-contain">
+                                <img id="imagePreview" src="<%= banner.imageUrl %>" alt="<%= banner.title %>" class="mx-auto max-h-56 rounded-xl object-contain">
                                 <p class="text-[11px] text-gray-400 mt-2">Click to replace with a new image</p>
                             </div>
                         </div>
@@ -129,7 +129,7 @@
                         <div class="w-full bg-gray-50 rounded-2xl border border-gray-100 p-4">
                             <p class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Preview</p>
                             <div class="bg-gray-200 rounded-xl h-20 overflow-hidden relative">
-                                <img id="miniPreviewImg" src="/uploads/bannerImages/<%= banner.imageUrl %>" alt="" class="w-full h-full object-cover">
+                                <img id="miniPreviewImg" src="<%= banner.imageUrl %>" alt="" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 flex items-center justify-center">
                                     <p class="text-[10px] text-gray-400 hidden" id="miniPreviewPlaceholder">Image preview</p>
                                 </div>

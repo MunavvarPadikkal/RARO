@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-  "start": "node app.js",
-  "dev": "nodemon app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^1.41.3",
     "dotenv": "^17.3.1",
     "ejs": "^4.0.1",
     "exceljs": "^4.4.0",
@@ -20,6 +21,7 @@
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.1",
     "multer": "^2.1.1",
+    "multer-storage-cloudinary": "^4.0.0",
     "nocache": "^4.0.0",
     "nodemailer": "^8.0.1",
     "nodemon": "^3.1.11",

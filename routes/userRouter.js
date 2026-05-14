@@ -9,7 +9,7 @@ const wishlistController = require("../controllers/user/wishlistController");
 const couponController = require("../controllers/user/couponController");
 const passport = require("passport");
 const userAuth = require("../middlewares/userAuth");
-const { upload } = require("../middlewares/multer");
+const { upload } = require("../middlewares/upload");
 
 router.get("/pageNotFound", userController.pageNotFound);
 router.get("/", userAuth.checkBlockedStatus,userController.loadHomepage)

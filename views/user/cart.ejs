@@ -120,7 +120,7 @@
                                                     <figure class="product-media">
                                                         <a href="/product/<%= product._id %>">
                                                             <% if (product.productImage && product.productImage.length > 0) { %>
-                                                                <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                                                                <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
                                                             <% } else { %>
                                                                 <img src="/assets/images/products/table/product-1.jpg" alt="No image">
                                                             <% } %>

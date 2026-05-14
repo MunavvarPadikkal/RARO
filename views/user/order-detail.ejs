@@ -124,7 +124,7 @@
                                         <div class="d-flex align-items-center" style="gap: 14px; padding: 14px; border: 1px solid #f0f0f0; border-radius: 10px; margin-bottom: 10px; background: #fafafa;">
                                             <div style="width: 70px; height: 70px; border-radius: 10px; overflow: hidden; border: 1px solid #eee; flex-shrink: 0;">
                                                 <% if (item.productImage) { %>
-                                                    <img src="/uploads/productImages/<%= item.productImage %>" alt="<%= item.productName %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                                    <img src="<%= item.productImage %>" alt="<%= item.productName %>" style="width: 100%; height: 100%; object-fit: cover;">
                                                 <% } else { %>
                                                     <div style="width: 100%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 24px;">📦</div>
                                                 <% } %>

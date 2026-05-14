@@ -1,28 +1,30 @@
 const productService = require("../../services/productService");
 const categoryService = require("../../services/categoryService");
-const sharp = require("sharp");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("../../config/cloudinary");
 
-const PRODUCT_IMG_DIR = path.join(__dirname, "../../public/uploads/productImages");
-
-
-// ── Helper: process uploaded images with sharp ─────────────────────────
-async function processImages(files) {
-    const processedNames = [];
-    for (const file of files) {
-        const outputName = `product-${Date.now()}-${Math.round(Math.random() * 1E9)}.webp`;
-        const outputPath = path.join(PRODUCT_IMG_DIR, outputName);
-        await sharp(file.path)
-            .resize(800, 800, { fit: "cover" })
-            .webp({ quality: 85 })
-            .toFile(outputPath);
-        // Remove original uploaded file
-        fs.unlink(file.path, () => {});
-        processedNames.push(outputName);
+/**
+ * Helper to extract Cloudinary public_id from a secure URL
+ * @param {string} url - The Cloudinary secure URL
+ * @returns {string|null}
+ */
+const getPublicIdFromUrl = (url) => {
+    if (!url) return null;
+    try {
+        // Example: https://res.cloudinary.com/cloud_name/image/upload/v1234567/ecommerce/products/abc.jpg
+        // public_id would be 'ecommerce/products/abc'
+        const parts = url.split('/');
+        const uploadIndex = parts.indexOf('upload');
+        if (uploadIndex === -1) return null;
+        
+        // Skip 'upload' and version (starts with 'v')
+        const startIndex = parts[uploadIndex + 1].startsWith('v') ? uploadIndex + 2 : uploadIndex + 1;
+        const publicIdWithExt = parts.slice(startIndex).join('/');
+        return publicIdWithExt.split('.')[0];
+    } catch (error) {
+        console.error("Error extracting public_id:", error);
+        return null;
     }
-    return processedNames;
-}
+};
 
 
 // ── List Products Page ─────────────────────────────────────────────────
@@ -85,8 +87,8 @@ const addProduct = async (req, res) => {
             return res.status(409).json({ error: "Product with this name already exists" });
         }
 
-        // Process images with sharp
-        const imageNames = await processImages(req.files);
+        // Use Cloudinary secure URLs
+        const imageNames = req.files.map(file => file.path);
 
         const variants = JSON.parse(variantsJSON);
         
@@ -220,18 +222,18 @@ const editProduct = async (req, res) => {
 
         // Perform deletions
         if (imagesToRemove.length > 0) {
-            for (const imgName of imagesToRemove) {
-                const imgPath = path.join(PRODUCT_IMG_DIR, imgName);
-                if (fs.existsSync(imgPath)) {
-                    fs.unlinkSync(imgPath);
+            for (const imgUrl of imagesToRemove) {
+                const publicId = getPublicIdFromUrl(imgUrl);
+                if (publicId) {
+                    await cloudinary.uploader.destroy(publicId);
                 }
-                await productService.removeProductImage(id, imgName);
+                await productService.removeProductImage(id, imgUrl);
             }
         }
 
         // Process new images if uploaded
         if (req.files && req.files.length > 0) {
-            const newImages = await processImages(req.files);
+            const newImages = req.files.map(file => file.path);
             // Re-fetch to get updated images after deletions
             const updatedProduct = await productService.getProductById(id);
             if (updatedProduct) {
@@ -315,10 +317,10 @@ const deleteProductImage = async (req, res) => {
             return res.status(400).json({ error: "Product must have at least 3 images" });
         }
 
-        // Remove file from disk
-        const imgPath = path.join(PRODUCT_IMG_DIR, imageName);
-        if (fs.existsSync(imgPath)) {
-            fs.unlinkSync(imgPath);
+        // Remove from Cloudinary
+        const publicId = getPublicIdFromUrl(imageName);
+        if (publicId) {
+            await cloudinary.uploader.destroy(publicId);
         }
 
         await productService.removeProductImage(productId, imageName);

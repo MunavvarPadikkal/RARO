@@ -1,6 +1,22 @@
 const Banner = require("../../models/bannerSchema");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("../../config/cloudinary");
+
+/**
+ * Helper to extract Cloudinary public_id from a secure URL
+ */
+const getPublicIdFromUrl = (url) => {
+    if (!url || !url.startsWith('http')) return null;
+    try {
+        const parts = url.split('/');
+        const uploadIndex = parts.indexOf('upload');
+        if (uploadIndex === -1) return null;
+        const startIndex = parts[uploadIndex + 1].startsWith('v') ? uploadIndex + 2 : uploadIndex + 1;
+        const publicIdWithExt = parts.slice(startIndex).join('/');
+        return publicIdWithExt.split('.')[0];
+    } catch (error) {
+        return null;
+    }
+};
 
 /**
  * GET /admin/banners
@@ -96,7 +112,7 @@ const addBanner = async (req, res) => {
             title: title.trim(),
             subtitle: subtitle ? subtitle.trim() : "",
             description: description ? description.trim() : "",
-            imageUrl: req.file.filename,
+            imageUrl: req.file.path, // Cloudinary secure URL
             buttonText: buttonText ? buttonText.trim() : "Shop Now",
             buttonLink: buttonLink ? buttonLink.trim() : "/shop",
             priority: priority ? parseInt(priority) : 0,
@@ -181,12 +197,12 @@ const editBanner = async (req, res) => {
 
         // Update image if new one uploaded
         if (req.file) {
-            // Delete old image file
-            const oldImagePath = path.join(__dirname, "../../public/uploads/bannerImages", banner.imageUrl);
-            if (fs.existsSync(oldImagePath)) {
-                fs.unlinkSync(oldImagePath);
+            // Delete old image from Cloudinary
+            const publicId = getPublicIdFromUrl(banner.imageUrl);
+            if (publicId) {
+                await cloudinary.uploader.destroy(publicId);
             }
-            banner.imageUrl = req.file.filename;
+            banner.imageUrl = req.file.path;
         }
 
         await banner.save();
@@ -234,6 +250,13 @@ const deleteBanner = async (req, res) => {
 
         banner.isDeleted = true;
         banner.isActive = false;
+
+        // Delete image from Cloudinary as requested
+        const publicId = getPublicIdFromUrl(banner.imageUrl);
+        if (publicId) {
+            await cloudinary.uploader.destroy(publicId);
+        }
+
         await banner.save();
 
         res.json({ success: true, message: "Banner deleted successfully." });

@@ -184,7 +184,7 @@
             <div class="flex flex-wrap gap-4 mb-4" id="existingImageContainer">
                 <% product.productImage.forEach(img => { %>
                     <div class="relative w-32 h-32 rounded-xl border border-gray-200 overflow-hidden shadow-sm group" id="existing-<%= img %>">
-                        <img src="/uploads/productImages/<%= img %>" class="w-full h-full object-cover">
+                        <img src="<%= img %>" class="w-full h-full object-cover">
                         <button type="button" 
                                 data-image-name="<%= img %>"
                                 class="delete-existing-btn absolute top-1 right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center text-red-500 shadow hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">

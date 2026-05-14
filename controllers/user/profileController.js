@@ -45,7 +45,7 @@ const updateProfilePhoto = async (req, res) => {
             return res.status(400).json({ success: false, message: "No image provided" });
         }
 
-        const imagePath = `/uploads/profileImages/${req.file.filename}`;
+        const imagePath = req.file.path; // Cloudinary secure URL
         await profileService.updateUserPhoto(userId, imagePath);
 
         res.json({ success: true, imagePath: imagePath, message: "Profile photo updated successfully" });

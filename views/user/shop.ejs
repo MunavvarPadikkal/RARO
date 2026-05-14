@@ -129,7 +129,7 @@
                                                             <% } %>
                                                             <a href="/product/<%= product._id %>">
                                                                 <% if (product.productImage && product.productImage.length > 0) { %>
-                                                                    <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                                                    <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                                                 <% } else { %>
                                                                     <img src="assets/images/products/product-4.jpg" alt="No image" class="product-image">
                                                                 <% } %>
@@ -170,7 +170,7 @@
                                                                 <% if (product.productImage && product.productImage.length > 0) { %>
                                                                     <% product.productImage.slice(0,3).forEach((img, i) => { %>
                                                                         <a href="#" class="<%= i === 0 ? 'active' : '' %>">
-                                                                            <img src="/uploads/productImages/<%= img %>" alt="<%= product.productName %>">
+                                                                            <img src="<%= img %>" alt="<%= product.productName %>">
                                                                         </a>
                                                                     <% }) %>
                                                                 <% } %>
@@ -204,7 +204,7 @@
 
                                                     <a href="/product/<%= product._id %>">
                                                         <% if (product.productImage && product.productImage.length > 0) { %>
-                                                            <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                                            <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
                                                         <% } else { %>
                                                             <img src="assets/images/products/product-4.jpg" alt="No image" class="product-image">
                                                         <% } %>
@@ -237,7 +237,7 @@
                                                         <% if (product.productImage && product.productImage.length > 0) { %>
                                                             <% product.productImage.slice(0,3).forEach((img, i) => { %>
                                                                 <a href="#" class="<%= i === 0 ? 'active' : '' %>">
-                                                                    <img src="/uploads/productImages/<%= img %>" alt="<%= product.productName %>">
+                                                                    <img src="<%= img %>" alt="<%= product.productName %>">
                                                                 </a>
                                                             <% }) %>
                                                         <% } %>

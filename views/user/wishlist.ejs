@@ -53,7 +53,7 @@
                                         <figure class="product-media">
                                             <a href="/product/<%= product._id %>">
                                                 <% if (product.productImage && product.productImage.length > 0) { %>
-                                                    <img src="/uploads/productImages/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                                                    <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
                                                 <% } else { %>
                                                     <img src="/assets/images/products/table/product-1.jpg" alt="No image">
                                                 <% } %>
@@ -95,7 +95,7 @@
                                                 data-product-id="<%= product._id %>"
                                                 data-product-name="<%= product.productName %>"
                                                 data-product-price="<%= effectivePrice %>"
-                                                data-product-image="<%= product.productImage && product.productImage.length > 0 ? '/uploads/productImages/' + product.productImage[0] : '/assets/images/products/table/product-1.jpg' %>"
+                                                data-product-image="<%= product.productImage && product.productImage.length > 0 ? product.productImage[0] : '/assets/images/products/table/product-1.jpg' %>"
                                                 data-variants='<%= JSON.stringify(product.variants).replace(/'/g, "&apos;") %>'>
                                             <i class="icon-cart-plus"></i>Add to Cart
                                         </button>
